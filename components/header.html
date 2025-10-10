@@ -1,0 +1,68 @@
+<!-- Header Component -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+    <div class="container-fluid">
+        <!-- Brand -->
+        <a class="navbar-brand d-flex align-items-center" href="index.html">
+            <i class="fas fa-link me-2 text-primary"></i>
+            <span class="fw-bold d-none d-sm-inline">Quick Link System</span>
+            <span class="fw-bold d-sm-none">QLS</span>
+        </a>
+
+        <!-- Mobile Sidebar Toggle -->
+        <button class="btn btn-outline-primary d-md-none me-2" onclick="toggleSidebar()" title="فتح القائمة الجانبية">
+            <i class="fas fa-bars"></i>
+        </button>
+
+        <!-- Navigation -->
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link active" href="index.html">
+                        <i class="fas fa-home me-1"></i>
+                        الرئيسية
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="create-request.html">
+                        <i class="fas fa-plus-circle me-1"></i>
+                        طلب جديد
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="requests.html">
+                        <i class="fas fa-list me-1"></i>
+                        الطلبات
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="customers.html">
+                        <i class="fas fa-users me-1"></i>
+                        العملاء
+                    </a>
+                </li>
+            </ul>
+
+            <!-- User Menu -->
+            <div class="navbar-nav">
+                <div class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
+                        <img src="https://via.placeholder.com/32x32/40abdf/ffffff?text=U" class="rounded-circle me-2" width="32" height="32">
+                        <span>أحمد محمد</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="profile.html">
+                            <i class="fas fa-user me-2"></i>الملف الشخصي
+                        </a></li>
+                        <li><a class="dropdown-item" href="settings.html">
+                            <i class="fas fa-cog me-2"></i>الإعدادات
+                        </a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="login.html">
+                            <i class="fas fa-sign-out-alt me-2"></i>تسجيل الخروج
+                        </a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
