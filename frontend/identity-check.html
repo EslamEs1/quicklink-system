@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>كشف التعارضات - Quick Link System</title>
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/bootstrap.rtl.min.css">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="assets/css/custom.css">
+</head>
+<body>
+    <!-- Header -->
+    <div id="header-placeholder"></div>
+
+    <!-- Sidebar -->
+    <div id="sidebar-placeholder"></div>
+
+    <!-- Main Content -->
+    <div class="main-content-wrapper">
+        <main class="main-content">
+            <!-- رأس الصفحة -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="page-title mb-2">
+                        <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                        كشف تعارضات الهوية
+                    </h2>
+                    <p class="page-subtitle text-muted">رصد الأسماء المتطابقة مع أرقام هوية مختلفة</p>
+                </div>
+                <div>
+                    <a href="customers.html" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-right me-1"></i>
+                        رجوع للعملاء
+                    </a>
+                </div>
+            </div>
+
+            <!-- تنبيه مهم -->
+            <div class="alert alert-danger mb-4">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>تحذير أمني:</strong> تم اكتشاف <strong id="conflictCount">3</strong> حالة تعارض محتملة. يرجى المراجعة الفورية للتأكد من صحة البيانات.
+            </div>
+
+            <!-- إحصائيات التعارضات -->
+            <div class="row mb-4">
+                <div class="col-md-4 mb-3">
+                    <div class="card stats-card border-danger">
+                        <div class="card-body text-center">
+                            <i class="fas fa-user-times icon-large text-danger"></i>
+                            <div class="stats-number text-danger">3</div>
+                            <div class="stats-label">تعارضات نشطة</div>
+                            <small class="text-muted">تحتاج مراجعة</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card stats-card border-warning">
+                        <div class="card-body text-center">
+                            <i class="fas fa-clock icon-large text-warning"></i>
+                            <div class="stats-number text-warning">2</div>
+                            <div class="stats-label">قيد المراجعة</div>
+                            <small class="text-muted">تحت التحقيق</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card stats-card border-success">
+                        <div class="card-body text-center">
+                            <i class="fas fa-check-circle icon-large text-success"></i>
+                            <div class="stats-number text-success">15</div>
+                            <div class="stats-label">تم حلها</div>
+                            <small class="text-muted">محلولة سابقاً</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- فلاتر البحث -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-filter text-primary me-2"></i>
+                        فلترة التعارضات
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">البحث بالاسم</label>
+                            <input type="text" class="form-control" id="searchName" placeholder="ابحث عن اسم العميل...">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">حالة التعارض</label>
+                            <select class="form-control" id="statusFilter">
+                                <option value="all">جميع الحالات</option>
+                                <option value="active" selected>تعارضات نشطة</option>
+                                <option value="review">قيد المراجعة</option>
+                                <option value="resolved">تم حلها</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">ترتيب حسب</label>
+                            <select class="form-control" id="sortBy">
+                                <option value="recent">الأحدث</option>
+                                <option value="oldest">الأقدم</option>
+                                <option value="requests">عدد الطلبات</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        <button class="btn btn-outline-secondary" onclick="clearFilters()">
+                            <i class="fas fa-times me-1"></i>
+                            مسح الفلاتر
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- جدول التعارضات -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-table text-primary me-2"></i>
+                        قائمة التعارضات المكتشفة
+                    </h5>
+                    <button class="btn btn-sm btn-primary" onclick="exportConflicts()">
+                        <i class="fas fa-file-export me-1"></i>
+                        تصدير التقرير
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="conflictsTable">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>الاسم المتطابق</th>
+                                    <th>رقم الهوية (1)</th>
+                                    <th>رقم الهوية (2)</th>
+                                    <th>عدد الطلبات (1)</th>
+                                    <th>عدد الطلبات (2)</th>
+                                    <th>تاريخ الاكتشاف</th>
+                                    <th>الحالة</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- تعارض 1 -->
+                                <tr class="table-danger">
+                                    <td>1</td>
+                                    <td>
+                                        <strong class="text-danger">
+                                            <i class="fas fa-exclamation-triangle me-1"></i>
+                                            أحمد محمد علي
+                                        </strong>
+                                    </td>
+                                    <td>
+                                        <code>784-1234-5678901-2</code>
+                                    </td>
+                                    <td>
+                                        <code>784-9876-5432109-8</code>
+                                    </td>
+                                    <td><span class="badge bg-primary">5 طلبات</span></td>
+                                    <td><span class="badge bg-primary">3 طلبات</span></td>
+                                    <td>2025-01-10</td>
+                                    <td>
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-exclamation-circle me-1"></i>
+                                            نشط
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-sm btn-outline-primary" onclick="viewCustomer(1)" title="مراجعة العميل الأول">
+                                                <i class="fas fa-user"></i> 1
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-primary" onclick="viewCustomer(2)" title="مراجعة العميل الثاني">
+                                                <i class="fas fa-user"></i> 2
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-success" onclick="resolveConflict(1)" title="حل التعارض">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- تعارض 2 -->
+                                <tr class="table-danger">
+                                    <td>2</td>
+                                    <td>
+                                        <strong class="text-danger">
+                                            <i class="fas fa-exclamation-triangle me-1"></i>
+                                            فاطمة عبدالله السعد
+                                        </strong>
+                                    </td>
+                                    <td>
+                                        <code>784-2468-1357902-4</code>
+                                    </td>
+                                    <td>
+                                        <code>784-1357-2468024-6</code>
+                                    </td>
+                                    <td><span class="badge bg-primary">7 طلبات</span></td>
+                                    <td><span class="badge bg-primary">2 طلبات</span></td>
+                                    <td>2025-01-12</td>
+                                    <td>
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-exclamation-circle me-1"></i>
+                                            نشط
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-sm btn-outline-primary" onclick="viewCustomer(3)" title="مراجعة العميل الأول">
+                                                <i class="fas fa-user"></i> 1
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-primary" onclick="viewCustomer(4)" title="مراجعة العميل الثاني">
+                                                <i class="fas fa-user"></i> 2
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-success" onclick="resolveConflict(2)" title="حل التعارض">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- تعارض 3 -->
+                                <tr class="table-danger">
+                                    <td>3</td>
+                                    <td>
+                                        <strong class="text-danger">
+                                            <i class="fas fa-exclamation-triangle me-1"></i>
+                                            محمد سالم أحمد
+                                        </strong>
+                                    </td>
+                                    <td>
+                                        <code>784-5555-4444333-2</code>
+                                    </td>
+                                    <td>
+                                        <code>784-3333-4444555-6</code>
+                                    </td>
+                                    <td><span class="badge bg-primary">4 طلبات</span></td>
+                                    <td><span class="badge bg-primary">6 طلبات</span></td>
+                                    <td>2025-01-14</td>
+                                    <td>
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-exclamation-circle me-1"></i>
+                                            نشط
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-sm btn-outline-primary" onclick="viewCustomer(5)" title="مراجعة العميل الأول">
+                                                <i class="fas fa-user"></i> 1
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-primary" onclick="viewCustomer(6)" title="مراجعة العميل الثاني">
+                                                <i class="fas fa-user"></i> 2
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-success" onclick="resolveConflict(3)" title="حل التعارض">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- تعارض قيد المراجعة -->
+                                <tr class="table-warning">
+                                    <td>4</td>
+                                    <td>
+                                        <strong class="text-warning">
+                                            <i class="fas fa-clock me-1"></i>
+                                            سارة محمد حسن
+                                        </strong>
+                                    </td>
+                                    <td>
+                                        <code>784-7777-8888999-0</code>
+                                    </td>
+                                    <td>
+                                        <code>784-9999-8888777-1</code>
+                                    </td>
+                                    <td><span class="badge bg-primary">3 طلبات</span></td>
+                                    <td><span class="badge bg-primary">1 طلب</span></td>
+                                    <td>2025-01-08</td>
+                                    <td>
+                                        <span class="badge bg-warning">
+                                            <i class="fas fa-search me-1"></i>
+                                            قيد المراجعة
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-sm btn-outline-primary" onclick="viewCustomer(7)" title="مراجعة العميل الأول">
+                                                <i class="fas fa-user"></i> 1
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-primary" onclick="viewCustomer(8)" title="مراجعة العميل الثاني">
+                                                <i class="fas fa-user"></i> 2
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-info" onclick="viewReviewDetails(4)" title="تفاصيل المراجعة">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- تعارض محلول -->
+                                <tr class="table-success">
+                                    <td>5</td>
+                                    <td>
+                                        <strong class="text-success">
+                                            <i class="fas fa-check-circle me-1"></i>
+                                            علي حسن محمود
+                                        </strong>
+                                    </td>
+                                    <td>
+                                        <code>784-1111-2222333-4</code>
+                                    </td>
+                                    <td>
+                                        <code>784-3333-2222111-5</code>
+                                    </td>
+                                    <td><span class="badge bg-primary">8 طلبات</span></td>
+                                    <td><span class="badge bg-secondary">0 طلب (مدمج)</span></td>
+                                    <td>2025-01-05</td>
+                                    <td>
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check-double me-1"></i>
+                                            تم حله
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-info" onclick="viewResolution(5)" title="عرض الحل">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- إرشادات المراجعة -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle text-primary me-2"></i>
+                        إرشادات معالجة التعارضات
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-primary"><i class="fas fa-check-circle me-1"></i> خطوات المراجعة:</h6>
+                            <ol>
+                                <li>مراجعة ملف كل عميل على حدة</li>
+                                <li>التحقق من صور الهوية ومطابقتها</li>
+                                <li>مراجعة تاريخ الطلبات وصحتها</li>
+                                <li>التواصل مع العميل للتوضيح إن لزم</li>
+                                <li>دمج الملفات أو الإبلاغ عن احتيال</li>
+                            </ol>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-danger"><i class="fas fa-exclamation-triangle me-1"></i> حالات شائعة:</h6>
+                            <ul>
+                                <li><strong>خطأ إدخال:</strong> نفس الشخص بأخطاء كتابية</li>
+                                <li><strong>تجديد الهوية:</strong> تغيير رقم الهوية الرسمي</li>
+                                <li><strong>تشابه الأسماء:</strong> أشخاص مختلفون بنفس الاسم</li>
+                                <li><strong>احتيال محتمل:</strong> استخدام بيانات مزيفة</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- Footer -->
+        <div class="footer-wrapper">
+            <div id="footer-placeholder"></div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="modal-placeholder"></div>
+
+    <!-- Bootstrap JS -->
+    <script src="assets/js/popper.min.js"></script>
+    <script src="assets/js/bootstrap.min.js"></script>
+    
+    <!-- Custom JS -->
+    <script src="assets/js/custom.js"></script>
+
+    <script>
+        // تحميل المكونات
+        document.addEventListener('DOMContentLoaded', async function() {
+            await Promise.all([
+                fetch('components/header.html').then(r => r.text()).then(html => {
+                    document.getElementById('header-placeholder').innerHTML = html;
+                }),
+                fetch('components/sidebar.html').then(r => r.text()).then(html => {
+                    document.getElementById('sidebar-placeholder').innerHTML = html;
+                }),
+                fetch('components/footer.html').then(r => r.text()).then(html => {
+                    document.getElementById('footer-placeholder').innerHTML = html;
+                }),
+                fetch('components/confirm-modal.html').then(r => r.text()).then(html => {
+                    document.getElementById('modal-placeholder').innerHTML = html;
+                })
+            ]);
+
+            // تفعيل الفلاتر
+            setupFilters();
+        });
+
+        // إعداد الفلاتر
+        function setupFilters() {
+            const searchName = document.getElementById('searchName');
+            const statusFilter = document.getElementById('statusFilter');
+            const sortBy = document.getElementById('sortBy');
+
+            searchName.addEventListener('input', applyFilters);
+            statusFilter.addEventListener('change', applyFilters);
+            sortBy.addEventListener('change', applyFilters);
+        }
+
+        // تطبيق الفلاتر
+        function applyFilters() {
+            // هنا يتم تطبيق الفلاتر على الجدول
+            console.log('تطبيق الفلاتر...');
+        }
+
+        // مسح الفلاتر
+        function clearFilters() {
+            document.getElementById('searchName').value = '';
+            document.getElementById('statusFilter').value = 'all';
+            document.getElementById('sortBy').value = 'recent';
+            applyFilters();
+        }
+
+        // عرض ملف العميل
+        function viewCustomer(id) {
+            window.location.href = `customer-details.html?id=${id}`;
+        }
+
+        // حل التعارض
+        function resolveConflict(conflictId) {
+            showConfirm(
+                'حل تعارض الهوية',
+                'هل قمت بمراجعة ملفي العميلين بشكل كامل؟ اختر الإجراء المناسب في الخطوة التالية.',
+                'warning',
+                function() {
+                    showSuccess('جارٍ فتح نموذج حل التعارض...');
+                }
+            );
+        }
+
+        // عرض تفاصيل المراجعة
+        function viewReviewDetails(conflictId) {
+            showSuccess('جارٍ فتح تفاصيل المراجعة...');
+        }
+
+        // عرض الحل
+        function viewResolution(conflictId) {
+            showSuccess('جارٍ فتح تفاصيل الحل...');
+        }
+
+        // تصدير التقرير
+        function exportConflicts() {
+            showConfirm(
+                'تصدير تقرير التعارضات',
+                'هل تريد تصدير تقرير التعارضات الكامل إلى ملف PDF؟',
+                'primary',
+                function() {
+                    showSuccess('جارٍ تصدير تقرير التعارضات...');
+                }
+            );
+        }
+    </script>
+</body>
+</html>
+

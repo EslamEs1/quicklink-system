@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تعديل الطلب - Quick Link System</title>
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/bootstrap.rtl.min.css">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="assets/css/custom.css">
+</head>
+<body>
+    <!-- Header -->
+    <div id="header-placeholder"></div>
+
+    <!-- Sidebar -->
+    <div id="sidebar-placeholder"></div>
+
+    <!-- Main Content -->
+    <div class="main-content-wrapper">
+        <main class="main-content">
+            <!-- رأس الصفحة -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="page-title mb-2">
+                        <i class="fas fa-edit text-primary me-2"></i>
+                        تعديل الطلب
+                    </h2>
+                    <p class="page-subtitle text-muted">تعديل بيانات الطلب رقم <strong id="requestNumber">QL-2025-001</strong></p>
+                </div>
+                <div>
+                    <button class="btn btn-outline-secondary" onclick="confirmCancel()">
+                        <i class="fas fa-times me-1"></i>
+                        إلغاء
+                    </button>
+                </div>
+            </div>
+
+            <!-- تنبيه سجل التدقيق -->
+            <div class="alert alert-warning mb-4">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>مهم:</strong> جميع التعديلات تُسجَّل تلقائيًا في سجل التدقيق مع بيانات المستخدم والتاريخ والوقت.
+            </div>
+
+            <!-- نموذج التعديل -->
+            <form id="editRequestForm" onsubmit="return saveChanges(event)">
+                
+                <!-- بيانات العميل -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-user text-primary me-2"></i>
+                            بيانات العميل
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">الاسم الكامل للعميل <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="customerName" value="أحمد محمد علي السعيد" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">تأكيد الاسم <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="confirmName" placeholder="أعد كتابة الاسم للتأكيد" required>
+                                <div class="form-text text-danger" id="nameMatchError" style="display: none;">
+                                    <i class="fas fa-exclamation-triangle"></i> الأسماء غير متطابقة!
+                                </div>
+                                <div class="form-text text-success" id="nameMatchSuccess" style="display: none;">
+                                    <i class="fas fa-check-circle"></i> الأسماء متطابقة ✓
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">رقم الهوية الإماراتية <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="emiratesId" value="784-1234-5678901-2" placeholder="784-XXXX-XXXXXXX-X" maxlength="18" required>
+                                <div class="form-text">يجب أن يبدأ بـ 784 ويتكون من 15 رقم</div>
+                                <div class="form-text text-danger" id="idFormatError" style="display: none;">
+                                    <i class="fas fa-exclamation-triangle"></i> تنسيق خاطئ! يجب أن يكون: 784-XXXX-XXXXXXX-X
+                                </div>
+                                <div class="form-text text-success" id="idFormatSuccess" style="display: none;">
+                                    <i class="fas fa-check-circle"></i> تنسيق صحيح ✓
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">رقم الجوال <span class="text-danger">*</span></label>
+                                <input type="tel" class="form-control" id="mobile" value="+971501234567" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">البريد الإلكتروني</label>
+                                <input type="email" class="form-control" id="email" value="ahmed.alsaeed@email.com">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">الإمارة</label>
+                                <select class="form-control" id="emirate">
+                                    <option value="dubai" selected>دبي</option>
+                                    <option value="abudhabi">أبوظبي</option>
+                                    <option value="sharjah">الشارقة</option>
+                                    <option value="ajman">عجمان</option>
+                                    <option value="rak">رأس الخيمة</option>
+                                    <option value="fujairah">الفجيرة</option>
+                                    <option value="uaq">أم القيوين</option>
+                                </select>
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label">العنوان الكامل</label>
+                                <textarea class="form-control" id="address" rows="2">دبي - الخليج التجاري - برج الأعمال - الطابق 15</textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- بيانات الطلب -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-info-circle text-primary me-2"></i>
+                            بيانات الطلب
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">نوع الخدمة <span class="text-danger">*</span></label>
+                                <select class="form-control" id="serviceType" required>
+                                    <option value="">اختر نوع الخدمة</option>
+                                    <option value="paytabs" selected>ربط حساب PayTabs</option>
+                                    <option value="stripe">ربط حساب Stripe</option>
+                                    <option value="paypal">ربط حساب PayPal</option>
+                                    <option value="other">خدمة أخرى</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">نوع التفويض <span class="text-danger">*</span></label>
+                                <select class="form-control" id="authorizationType" required>
+                                    <option value="">اختر نوع التفويض</option>
+                                    <option value="payment-authorization" selected>تفويض دفع إلكتروني</option>
+                                    <option value="general-authorization">تفويض عام</option>
+                                    <option value="special-authorization">تفويض خاص</option>
+                                    <option value="temporary-authorization">تفويض مؤقت</option>
+                                </select>
+                                <div class="form-text text-info">
+                                    <i class="fas fa-info-circle"></i> القوالب المركزية فقط - لا يُسمح بإنشاء قوالب خارجية
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">القالب القانوني <span class="text-danger">*</span></label>
+                                <select class="form-control" id="template" required>
+                                    <option value="">اختر القالب</option>
+                                    <option value="template-2.1" selected>قالب تفويض دفع - الإصدار 2.1</option>
+                                    <option value="template-2.0">قالب تفويض دفع - الإصدار 2.0</option>
+                                    <option value="template-1.5">قالب تفويض عام - الإصدار 1.5</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">الأولوية</label>
+                                <select class="form-control" id="priority">
+                                    <option value="normal" selected>عادية</option>
+                                    <option value="urgent">عاجلة</option>
+                                    <option value="critical">حرجة</option>
+                                </select>
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label">ملاحظات</label>
+                                <textarea class="form-control" id="notes" rows="3">الطلب عاجل - يحتاج معالجة سريعة</textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- معلومات الدفع -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-credit-card text-primary me-2"></i>
+                            معلومات الدفع
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">المبلغ المطلوب <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="amount" value="420" min="0" step="0.01" required>
+                                <div class="form-text">بالدرهم الإماراتي (AED)</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">طريقة الدفع</label>
+                                <select class="form-control" id="paymentMethod">
+                                    <option value="paytabs" selected>PayTabs (الدفع المركزي)</option>
+                                    <option value="cash" disabled>كاش (غير متاح)</option>
+                                    <option value="bank" disabled>تحويل بنكي (غير متاح)</option>
+                                </select>
+                                <div class="form-text text-success">
+                                    <i class="fas fa-check-circle"></i> الدفع المركزي الآمن فقط
+                                </div>
+                            </div>
+                        </div>
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>مهم:</strong> لا يمكن إغلاق الطلب بدون تأكيد الدفع
+                        </div>
+                    </div>
+                </div>
+
+                <!-- المستندات -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-paperclip text-primary me-2"></i>
+                            المستندات المرفقة
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>ملاحظة:</strong> إذا كنت تريد استبدال المستندات، يرجى رفع ملفات جديدة.
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">صورة الهوية (الوجه الأمامي)</label>
+                            <input type="file" class="form-control" id="idFront" accept="image/*">
+                            <div class="form-text">الملف الحالي: emirates_id_front.jpg</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">صورة الهوية (الوجه الخلفي)</label>
+                            <input type="file" class="form-control" id="idBack" accept="image/*">
+                            <div class="form-text">الملف الحالي: emirates_id_back.jpg</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">التفويض القانوني الموقّع</label>
+                            <input type="file" class="form-control" id="authorization" accept=".pdf,.jpg,.png">
+                            <div class="form-text">الملف الحالي: authorization_signed.pdf</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- قائمة التحقق -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-tasks text-primary me-2"></i>
+                            قائمة التحقق
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="checkName" disabled>
+                            <label class="form-check-label" for="checkName">تطابق الأسماء</label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="checkId" disabled>
+                            <label class="form-check-label" for="checkId">صحة رقم الهوية (784-XXXX-XXXXXXX-X)</label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="checkTemplate" disabled>
+                            <label class="form-check-label" for="checkTemplate">اختيار القالب القانوني</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="checkData" disabled>
+                            <label class="form-check-label" for="checkData">اكتمال جميع البيانات الإجبارية</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- أزرار الحفظ والإلغاء -->
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <button type="submit" class="btn btn-success btn-lg w-100" id="saveBtn" disabled>
+                                    <i class="fas fa-save me-2"></i>
+                                    حفظ التعديلات
+                                </button>
+                                <small class="text-muted d-block mt-2 text-center">يجب إكمال جميع عناصر التحقق أولاً</small>
+                            </div>
+                            <div class="col-md-6">
+                                <button type="button" class="btn btn-outline-danger btn-lg w-100" onclick="confirmCancel()">
+                                    <i class="fas fa-times me-2"></i>
+                                    إلغاء التعديلات
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </form>
+
+        </main>
+
+        <!-- Footer -->
+        <div class="footer-wrapper">
+            <div id="footer-placeholder"></div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="modal-placeholder"></div>
+
+    <!-- Bootstrap JS -->
+    <script src="assets/js/popper.min.js"></script>
+    <script src="assets/js/bootstrap.min.js"></script>
+    
+    <!-- Custom JS -->
+    <script src="assets/js/custom.js"></script>
+
+    <script>
+        // تحميل المكونات
+        document.addEventListener('DOMContentLoaded', async function() {
+            await Promise.all([
+                fetch('components/header.html').then(r => r.text()).then(html => {
+                    document.getElementById('header-placeholder').innerHTML = html;
+                }),
+                fetch('components/sidebar.html').then(r => r.text()).then(html => {
+                    document.getElementById('sidebar-placeholder').innerHTML = html;
+                }),
+                fetch('components/footer.html').then(r => r.text()).then(html => {
+                    document.getElementById('footer-placeholder').innerHTML = html;
+                }),
+                fetch('components/confirm-modal.html').then(r => r.text()).then(html => {
+                    document.getElementById('modal-placeholder').innerHTML = html;
+                })
+            ]);
+
+            // تفعيل التحقق
+            setupValidation();
+        });
+
+        // إعداد التحقق
+        function setupValidation() {
+            const customerName = document.getElementById('customerName');
+            const confirmName = document.getElementById('confirmName');
+            const emiratesId = document.getElementById('emiratesId');
+            const template = document.getElementById('template');
+            const serviceType = document.getElementById('serviceType');
+
+            // التحقق من تطابق الأسماء
+            [customerName, confirmName].forEach(input => {
+                input.addEventListener('input', checkNameMatch);
+            });
+
+            // التحقق من رقم الهوية
+            emiratesId.addEventListener('input', validateEmiratesId);
+
+            // التحقق من اختيار القالب
+            template.addEventListener('change', checkTemplateSelection);
+
+            // التحقق من نوع الخدمة
+            serviceType.addEventListener('change', checkDataCompleteness);
+
+            // تحديث حالة الزر
+            document.querySelectorAll('input, select, textarea').forEach(element => {
+                element.addEventListener('input', updateSaveButton);
+                element.addEventListener('change', updateSaveButton);
+            });
+        }
+
+        // التحقق من تطابق الأسماء
+        function checkNameMatch() {
+            const name1 = document.getElementById('customerName').value.trim();
+            const name2 = document.getElementById('confirmName').value.trim();
+            const errorDiv = document.getElementById('nameMatchError');
+            const successDiv = document.getElementById('nameMatchSuccess');
+            const checkbox = document.getElementById('checkName');
+
+            if (name2 === '') {
+                errorDiv.style.display = 'none';
+                successDiv.style.display = 'none';
+                checkbox.checked = false;
+                return;
+            }
+
+            if (name1 === name2) {
+                errorDiv.style.display = 'none';
+                successDiv.style.display = 'block';
+                checkbox.checked = true;
+            } else {
+                errorDiv.style.display = 'block';
+                successDiv.style.display = 'none';
+                checkbox.checked = false;
+            }
+        }
+
+        // التحقق من رقم الهوية
+        function validateEmiratesId() {
+            const id = document.getElementById('emiratesId').value.trim();
+            const errorDiv = document.getElementById('idFormatError');
+            const successDiv = document.getElementById('idFormatSuccess');
+            const checkbox = document.getElementById('checkId');
+
+            const pattern = /^784-\d{4}-\d{7}-\d$/;
+
+            if (id === '') {
+                errorDiv.style.display = 'none';
+                successDiv.style.display = 'none';
+                checkbox.checked = false;
+                return;
+            }
+
+            if (pattern.test(id)) {
+                errorDiv.style.display = 'none';
+                successDiv.style.display = 'block';
+                checkbox.checked = true;
+            } else {
+                errorDiv.style.display = 'block';
+                successDiv.style.display = 'none';
+                checkbox.checked = false;
+            }
+        }
+
+        // التحقق من اختيار القالب
+        function checkTemplateSelection() {
+            const template = document.getElementById('template').value;
+            const checkbox = document.getElementById('checkTemplate');
+            checkbox.checked = template !== '';
+        }
+
+        // التحقق من اكتمال البيانات
+        function checkDataCompleteness() {
+            const requiredFields = ['customerName', 'emiratesId', 'mobile', 'serviceType', 'authorizationType', 'template', 'amount'];
+            const allFilled = requiredFields.every(fieldId => {
+                const field = document.getElementById(fieldId);
+                return field && field.value.trim() !== '';
+            });
+            
+            const checkbox = document.getElementById('checkData');
+            checkbox.checked = allFilled;
+        }
+
+        // تحديث زر الحفظ
+        function updateSaveButton() {
+            checkNameMatch();
+            validateEmiratesId();
+            checkTemplateSelection();
+            checkDataCompleteness();
+
+            const allChecked = ['checkName', 'checkId', 'checkTemplate', 'checkData'].every(id => {
+                return document.getElementById(id).checked;
+            });
+
+            const saveBtn = document.getElementById('saveBtn');
+            saveBtn.disabled = !allChecked;
+        }
+
+        // حفظ التعديلات
+        function saveChanges(event) {
+            event.preventDefault();
+
+            showConfirm(
+                'حفظ التعديلات',
+                'هل أنت متأكد من حفظ التعديلات؟ سيتم تسجيل التعديلات في سجل التدقيق.',
+                'primary',
+                function() {
+                    showSuccess('تم حفظ التعديلات بنجاح! تم تسجيل التعديلات في سجل التدقيق.');
+                    setTimeout(() => {
+                        const requestId = new URLSearchParams(window.location.search).get('id') || '1';
+                        window.location.href = `request-details.html?id=${requestId}`;
+                    }, 1500);
+                }
+            );
+
+            return false;
+        }
+
+        // تأكيد الإلغاء
+        function confirmCancel() {
+            event.preventDefault();
+            showConfirm(
+                'إلغاء التعديلات',
+                'هل أنت متأكد من إلغاء التعديلات؟ سيتم فقدان جميع التغييرات غير المحفوظة.',
+                'danger',
+                function() {
+                    const requestId = new URLSearchParams(window.location.search).get('id') || '1';
+                    window.location.href = `request-details.html?id=${requestId}`;
+                }
+            );
+            return false;
+        }
+    </script>
+</body>
+</html>
+

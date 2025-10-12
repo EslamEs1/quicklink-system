@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة العملاء - Quick Link System</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="assets/css/bootstrap.rtl.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link href="assets/css/custom.css" rel="stylesheet">
+    
+    <!-- Custom Font -->
+    <link href="assets/fonts/JF-Flat-Regular.ttf" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <div id="header-placeholder"></div>
+    
+    <!-- Sidebar -->
+    <div id="sidebar-placeholder"></div>
+    
+    <!-- Main Content -->
+    <div class="main-content-wrapper">
+        <main class="main-content">
+            <!-- Page Title -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">
+                    <i class="fas fa-users me-2 text-primary"></i>
+                    ملفات العملاء المركزية
+                </h2>
+                <div>
+                    <a href="identity-check.html" class="btn btn-warning me-2">
+                        <i class="fas fa-exclamation-triangle me-1"></i>
+                        كشف التعارضات
+                    </a>
+                    <button class="btn btn-primary" onclick="addNewCustomer()">
+                        <i class="fas fa-user-plus me-1"></i>
+                        إضافة عميل جديد
+                    </button>
+                </div>
+            </div>
+
+            <!-- Important Notice -->
+            <div class="alert alert-info mb-4">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>ملاحظة مهمة:</strong> هذه ملفات العملاء المركزية الدائمة. كل عميل له ملف واحد يحتوي على جميع طلباته وتفاعلاته. الأرقام الحساسة مخفية لأغراض الأمان.
+            </div>
+
+            <!-- Search and Filters -->
+            <div class="card shadow-custom mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">البحث في العملاء</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-search"></i>
+                                </span>
+                                <input type="text" class="form-control" placeholder="البحث بالاسم أو رقم الهوية" id="customerSearchInput">
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">فلترة حسب الجنسية</label>
+                            <select class="form-control" id="nationalityFilter">
+                                <option value="all">جميع الجنسيات</option>
+                                <option value="emirati">إماراتي</option>
+                                <option value="saudi">سعودي</option>
+                                <option value="egyptian">مصري</option>
+                                <option value="indian">هندي</option>
+                                <option value="pakistani">باكستاني</option>
+                                <option value="other">أخرى</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">فلترة حسب عدد الطلبات</label>
+                            <select class="form-control" id="requestsFilter">
+                                <option value="all">جميع العملاء</option>
+                                <option value="new">عملاء جدد (0-1 طلب)</option>
+                                <option value="regular">عملاء منتظمون (2-5 طلبات)</option>
+                                <option value="vip">عملاء VIP (أكثر من 5 طلبات)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <label class="form-label">&nbsp;</label>
+                            <div class="d-grid">
+                                <button class="btn btn-outline-primary" onclick="clearCustomerFilters()">
+                                    <i class="fas fa-times me-1"></i>
+                                    مسح الفلاتر
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customer Stats -->
+            <div class="row mb-4">
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stats-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-users icon-large text-primary"></i>
+                            <div class="stats-number" id="totalCustomersCount">245</div>
+                            <div class="stats-label">إجمالي العملاء</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stats-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-user-plus icon-large text-success"></i>
+                            <div class="stats-number" id="newCustomersCount">12</div>
+                            <div class="stats-label">عملاء جدد هذا الشهر</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stats-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-crown icon-large text-warning"></i>
+                            <div class="stats-number" id="vipCustomersCount">18</div>
+                            <div class="stats-label">عملاء VIP</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stats-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-birthday-cake icon-large text-info"></i>
+                            <div class="stats-number" id="birthdayCustomersCount">5</div>
+                            <div class="stats-label">عيد ميلاد اليوم</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customers Table -->
+            <div class="card shadow-custom">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-table me-2"></i>
+                        قائمة العملاء
+                    </h5>
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="exportCustomersToExcel()">
+                            <i class="fas fa-file-excel me-1"></i>
+                            تصدير Excel
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="sendBirthdayGreetings()">
+                            <i class="fas fa-birthday-cake me-1"></i>
+                            تهنئة عيد الميلاد
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="customersTable">
+                            <thead>
+                                <tr>
+                                    <th>الاسم</th>
+                                    <th>رقم الهوية</th>
+                                    <th>الجنسية</th>
+                                    <th>تاريخ الميلاد</th>
+                                    <th>الجوال</th>
+                                    <th>عدد الطلبات</th>
+                                    <th>آخر طلب</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-circle me-2">
+                                                <i class="fas fa-user"></i>
+                                            </div>
+                                            <strong>أحمد محمد علي</strong>
+                                        </div>
+                                    </td>
+                                    <td>784-XXXX-XXXXXXX-X</td>
+                                    <td>إماراتي</td>
+                                    <td>15 مارس 1985</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary" onclick="callCustomer('784-XXXX-XXXXXXX-X')" title="اتصال عبر WhatsApp Business">
+                                            <i class="fas fa-phone"></i>
+                                        </button>
+                                    </td>
+                                    <td><span class="badge bg-success">3 طلبات</span></td>
+                                    <td>15 يناير 2025</td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-action btn-view" onclick="viewCustomerProfile(1)" title="عرض الملف">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-action btn-edit" onclick="editCustomer(1)" title="تعديل">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-action btn-info" onclick="viewCustomerRequests(1)" title="طلبات العميل">
+                                                <i class="fas fa-list"></i>
+                                            </button>
+                                            <button class="btn btn-action btn-success" onclick="createRequestForCustomer(1)" title="طلب جديد">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-circle me-2 bg-warning">
+                                                <i class="fas fa-birthday-cake"></i>
+                                            </div>
+                                            <strong>فاطمة عبدالله السعد</strong>
+                                            <span class="badge bg-warning ms-1">عيد ميلاد</span>
+                                        </div>
+                                    </td>
+                                    <td>784-XXXX-XXXXXXX-X</td>
+                                    <td>سعودية</td>
+                                    <td>20 يناير 1990</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary" onclick="callCustomer('784-XXXX-XXXXXXX-X')" title="اتصال عبر WhatsApp Business">
+                                            <i class="fas fa-phone"></i>
+                                        </button>
+                                    </td>
+                                    <td><span class="badge bg-warning">7 طلبات</span></td>
+                                    <td>14 يناير 2025</td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-action btn-view" onclick="viewCustomerProfile(2)" title="عرض الملف">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-action btn-edit" onclick="editCustomer(2)" title="تعديل">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-action btn-info" onclick="viewCustomerRequests(2)" title="طلبات العميل">
+                                                <i class="fas fa-list"></i>
+                                            </button>
+                                            <button class="btn btn-action btn-success" onclick="createRequestForCustomer(2)" title="طلب جديد">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-circle me-2 bg-danger">
+                                                <i class="fas fa-crown"></i>
+                                            </div>
+                                            <strong>محمد سالم الأحمد</strong>
+                                            <span class="badge bg-danger ms-1">VIP</span>
+                                        </div>
+                                    </td>
+                                    <td>784-XXXX-XXXXXXX-X</td>
+                                    <td>مصري</td>
+                                    <td>10 يونيو 1980</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary" onclick="callCustomer('784-XXXX-XXXXXXX-X')" title="اتصال عبر WhatsApp Business">
+                                            <i class="fas fa-phone"></i>
+                                        </button>
+                                    </td>
+                                    <td><span class="badge bg-danger">12 طلب</span></td>
+                                    <td>13 يناير 2025</td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-action btn-view" onclick="viewCustomerProfile(3)" title="عرض الملف">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-action btn-edit" onclick="editCustomer(3)" title="تعديل">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-action btn-info" onclick="viewCustomerRequests(3)" title="طلبات العميل">
+                                                <i class="fas fa-list"></i>
+                                            </button>
+                                            <button class="btn btn-action btn-success" onclick="createRequestForCustomer(3)" title="طلب جديد">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <nav aria-label="تنقل صفحات العملاء" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" tabindex="-1">السابق</a>
+                    </li>
+                    <li class="page-item active">
+                        <a class="page-link" href="#">1</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="#">2</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="#">3</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="#">التالي</a>
+                    </li>
+                </ul>
+            </nav>
+        </main>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer-wrapper">
+        <div id="footer-placeholder"></div>
+    </div>
+
+    <!-- Modals -->
+    <div id="modal-placeholder"></div>
+
+    <!-- Bootstrap JS -->
+    <script src="assets/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JS -->
+    <script src="assets/js/custom.js"></script>
+    
+    <!-- Page-specific JavaScript -->
+    <script>
+        // تهيئة صفحة العملاء
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeCustomersPage();
+        });
+
+        function initializeCustomersPage() {
+            // تهيئة البحث
+            const searchInput = document.getElementById('customerSearchInput');
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    searchCustomers(this.value);
+                });
+            }
+
+            // تهيئة فلاتر العملاء
+            const nationalityFilter = document.getElementById('nationalityFilter');
+            if (nationalityFilter) {
+                nationalityFilter.addEventListener('change', function() {
+                    filterCustomersByNationality(this.value);
+                });
+            }
+
+            const requestsFilter = document.getElementById('requestsFilter');
+            if (requestsFilter) {
+                requestsFilter.addEventListener('change', function() {
+                    filterCustomersByRequests(this.value);
+                });
+            }
+        }
+
+        function clearCustomerFilters() {
+            document.getElementById('customerSearchInput').value = '';
+            document.getElementById('nationalityFilter').value = 'all';
+            document.getElementById('requestsFilter').value = 'all';
+            
+            // إظهار جميع الصفوف
+            const rows = document.querySelectorAll('#customersTable tbody tr');
+            rows.forEach(row => {
+                row.style.display = '';
+            });
+        }
+
+        function searchCustomers(query) {
+            const rows = document.querySelectorAll('#customersTable tbody tr');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                const matches = text.includes(query.toLowerCase());
+                row.style.display = matches ? '' : 'none';
+            });
+        }
+
+        function filterCustomersByNationality(nationality) {
+            const rows = document.querySelectorAll('#customersTable tbody tr');
+            
+            rows.forEach(row => {
+                if (nationality === 'all') {
+                    row.style.display = '';
+                } else {
+                    const nationalityCell = row.cells[2].textContent.toLowerCase();
+                    const matches = nationalityCell.includes(nationality);
+                    row.style.display = matches ? '' : 'none';
+                }
+            });
+        }
+
+        function filterCustomersByRequests(type) {
+            const rows = document.querySelectorAll('#customersTable tbody tr');
+            
+            rows.forEach(row => {
+                if (type === 'all') {
+                    row.style.display = '';
+                } else {
+                    const requestsBadge = row.querySelector('.badge');
+                    const requestsText = requestsBadge ? requestsBadge.textContent : '';
+                    
+                    let matches = false;
+                    if (type === 'new' && requestsText.includes('0-1')) matches = true;
+                    if (type === 'regular' && requestsText.includes('2-5')) matches = true;
+                    if (type === 'vip' && requestsText.includes('أكثر من 5')) matches = true;
+                    
+                    row.style.display = matches ? '' : 'none';
+                }
+            });
+        }
+
+        function addNewCustomer() {
+            showNotification('فتح نموذج إضافة عميل جديد...', 'info');
+        }
+
+        function viewCustomerProfile(id) {
+            window.location.href = `customer-details.html?id=${id}`;
+        }
+
+        function editCustomer(id) {
+            showNotification(`تعديل بيانات العميل رقم ${id}`, 'warning');
+        }
+
+        function viewCustomerRequests(id) {
+            showNotification(`عرض طلبات العميل رقم ${id}`, 'info');
+        }
+
+        function createRequestForCustomer(id) {
+            showNotification(`إنشاء طلب جديد للعميل رقم ${id}`, 'success');
+        }
+
+        function callCustomer(hiddenId) {
+            window.location.href = 'chat.html?customer=1';
+        }
+
+        function exportCustomersToExcel() {
+            showConfirm(
+                'تصدير بيانات العملاء',
+                'هل تريد تصدير بيانات جميع العملاء إلى ملف Excel؟',
+                'primary',
+                function() {
+                    showSuccess('جارٍ تصدير بيانات العملاء...');
+                }
+            );
+        }
+
+        function sendBirthdayGreetings() {
+            showConfirm(
+                'إرسال تهنئات عيد الميلاد',
+                'هل تريد إرسال تهنئات عيد الميلاد لجميع العملاء اليوم؟',
+                'success',
+                function() {
+                    showSuccess('تم إرسال التهنئات بنجاح عبر WhatsApp Business!');
+                }
+            );
+        }
+    </script>
+    
+    <!-- Load Components -->
+    <script>
+        Promise.all([
+            fetch('components/header.html').then(r => r.text()),
+            fetch('components/sidebar.html').then(r => r.text()),
+            fetch('components/footer.html').then(r => r.text()),
+            fetch('components/confirm-modal.html').then(r => r.text())
+        ]).then(([header, sidebar, footer, modal]) => {
+            document.getElementById('header-placeholder').innerHTML = header;
+            document.getElementById('sidebar-placeholder').innerHTML = sidebar;
+            document.getElementById('footer-placeholder').innerHTML = footer;
+            document.getElementById('modal-placeholder').innerHTML = modal;
+        }).catch(error => {
+            console.error('خطأ في تحميل المكونات:', error);
+        });
+    </script>
+</body>
+</html>

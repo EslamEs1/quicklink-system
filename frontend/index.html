@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick Link System - لوحة التحكم</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="assets/css/bootstrap.rtl.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link href="assets/css/custom.css" rel="stylesheet">
+    
+    <!-- Custom Font -->
+</head>
+<body>
+    <!-- Header -->
+    <div id="header-placeholder"></div>
+    
+    <!-- Sidebar -->
+    <div id="sidebar-placeholder"></div>
+    
+    <!-- Main Content -->
+    <div class="main-content-wrapper">
+        <main class="main-content">
+            <!-- Quick Actions -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="card shadow-custom">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-bolt me-2"></i>
+                                    إجراءات سريعة
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-3 mb-3">
+                                        <a href="create-request.html" class="btn btn-primary w-100 py-3">
+                                            <i class="fas fa-plus-circle fa-2x mb-2 d-block"></i>
+                                            إنشاء طلب جديد
+                                        </a>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <a href="requests.html" class="btn btn-success w-100 py-3">
+                                            <i class="fas fa-list fa-2x mb-2 d-block"></i>
+                                            عرض الطلبات
+                                        </a>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <a href="customers.html" class="btn btn-info w-100 py-3">
+                                            <i class="fas fa-users fa-2x mb-2 d-block"></i>
+                                            إدارة العملاء
+                                        </a>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <a href="reports.html" class="btn btn-warning w-100 py-3">
+                                            <i class="fas fa-chart-bar fa-2x mb-2 d-block"></i>
+                                            التقارير
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Statistics Cards -->
+                <div class="row mb-4">
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card stats-card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-file-alt icon-large text-primary"></i>
+                                <div class="stats-number" id="totalRequests">156</div>
+                                <div class="stats-label">إجمالي الطلبات</div>
+                                <small class="text-muted">رقم مرجعي: QL-2025-XXX</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card stats-card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-clock icon-large text-warning"></i>
+                                <div class="stats-number" id="pendingRequests">23</div>
+                                <div class="stats-label">طلبات معلقة</div>
+                                <small class="text-muted">تحتاج مراجعة عاجلة</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card stats-card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-users icon-large text-success"></i>
+                                <div class="stats-number" id="totalCustomers">89</div>
+                                <div class="stats-label">عملاء مسجلين</div>
+                                <small class="text-muted">ملفات مركزية دائمة</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card stats-card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-shield-alt icon-large text-info"></i>
+                                <div class="stats-number" id="auditLogs">1,245</div>
+                                <div class="stats-label">سجل التدقيق</div>
+                                <small class="text-muted">تتبع كامل للعمليات</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Requests and Notifications -->
+                <div class="row">
+                    <!-- Recent Requests -->
+                    <div class="col-lg-8 mb-4">
+                        <div class="card shadow-custom">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-history me-2"></i>
+                                    الطلبات الأخيرة
+                                </h5>
+                                <a href="requests.html" class="btn btn-sm btn-outline-primary">عرض الكل</a>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>الرقم المرجعي</th>
+                                                <th>اسم العميل</th>
+                                                <th>الحالة</th>
+                                                <th>التاريخ</th>
+                                                <th>الإجراءات</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td><strong>QL-2025-001</strong></td>
+                                                <td>أحمد محمد علي</td>
+                                                <td><span class="status-badge status-new">جديد</span></td>
+                                                <td>15 يناير 2025</td>
+                                                <td>
+                                                    <button class="btn btn-action btn-view" onclick="viewRequest(1)" title="عرض التفاصيل">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                    <button class="btn btn-action btn-edit" onclick="editRequest(1)" title="تعديل (مراجع)">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button class="btn btn-action btn-warning" onclick="callCustomer('784-XXXX-XXXXXXX-X')" title="اتصال عبر WhatsApp">
+                                                        <i class="fas fa-phone"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>QL-2025-002</strong></td>
+                                                <td>فاطمة عبدالله السعد</td>
+                                                <td><span class="status-badge status-inprogress">قيد المراجعة</span></td>
+                                                <td>14 يناير 2025</td>
+                                                <td>
+                                                    <button class="btn btn-action btn-view" onclick="viewRequest(2)" title="عرض التفاصيل">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                    <button class="btn btn-action btn-success" onclick="approveRequest(2)" title="موافقة (مدير)">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                    <button class="btn btn-action btn-warning" onclick="callCustomer('784-XXXX-XXXXXXX-X')" title="اتصال عبر WhatsApp">
+                                                        <i class="fas fa-phone"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>QL-2025-003</strong></td>
+                                                <td>محمد سالم الأحمد</td>
+                                                <td><span class="status-badge status-completed">مدفوع</span></td>
+                                                <td>13 يناير 2025</td>
+                                                <td>
+                                                    <button class="btn btn-action btn-view" onclick="viewRequest(3)" title="عرض التفاصيل">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                    <button class="btn btn-action btn-info" onclick="printRequest(3)" title="طباعة">
+                                                        <i class="fas fa-print"></i>
+                                                    </button>
+                                                    <button class="btn btn-action btn-secondary" onclick="viewAuditTrail(3)" title="سجل التدقيق">
+                                                        <i class="fas fa-history"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notifications and Alerts -->
+                    <div class="col-lg-4 mb-4">
+                        <!-- System Notifications -->
+                        <div class="card shadow-custom mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-bell me-2"></i>
+                                    التنبيهات
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="alert alert-danger alert-dismissible fade show">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    <strong>تحذير:</strong> اكتشاف اسم مكرر مع هوية مختلفة - أحمد محمد علي
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                                
+                                <div class="alert alert-warning alert-dismissible fade show">
+                                    <i class="fas fa-clock me-2"></i>
+                                    <strong>تنبيه:</strong> طلب QL-2025-001 متأخر عن الموعد بساعة
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                                
+                                <div class="alert alert-info alert-dismissible fade show">
+                                    <i class="fas fa-cloud me-2"></i>
+                                    <strong>نسخ احتياطي:</strong> تم الحفظ التلقائي على Cloud بنجاح
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Stats -->
+                        <div class="card shadow-custom">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-chart-pie me-2"></i>
+                                    إحصائيات سريعة
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between">
+                                        <span>طلبات اليوم</span>
+                                        <strong class="text-primary">12</strong>
+                                    </div>
+                                    <div class="progress mt-1" style="height: 6px;">
+                                        <div class="progress-bar bg-primary" style="width: 75%"></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between">
+                                        <span>معدل الإنجاز</span>
+                                        <strong class="text-success">82%</strong>
+                                    </div>
+                                    <div class="progress mt-1" style="height: 6px;">
+                                        <div class="progress-bar bg-success" style="width: 82%"></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between">
+                                        <span>رضا العملاء</span>
+                                        <strong class="text-warning">4.8</strong>
+                                    </div>
+                                    <div class="progress mt-1" style="height: 6px;">
+                                        <div class="progress-bar bg-warning" style="width: 96%"></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="text-center mt-3">
+                                    <a href="reports.html" class="btn btn-outline-primary btn-sm">عرض تقرير مفصل</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Status -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="card shadow-custom">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-server me-2"></i>
+                                    حالة النظام
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-3 text-center mb-3">
+                                        <div class="p-3 bg-light rounded">
+                                            <i class="fas fa-database text-success fa-2x mb-2"></i>
+                                            <div class="fw-bold text-success">قاعدة البيانات</div>
+                                            <small class="text-muted">متصل</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 text-center mb-3">
+                                        <div class="p-3 bg-light rounded">
+                                            <i class="fas fa-credit-card text-success fa-2x mb-2"></i>
+                                            <div class="fw-bold text-success">بوابة الدفع</div>
+                                            <small class="text-muted">متصل</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 text-center mb-3">
+                                        <div class="p-3 bg-light rounded">
+                                            <i class="fas fa-cloud text-success fa-2x mb-2"></i>
+                                            <div class="fw-bold text-success">النسخ الاحتياطي</div>
+                                            <small class="text-muted">محدث</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 text-center mb-3">
+                                        <div class="p-3 bg-light rounded">
+                                            <i class="fas fa-shield-alt text-success fa-2x mb-2"></i>
+                                            <div class="fw-bold text-success">الأمان</div>
+                                            <small class="text-muted">محمي</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+        </main>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer-wrapper">
+        <div id="footer-placeholder"></div>
+    </div>
+
+    <!-- Modals -->
+    <div id="modal-placeholder"></div>
+
+
+    
+    <!-- Page-specific JavaScript -->
+    <script>
+        // وظائف النظام المطلوبة
+        function viewRequest(id) {
+            window.location.href = `request-details.html?id=${id}`;
+        }
+
+        function editRequest(id) {
+            window.location.href = `edit-request.html?id=${id}`;
+        }
+
+        function approveRequest(id) {
+            showConfirm(
+                'موافقة على طلب',
+                `هل تريد الموافقة على الطلب QL-2025-00${id}؟`,
+                'success',
+                function() {
+                    showSuccess(`تمت الموافقة على الطلب QL-2025-00${id}`);
+                }
+            );
+        }
+
+        function callCustomer(hiddenId) {
+            window.location.href = 'chat.html?customer=1';
+        }
+
+        function printRequest(id) {
+            window.print();
+        }
+
+        function viewAuditTrail(id) {
+            window.location.href = `audit-trail.html?request=${id}`;
+        }
+    </script>
+    
+    <!-- Load Components -->
+    <script>
+        Promise.all([
+            fetch('components/header.html').then(r => r.text()),
+            fetch('components/sidebar.html').then(r => r.text()),
+            fetch('components/footer.html').then(r => r.text()),
+            fetch('components/confirm-modal.html').then(r => r.text())
+        ]).then(([header, sidebar, footer, modal]) => {
+            document.getElementById('header-placeholder').innerHTML = header;
+            document.getElementById('sidebar-placeholder').innerHTML = sidebar;
+            document.getElementById('footer-placeholder').innerHTML = footer;
+            document.getElementById('modal-placeholder').innerHTML = modal;
+        }).catch(error => {
+            console.error('خطأ في تحميل المكونات:', error);
+        });
+    </script>
+</body>
+</html>

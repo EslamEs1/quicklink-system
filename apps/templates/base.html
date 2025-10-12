@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick Link System - لوحة التحكم</title>
+    
+   {% include 'css.html' %}
+    
+    
+    <!-- Custom Font -->
+</head>
+<body>
+    {% include 'header.html' %}
+    {% include 'sidbar.html' %}
+    
+    <!-- Main Content -->
+    <div class="main-content-wrapper">
+        <main class="main-content">
+           
+           {% block content %}
+            
+           {% endblock content %}
+        </main>
+    </div>
+
+   {% include 'footer.html' %}
+   {% include 'confirm-modal.html' %}
+   {% include 'js.html' %}
+</body>
+</html>

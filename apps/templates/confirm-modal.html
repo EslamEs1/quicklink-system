@@ -1,0 +1,176 @@
+<!-- Modal التأكيد الموحد -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" id="confirmModalHeader">
+                <h5 class="modal-title" id="confirmModalLabel">
+                    <i class="fas fa-question-circle me-2"></i>
+                    تأكيد العملية
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="confirmModalBody">
+                هل أنت متأكد من تنفيذ هذه العملية؟
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>
+                    إلغاء
+                </button>
+                <button type="button" class="btn btn-primary" id="confirmModalButton">
+                    <i class="fas fa-check me-1"></i>
+                    تأكيد
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal النجاح -->
+<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="successModalLabel">
+                    <i class="fas fa-check-circle me-2"></i>
+                    نجح
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="successModalBody">
+                تمت العملية بنجاح!
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" data-bs-dismiss="modal">
+                    <i class="fas fa-check me-1"></i>
+                    حسناً
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal التحذير -->
+<div class="modal fade" id="warningModal" tabindex="-1" aria-labelledby="warningModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title" id="warningModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    تحذير
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="warningModalBody">
+                يرجى الانتباه!
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-warning" data-bs-dismiss="modal">
+                    <i class="fas fa-check me-1"></i>
+                    فهمت
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal الخطأ -->
+<div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="errorModalLabel">
+                    <i class="fas fa-times-circle me-2"></i>
+                    خطأ
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="errorModalBody">
+                حدث خطأ ما!
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>
+                    إغلاق
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// وظائف عامة للمودال
+let confirmCallback = null;
+
+function showConfirm(title, message, type = 'primary', onConfirm = null) {
+    const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+    const header = document.getElementById('confirmModalHeader');
+    const titleEl = document.getElementById('confirmModalLabel');
+    const body = document.getElementById('confirmModalBody');
+    const btn = document.getElementById('confirmModalButton');
+    
+    // تحديث المحتوى
+    titleEl.innerHTML = `<i class="fas fa-question-circle me-2"></i>${title}`;
+    body.textContent = message;
+    
+    // تحديث الألوان حسب النوع
+    header.className = 'modal-header';
+    btn.className = 'btn';
+    
+    if (type === 'danger') {
+        header.classList.add('bg-danger', 'text-white');
+        btn.classList.add('btn-danger');
+        titleEl.innerHTML = `<i class="fas fa-exclamation-triangle me-2"></i>${title}`;
+    } else if (type === 'warning') {
+        header.classList.add('bg-warning', 'text-dark');
+        btn.classList.add('btn-warning');
+        titleEl.innerHTML = `<i class="fas fa-exclamation-triangle me-2"></i>${title}`;
+    } else if (type === 'success') {
+        header.classList.add('bg-success', 'text-white');
+        btn.classList.add('btn-success');
+        titleEl.innerHTML = `<i class="fas fa-check-circle me-2"></i>${title}`;
+    } else {
+        header.classList.add('bg-primary', 'text-white');
+        btn.classList.add('btn-primary');
+    }
+    
+    confirmCallback = onConfirm;
+    modal.show();
+}
+
+function showSuccess(message) {
+    const modal = new bootstrap.Modal(document.getElementById('successModal'));
+    document.getElementById('successModalBody').textContent = message;
+    modal.show();
+}
+
+function showWarning(message) {
+    const modal = new bootstrap.Modal(document.getElementById('warningModal'));
+    document.getElementById('warningModalBody').textContent = message;
+    modal.show();
+}
+
+function showError(message) {
+    const modal = new bootstrap.Modal(document.getElementById('errorModal'));
+    document.getElementById('errorModalBody').textContent = message;
+    modal.show();
+}
+
+// معالج زر التأكيد
+document.addEventListener('DOMContentLoaded', function() {
+    const confirmBtn = document.getElementById('confirmModalButton');
+    if (confirmBtn) {
+        confirmBtn.addEventListener('click', function() {
+            if (confirmCallback && typeof confirmCallback === 'function') {
+                confirmCallback();
+            }
+            const modal = bootstrap.Modal.getInstance(document.getElementById('confirmModal'));
+            if (modal) {
+                modal.hide();
+            }
+            confirmCallback = null;
+        });
+    }
+});
+</script>
+
