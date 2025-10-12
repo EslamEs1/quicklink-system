@@ -1,0 +1,217 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Page Title -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">
+                    <i class="fas fa-users me-2 text-primary"></i>
+                    ملفات العملاء المركزية
+                </h2>
+                <div>
+                    <a href="{% url 'clients:identity_check' %}" class="btn btn-warning me-2">
+                        <i class="fas fa-exclamation-triangle me-1"></i>
+                        كشف التعارضات
+                    </a>
+                    
+                </div>
+            </div>
+
+            <!-- Important Notice -->
+            <div class="alert alert-info mb-4">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>ملاحظة مهمة:</strong> هذه ملفات العملاء المركزية الدائمة. كل عميل له ملف واحد يحتوي على جميع طلباته وتفاعلاته. الأرقام الحساسة مخفية لأغراض الأمان.
+            </div>
+
+            <!-- Search and Filters -->
+            <div class="card shadow-custom mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">البحث في العملاء</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-search"></i>
+                                </span>
+                                <input type="text" class="form-control" placeholder="البحث بالاسم أو رقم الهوية" id="customerSearchInput">
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">فلترة حسب الجنسية</label>
+                            <select class="form-control" id="nationalityFilter">
+                                <option value="all">جميع الجنسيات</option>
+                                <option value="emirati">إماراتي</option>
+                                <option value="saudi">سعودي</option>
+                                <option value="egyptian">مصري</option>
+                                <option value="indian">هندي</option>
+                                <option value="pakistani">باكستاني</option>
+                                <option value="other">أخرى</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">فلترة حسب عدد الطلبات</label>
+                            <select class="form-control" id="requestsFilter">
+                                <option value="all">جميع العملاء</option>
+                                <option value="new">عملاء جدد (0-1 طلب)</option>
+                                <option value="regular">عملاء منتظمون (2-5 طلبات)</option>
+                                <option value="vip">عملاء VIP (أكثر من 5 طلبات)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <label class="form-label">&nbsp;</label>
+                            <div class="d-grid">
+                                <button class="btn btn-outline-primary" onclick="clearCustomerFilters()">
+                                    <i class="fas fa-times me-1"></i>
+                                    مسح الفلاتر
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customer Stats -->
+            <div class="row mb-4">
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stats-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-users icon-large text-primary"></i>
+                            <div class="stats-number">{{ total_customers|default:0 }}</div>
+                            <div class="stats-label">إجمالي العملاء</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stats-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-user-plus icon-large text-success"></i>
+                            <div class="stats-number">{{ new_customers_count|default:0 }}</div>
+                            <div class="stats-label">عملاء جدد هذا الشهر</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stats-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-crown icon-large text-warning"></i>
+                            <div class="stats-number">{{ vip_customers_count|default:0 }}</div>
+                            <div class="stats-label">عملاء VIP</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stats-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-birthday-cake icon-large text-info"></i>
+                            <div class="stats-number">{{ birthday_customers_count|default:0 }}</div>
+                            <div class="stats-label">عيد ميلاد اليوم</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customers Table -->
+            <div class="card shadow-custom">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-table me-2"></i>
+                        قائمة العملاء
+                    </h5>
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="exportCustomersToExcel()">
+                            <i class="fas fa-file-excel me-1"></i>
+                            تصدير Excel
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="sendBirthdayGreetings()">
+                            <i class="fas fa-birthday-cake me-1"></i>
+                            تهنئة عيد الميلاد
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="customersTable">
+                            <thead>
+                                <tr>
+                                    <th>الاسم</th>
+                                    <th>رقم الهوية</th>
+                                    <th>الجنسية</th>
+                                    <th>تاريخ الميلاد</th>
+                                    <th>الجوال</th>
+                                    <th>عدد الطلبات</th>
+                                    <th>آخر طلب</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if customers %}
+                                    {% for customer in customers %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar-circle me-2 {% if customer.is_birthday_today %}bg-warning{% elif customer.requests_count > 5 %}bg-danger{% endif %}">
+                                                    {% if customer.is_birthday_today %}
+                                                        <i class="fas fa-birthday-cake"></i>
+                                                    {% elif customer.requests_count > 5 %}
+                                                        <i class="fas fa-crown"></i>
+                                                    {% else %}
+                                                        <i class="fas fa-user"></i>
+                                                    {% endif %}
+                                                </div>
+                                                <strong>{{ customer.full_name }}</strong>
+                                                {% if customer.is_birthday_today %}
+                                                    <span class="badge bg-warning ms-1">عيد ميلاد</span>
+                                                {% elif customer.requests_count > 5 %}
+                                                    <span class="badge bg-danger ms-1">VIP</span>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                        <td>{{ customer.masked_emirates_id }}</td>
+                                        <td>{{ customer.nationality }}</td>
+                                        <td>{{ customer.date_of_birth|date:"d F Y" }}</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary" onclick="callCustomer({{ customer.id }})" title="اتصال عبر WhatsApp Business">
+                                                <i class="fas fa-phone"></i>
+                                            </button>
+                                        </td>
+                                        <td>
+                                            <span class="badge {% if customer.requests_count > 5 %}bg-danger{% elif customer.requests_count > 2 %}bg-warning{% else %}bg-success{% endif %}">
+                                                {{ customer.requests_count }} {% if customer.requests_count == 1 %}طلب{% else %}طلبات{% endif %}
+                                            </span>
+                                        </td>
+                                        <td>{{ customer.updated_at|date:"d يناير Y" }}</td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <button class="btn btn-action btn-view" onclick="viewCustomerProfile({{ customer.id }})" title="عرض الملف">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="btn btn-action btn-edit" onclick="editCustomer({{ customer.id }})" title="تعديل">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-action btn-info" onclick="viewCustomerRequests({{ customer.id }})" title="طلبات العميل">
+                                                    <i class="fas fa-list"></i>
+                                                </button>
+                                                <button class="btn btn-action btn-success" onclick="createRequestForCustomer({{ customer.id }})" title="طلب جديد">
+                                                    <i class="fas fa-plus"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="8" class="text-center text-muted py-5">
+                                            <i class="fas fa-users fa-3x mb-3 d-block"></i>
+                                            <p>لا يوجد عملاء حتى الآن</p>
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            {% include 'pagination.html' %}
+{% endblock content %}

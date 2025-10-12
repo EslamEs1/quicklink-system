@@ -1,0 +1,232 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Page Title -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">
+                    <i class="fas fa-history me-2 text-info"></i>
+                    سجل التدقيق
+                </h2>
+                <div class="btn-group">
+                    <button class="btn btn-outline-primary" onclick="exportAuditLog()">
+                        <i class="fas fa-download me-1"></i>
+                        تصدير السجل
+                    </button>
+                    <button class="btn btn-outline-danger" onclick="clearOldLogs()">
+                        <i class="fas fa-trash me-1"></i>
+                        حذف القديم
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="card shadow-custom mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">البحث</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-search"></i>
+                                </span>
+                                <input type="text" class="form-control" placeholder="البحث في السجل" id="auditSearchInput">
+                            </div>
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <label class="form-label">نوع العملية</label>
+                            <select class="form-control" id="actionTypeFilter">
+                                <option value="all">جميع العمليات</option>
+                                <option value="create">إنشاء</option>
+                                <option value="update">تعديل</option>
+                                <option value="delete">حذف</option>
+                                <option value="login">تسجيل دخول</option>
+                                <option value="logout">تسجيل خروج</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <label class="form-label">المستخدم</label>
+                            <select class="form-control" id="userFilter">
+                                <option value="all">جميع المستخدمين</option>
+                                <option value="admin">المدراء</option>
+                                <option value="user">المستخدمين</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <label class="form-label">من تاريخ</label>
+                            <input type="date" class="form-control" id="auditStartDate">
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <label class="form-label">إلى تاريخ</label>
+                            <input type="date" class="form-control" id="auditEndDate">
+                        </div>
+                        <div class="col-md-1 mb-3">
+                            <label class="form-label">&nbsp;</label>
+                            <div class="d-grid">
+                                <button class="btn btn-outline-primary" onclick="clearAuditFilters()">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Audit Stats -->
+            <div class="row mb-4">
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stats-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-list icon-large text-info"></i>
+                            <div class="stats-number">{{ logs|length }}</div>
+                            <div class="stats-label">السجلات المعروضة</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stats-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-calendar-day icon-large text-primary"></i>
+                            <div class="stats-number">{{ today_logs_count|default:0 }}</div>
+                            <div class="stats-label">سجلات اليوم</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stats-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-users icon-large text-success"></i>
+                            <div class="stats-number">{{ active_users_count|default:0 }}</div>
+                            <div class="stats-label">مستخدمين نشطين</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stats-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-exclamation-triangle icon-large text-warning"></i>
+                            <div class="stats-number">{{ critical_logs_count|default:0 }}</div>
+                            <div class="stats-label">عمليات حرجة</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Audit Stats -->
+            <div class="row mb-4">
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stats-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-list icon-large text-info"></i>
+                            <div class="stats-number">{{ logs.count }}</div>
+                            <div class="stats-label">السجلات المعروضة</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stats-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-calendar-day icon-large text-primary"></i>
+                            <div class="stats-number">{{ today_logs_count|default:0 }}</div>
+                            <div class="stats-label">سجلات اليوم</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stats-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-users icon-large text-success"></i>
+                            <div class="stats-number">{{ active_users_count|default:0 }}</div>
+                            <div class="stats-label">مستخدمين نشطين</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stats-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-exclamation-triangle icon-large text-warning"></i>
+                            <div class="stats-number">{{ critical_logs_count|default:0 }}</div>
+                            <div class="stats-label">عمليات حرجة</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Audit Timeline -->
+            <div class="card shadow-custom">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-stream me-2"></i>
+                        سجل الأنشطة
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="audit-timeline">
+                        {% if logs %}
+                            {% regroup logs by timestamp|date:"Y-m-d" as logs_by_date %}
+                            
+                            {% for date_group in logs_by_date %}
+                                <div class="timeline-date {% if not forloop.first %}mt-4{% endif %}">
+                                    <h6 class="{% if forloop.first %}text-primary{% else %}text-muted{% endif %}">
+                                        <i class="fas fa-calendar me-2"></i>
+                                        {% if forloop.first %}اليوم{% else %}{{ date_group.grouper|date:"d F Y" }}{% endif %}
+                                    </h6>
+                                </div>
+                                
+                                {% for log in date_group.list %}
+                                <div class="timeline-item">
+                                    <div class="timeline-marker 
+                                        {% if log.action == 'create' %}bg-success
+                                        {% elif log.action == 'update' %}bg-warning
+                                        {% elif log.action == 'delete' %}bg-danger
+                                        {% elif log.action == 'login' %}bg-primary
+                                        {% elif log.action == 'approve' %}bg-info
+                                        {% else %}bg-secondary{% endif %}">
+                                        <i class="fas 
+                                            {% if log.action == 'create' %}fa-plus
+                                            {% elif log.action == 'update' %}fa-edit
+                                            {% elif log.action == 'delete' %}fa-trash
+                                            {% elif log.action == 'login' %}fa-sign-in-alt
+                                            {% elif log.action == 'logout' %}fa-sign-out-alt
+                                            {% elif log.action == 'approve' %}fa-check-circle
+                                            {% else %}fa-info{% endif %}"></i>
+                                    </div>
+                                    <div class="timeline-content">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <h6 class="mb-1 {% if log.severity == 'critical' %}text-danger{% endif %}">
+                                                    {{ log.get_action_display }}
+                                                </h6>
+                                                <p class="text-muted mb-1">{{ log.description }}</p>
+                                                <small class="text-muted">
+                                                    <i class="fas fa-user me-1"></i>
+                                                    {{ log.user.get_full_name|default:log.user.username|default:"نظام" }}
+                                                    <span class="mx-2">|</span>
+                                                    <i class="fas fa-clock me-1"></i>
+                                                    {{ log.timestamp|date:"h:i A" }}
+                                                    <span class="mx-2">|</span>
+                                                    <i class="fas fa-map-marker-alt me-1"></i>
+                                                    {{ log.ip_address|default:"غير معروف" }}
+                                                </small>
+                                            </div>
+                                            <button class="btn btn-sm btn-outline-primary" onclick="viewAuditDetails({{ log.id }})">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center text-muted py-5">
+                                <i class="fas fa-inbox fa-3x mb-3"></i>
+                                <p>لا يوجد سجلات حتى الآن</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            {% include 'pagination.html' %}
+{% endblock content %}

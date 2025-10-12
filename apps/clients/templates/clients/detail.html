@@ -1,0 +1,362 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- رأس الصفحة -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="page-title mb-2">
+                        <i class="fas fa-user-circle text-primary me-2"></i>
+                        الملف المركزي للعميل
+                    </h2>
+                    <p class="page-subtitle text-muted">ملف مركزي دائم يحتوي على جميع بيانات وطلبات العميل</p>
+                </div>
+                <div>
+                    <a href="{% url 'clients:list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-right me-1"></i>
+                        رجوع للعملاء
+                    </a>
+                </div>
+            </div>
+
+            <!-- معلومات مهمة -->
+            <div class="alert alert-info mb-4">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>ملاحظة:</strong> هذا ملف مركزي دائم. جميع الطلبات والتفاعلات مع العميل مسجلة هنا. الأرقام الحساسة مخفية للأمان.
+            </div>
+
+            <!-- بطاقة العميل الرئيسية -->
+            <div class="row mb-4">
+                <!-- البيانات الأساسية -->
+                <div class="col-lg-8 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-user text-primary me-2"></i>
+                                بيانات العميل الأساسية
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="text-muted mb-1">
+                                        <i class="fas fa-signature me-1"></i>
+                                        الاسم الكامل
+                                    </label>
+                                    <p class="fw-bold mb-0">{{ customer.full_name }}</p>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="text-muted mb-1">
+                                        <i class="fas fa-id-card me-1"></i>
+                                        رقم الهوية الإماراتية
+                                    </label>
+                                    <p class="fw-bold mb-0">{{ customer.masked_emirates_id }}</p>
+                                    <small class="text-muted">مخفي للأمان</small>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="text-muted mb-1">
+                                        <i class="fas fa-phone me-1"></i>
+                                        رقم الجوال
+                                    </label>
+                                    <p class="mb-0">
+                                        <button class="btn btn-sm btn-primary" onclick="callCustomer({{ customer.id }})">
+                                            <i class="fab fa-whatsapp me-1"></i>
+                                            مراسلة عبر WhatsApp Business
+                                        </button>
+                                    </p>
+                                    <small class="text-muted">{{ customer.masked_phone }} - الرقم مخفي للأمان</small>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="text-muted mb-1">
+                                        <i class="fas fa-envelope me-1"></i>
+                                        البريد الإلكتروني
+                                    </label>
+                                    <p class="fw-bold mb-0">{{ customer.email|default:"غير محدد" }}</p>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="text-muted mb-1">
+                                        <i class="fas fa-calendar-plus me-1"></i>
+                                        تاريخ التسجيل
+                                    </label>
+                                    <p class="fw-bold mb-0">{{ customer.created_at|date:"Y-m-d" }}</p>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="text-muted mb-1">
+                                        <i class="fas fa-birthday-cake me-1"></i>
+                                        تاريخ الميلاد
+                                    </label>
+                                    <p class="fw-bold mb-0">{{ customer.date_of_birth|date:"Y-m-d" }} ({{ customer.age }} سنة)</p>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="text-muted mb-1">
+                                        <i class="fas fa-venus-mars me-1"></i>
+                                        الجنس
+                                    </label>
+                                    <p class="fw-bold mb-0">{{ customer.get_gender_display }}</p>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="text-muted mb-1">
+                                        <i class="fas fa-flag me-1"></i>
+                                        الجنسية
+                                    </label>
+                                    <p class="fw-bold mb-0">{{ customer.nationality }}</p>
+                                </div>
+                                <div class="col-md-12 mb-3">
+                                    <label class="text-muted mb-1">
+                                        <i class="fas fa-home me-1"></i>
+                                        العنوان الكامل
+                                    </label>
+                                    <p class="fw-bold mb-0">{{ customer.address|default:"غير محدد" }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- إحصائيات سريعة -->
+                <div class="col-lg-4">
+                    <!-- تنبيه عيد الميلاد -->
+                    {% if is_birthday_soon %}
+                    <div class="alert alert-warning mb-4">
+                        <i class="fas fa-birthday-cake me-2"></i>
+                        <strong>عيد ميلاد قريب!</strong>
+                        <p class="mb-0 mt-2">عيد ميلاد العميل بعد <strong>{{ days_until_birthday }} {% if days_until_birthday == 0 %}اليوم{% elif days_until_birthday == 1 %}يوم واحد{% else %}أيام{% endif %}</strong></p>
+                        <button class="btn btn-sm btn-outline-warning mt-2 w-100" onclick="sendBirthdayGreeting()">
+                            <i class="fas fa-gift me-1"></i>
+                            إرسال تهنئة
+                        </button>
+                    </div>
+                    {% endif %}
+
+                    <!-- إحصائيات العميل -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-chart-bar text-primary me-2"></i>
+                                إحصائيات العميل
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="stat-item mb-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="text-muted">
+                                        <i class="fas fa-file-alt me-1"></i>
+                                        إجمالي الطلبات
+                                    </span>
+                                    <strong class="text-primary fs-4">{{ total_requests|default:0 }}</strong>
+                                </div>
+                            </div>
+                            <hr>
+                            <div class="stat-item mb-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="text-muted">
+                                        <i class="fas fa-check-circle me-1"></i>
+                                        طلبات مكتملة
+                                    </span>
+                                    <strong class="text-success fs-4">{{ completed_requests|default:0 }}</strong>
+                                </div>
+                            </div>
+                            <hr>
+                            <div class="stat-item mb-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="text-muted">
+                                        <i class="fas fa-clock me-1"></i>
+                                        طلبات معلقة
+                                    </span>
+                                    <strong class="text-warning fs-4">{{ pending_requests|default:0 }}</strong>
+                                </div>
+                            </div>
+                            <hr>
+                            <div class="stat-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="text-muted">
+                                        <i class="fas fa-ban me-1"></i>
+                                        طلبات ملغاة
+                                    </span>
+                                    <strong class="text-danger fs-4">{{ cancelled_requests|default:0 }}</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- إجراءات سريعة -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-bolt text-primary me-2"></i>
+                                إجراءات سريعة
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <button class="btn btn-primary w-100 mb-2" onclick="createNewRequest()">
+                                <i class="fas fa-plus-circle me-1"></i>
+                                طلب جديد للعميل
+                            </button>
+                            <button class="btn btn-success w-100 mb-2" onclick="callCustomer()">
+                                <i class="fab fa-whatsapp me-1"></i>
+                                مراسلة WhatsApp
+                            </button>
+                            <button class="btn btn-info w-100 mb-2" onclick="viewAuditTrail()">
+                                <i class="fas fa-history me-1"></i>
+                                سجل التدقيق
+                            </button>
+                            <button class="btn btn-secondary w-100" onclick="exportCustomerData()">
+                                <i class="fas fa-file-export me-1"></i>
+                                تصدير البيانات
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- طلبات العميل السابقة -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history text-primary me-2"></i>
+                        سجل طلبات العميل
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>رقم الطلب</th>
+                                    <th>نوع الخدمة</th>
+                                    <th>الحالة</th>
+                                    <th>التاريخ</th>
+                                    <th>المبلغ</th>
+                                    <th>المستخدم المعالج</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if requests %}
+                                    {% for req in requests %}
+                                    <tr>
+                                        <td><strong>{{ req.reference_number }}</strong></td>
+                                        <td>{{ req.get_request_type_display }}</td>
+                                        <td>
+                                            <span class="badge 
+                                                {% if req.status == 'completed' %}bg-success
+                                                {% elif req.status == 'cancelled' %}bg-danger
+                                                {% elif req.status == 'pending' %}bg-warning
+                                                {% else %}bg-secondary{% endif %}">
+                                                {{ req.get_status_display }}
+                                            </span>
+                                        </td>
+                                        <td>{{ req.created_at|date:"Y-m-d" }}</td>
+                                        <td>
+                                            <strong class="{% if req.status != 'cancelled' %}text-success{% else %}text-muted{% endif %}">
+                                                {{ req.amount|default:"0" }} درهم
+                                            </strong>
+                                        </td>
+                                        <td>{{ req.created_by.get_full_name|default:"النظام" }}</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary" onclick="viewRequest({{ req.id }})">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="7" class="text-center text-muted py-4">
+                                            <i class="fas fa-inbox fa-2x mb-2 d-block"></i>
+                                            لا يوجد طلبات لهذا العميل
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ملاحظات وتعليقات -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-comments text-primary me-2"></i>
+                        ملاحظات وتعليقات داخلية
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <textarea class="form-control" id="newNote" rows="3" placeholder="أضف ملاحظة جديدة عن العميل..."></textarea>
+                        <button class="btn btn-primary mt-2" onclick="addNote()">
+                            <i class="fas fa-plus me-1"></i>
+                            إضافة ملاحظة
+                        </button>
+                    </div>
+                    <hr>
+                    <div id="notesList">
+                        <!-- ملاحظة 1 -->
+                        <div class="card mb-2 bg-light">
+                            <div class="card-body p-3">
+                                <div class="d-flex justify-content-between">
+                                    <strong class="text-primary">محمد أحمد</strong>
+                                    <small class="text-muted">2025-01-15 10:30</small>
+                                </div>
+                                <p class="mb-0 mt-2">عميل ممتاز، دائماً يقدم المستندات كاملة.</p>
+                            </div>
+                        </div>
+                        <!-- ملاحظة 2 -->
+                        <div class="card mb-2 bg-light">
+                            <div class="card-body p-3">
+                                <div class="d-flex justify-content-between">
+                                    <strong class="text-primary">فاطمة علي</strong>
+                                    <small class="text-muted">2024-12-28 14:20</small>
+                                </div>
+                                <p class="mb-0 mt-2">يفضل التواصل عبر WhatsApp في المساء.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- سجل التواصل -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-phone text-primary me-2"></i>
+                        سجل التواصل مع العميل
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>التاريخ</th>
+                                    <th>نوع التواصل</th>
+                                    <th>الموظف</th>
+                                    <th>الموضوع</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>2025-01-15 10:00</td>
+                                    <td><i class="fab fa-whatsapp text-success me-1"></i> WhatsApp</td>
+                                    <td>محمد أحمد</td>
+                                    <td>متابعة الطلب الجديد</td>
+                                </tr>
+                                <tr>
+                                    <td>2025-01-10 15:30</td>
+                                    <td><i class="fas fa-envelope text-primary me-1"></i> بريد إلكتروني</td>
+                                    <td>فاطمة علي</td>
+                                    <td>إشعار بإكمال الطلب</td>
+                                </tr>
+                                <tr>
+                                    <td>2024-12-28 11:00</td>
+                                    <td><i class="fas fa-phone text-info me-1"></i> مكالمة هاتفية</td>
+                                    <td>أحمد سالم</td>
+                                    <td>استفسار عن المستندات</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+{% endblock content %}

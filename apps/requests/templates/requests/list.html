@@ -1,0 +1,188 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Page Title -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">
+                    <i class="fas fa-list me-2 text-primary"></i>
+                    جميع الطلبات
+                </h2>
+                <a href="{% url 'requests:create' %}" class="btn btn-primary">
+                    <i class="fas fa-plus me-1"></i>
+                    طلب جديد
+                </a>
+            </div>
+
+            <!-- Filters and Search -->
+            <div class="card shadow-custom mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">البحث</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-search"></i>
+                                </span>
+                                <input type="text" class="form-control" placeholder="البحث بالرقم المرجعي أو اسم العميل" id="searchInput">
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">فلترة حسب الحالة</label>
+                            <select class="form-control" id="statusFilter">
+                                <option value="all">جميع الحالات</option>
+                                <option value="new">جديد</option>
+                                <option value="in-progress">قيد التنفيذ</option>
+                                <option value="completed">مكتمل</option>
+                                <option value="cancelled">ملغي</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">فلترة حسب التاريخ</label>
+                            <input type="date" class="form-control" id="dateFilter">
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <label class="form-label">&nbsp;</label>
+                            <div class="d-grid">
+                                <button class="btn btn-outline-primary" onclick="clearFilters()">
+                                    <i class="fas fa-times me-1"></i>
+                                    مسح الفلاتر
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="row mb-4">
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stats-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-file-alt icon-large text-primary"></i>
+                            <div class="stats-number">{{ total_count|default:0 }}</div>
+                            <div class="stats-label">إجمالي الطلبات</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stats-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-clock icon-large text-warning"></i>
+                            <div class="stats-number">{{ pending_count|default:0 }}</div>
+                            <div class="stats-label">طلبات معلقة</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stats-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-check-circle icon-large text-success"></i>
+                            <div class="stats-number">{{ completed_count|default:0 }}</div>
+                            <div class="stats-label">طلبات مكتملة</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stats-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-dollar-sign icon-large text-info"></i>
+                            <div class="stats-number">{{ total_revenue|floatformat:0|default:0 }}</div>
+                            <div class="stats-label">إجمالي الإيرادات (درهم)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Requests Table -->
+            <div class="card shadow-custom">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-table me-2"></i>
+                        قائمة الطلبات
+                    </h5>
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="exportToExcel()">
+                            <i class="fas fa-file-excel me-1"></i>
+                            تصدير Excel
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="printRequests()">
+                            <i class="fas fa-print me-1"></i>
+                            طباعة
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="requestsTable">
+                            <thead>
+                                <tr>
+                                    <th>الرقم المرجعي</th>
+                                    <th>اسم العميل</th>
+                                    <th>نوع الطلب</th>
+                                    <th>الحالة</th>
+                                    <th>المبلغ</th>
+                                    <th>تاريخ الإنشاء</th>
+                                    <th>آخر تحديث</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if requests %}
+                                    {% for req in requests %}
+                                <tr>
+                                    <td><strong>{{ req.reference_number }}</strong></td>
+                                    <td>{{ req.customer.full_name }}</td>
+                                    <td>{{ req.get_request_type_display }}</td>
+                                    <td>
+                                        <span class="status-badge 
+                                            {% if req.status == 'new' %}status-new
+                                            {% elif req.status == 'in_review' or req.status == 'processing' %}status-inprogress
+                                            {% elif req.status == 'completed' or req.status == 'paid' %}status-completed
+                                            {% elif req.status == 'cancelled' or req.status == 'rejected' %}status-cancelled
+                                            {% else %}status-new{% endif %}">
+                                            {{ req.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>{{ req.total_amount|default:"420" }} درهم</td>
+                                    <td>{{ req.created_at|date:"d يناير Y" }}</td>
+                                    <td>{{ req.updated_at|date:"d يناير Y" }}</td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-action btn-view" onclick="viewRequest({{ req.id }})" title="عرض التفاصيل">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            {% if req.status == 'new' or req.status == 'in_review' %}
+                                                <button class="btn btn-action btn-edit" onclick="editRequest({{ req.id }})" title="تعديل">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                            {% endif %}
+                                            {% if req.status == 'approved' or req.status == 'pending_payment' %}
+                                                <button class="btn btn-action btn-success" onclick="processPayment({{ req.id }}, {{ req.total_amount }})" title="دفع">
+                                                    <i class="fas fa-credit-card"></i>
+                                                </button>
+                                            {% endif %}
+                                            <button class="btn btn-action btn-warning" onclick="callCustomer({{ req.customer.id }})" title="اتصال WhatsApp">
+                                                <i class="fas fa-phone"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                    {% endfor %}
+                                {% else %}
+                                <tr>
+                                    <td colspan="8" class="text-center text-muted py-5">
+                                        <i class="fas fa-inbox fa-3x mb-3 d-block"></i>
+                                        <p>لا توجد طلبات</p>
+                                    </td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            {% include 'pagination.html' %}
+{% endblock content %}

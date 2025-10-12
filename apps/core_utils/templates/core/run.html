@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تشغيل نظام Quick Link</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #40abdf, #51c676);
+            color: white;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            text-align: center;
+            max-width: 600px;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        .logo {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        .subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+            opacity: 0.9;
+        }
+        .buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            color: white;
+            text-decoration: none;
+        }
+        .btn-primary {
+            background: rgba(255, 255, 255, 0.9);
+            color: #40abdf;
+        }
+        .btn-primary:hover {
+            background: white;
+            color: #40abdf;
+        }
+        .info {
+            margin-top: 40px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            font-size: 0.9rem;
+        }
+        @media (max-width: 768px) {
+            .container {
+                margin: 20px;
+                padding: 30px 20px;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+            .buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            .btn {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🔗</div>
+        <h1>نظام Quick Link</h1>
+        <p class="subtitle">نظام إدارة طلبات العملاء لخدمات الدفع الإلكتروني</p>
+        
+        <div class="buttons">
+            <a href="{% url 'requests:dashboard' %}" class="btn btn-primary">
+                🏠 الصفحة الرئيسية
+            </a>
+            <a href="{% url 'requests:create' %}" class="btn">
+                ➕ إنشاء طلب جديد
+            </a>
+        </div>
+        
+        <div class="info">
+            <strong>📋 الصفحات المتاحة:</strong><br>
+            • الصفحة الرئيسية - لوحة التحكم والإحصائيات<br>
+            • إنشاء طلب جديد - نموذج متعدد الخطوات<br><br>
+            
+            <strong>🎨 الميزات:</strong><br>
+            • تصميم عصري ومتجاوب<br>
+            • دعم كامل للغة العربية<br>
+            • تحقق من صحة البيانات<br>
+            • نظام دفع متكامل<br>
+            • سجل تدقيق شامل
+        </div>
+    </div>
+</body>
+</html>

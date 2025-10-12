@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- رأس الصفحة -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="page-title mb-2">
+                        <i class="fab fa-whatsapp text-success me-2"></i>
+                        محادثات WhatsApp Business
+                    </h2>
+                    <p class="page-subtitle text-muted">واجهة دردشة آمنة بدون إظهار الأرقام</p>
+                </div>
+                <div>
+                    <a href="{% url 'clients:list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-right me-1"></i>
+                        رجوع للعملاء
+                    </a>
+                </div>
+            </div>
+
+            <!-- تنبيه الأمان -->
+            <div class="alert alert-success mb-4">
+                <i class="fas fa-shield-alt me-2"></i>
+                <strong>محادثات آمنة:</strong> جميع المحادثات مشفرة. أرقام العملاء مخفية. كل رسالة مسجلة في سجل التدقيق.
+            </div>
+
+            <!-- Chat Container -->
+            <div class="chat-container">
+                <!-- Sidebar - قائمة المحادثات -->
+                <div class="chat-sidebar" id="chatSidebar">
+                    <div class="p-3 bg-white border-bottom">
+                        <input type="text" class="form-control" placeholder="بحث في المحادثات..." id="searchConversations">
+                    </div>
+                    
+                    <!-- قائمة المحادثات -->
+                    {% if customers %}
+                        {% for customer in customers %}
+                        <div class="conversation-item {% if selected_customer and customer.id == selected_customer.id %}active{% endif %}" 
+                             onclick="window.location.href='{% url 'chat:room' %}?customer_id={{ customer.id }}'">
+                            <div class="d-flex align-items-start">
+                                <div class="avatar-circle {% cycle 'bg-primary' 'bg-warning' 'bg-info' 'bg-success' %} me-2">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between">
+                                        <strong>{{ customer.full_name }}</strong>
+                                        <small class="text-muted">{{ customer.last_message_time|date:"H:i" }}</small>
+                                    </div>
+                                    <small class="text-muted">{{ customer.full_name|truncatewords:5 }}</small>
+                                    <div class="mt-1">
+                                        {% if customer.unread_count > 0 %}
+                                            <span class="unread-badge">{{ customer.unread_count }}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center text-muted p-4">
+                            <i class="fas fa-comments fa-2x mb-2 d-block"></i>
+                            <p>لا توجد محادثات</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Conversation Area -->
+                <div class="chat-conversation">
+                    <!-- Chat Header -->
+                    <div class="chat-header">
+                        <div class="d-flex align-items-center">
+                            <button class="btn btn-sm btn-light me-3 d-md-none" onclick="toggleChatSidebar()">
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                            <div class="avatar-circle bg-white text-primary me-3">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div>
+                                <h5 class="mb-0">{{ selected_customer.full_name|default:"اختر محادثة" }}</h5>
+                                {% if selected_customer %}
+                                    <small>{{ selected_customer.masked_phone }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div>
+                            <button class="btn btn-sm btn-light" onclick="viewCustomerProfile()">
+                                <i class="fas fa-user-circle"></i>
+                            </button>
+                            <button class="btn btn-sm btn-light" onclick="viewRequestDetails()">
+                                <i class="fas fa-file-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Messages Area -->
+                    <div class="chat-messages" id="chatMessages">
+                        {% if messages %}
+                            {% for msg in messages %}
+                            <!-- رسالة {{ msg.get_direction_display }} -->
+                            <div class="message {% if msg.direction == 'incoming' %}received{% else %}sent{% endif %}">
+                                <div class="avatar-circle {% if msg.direction == 'incoming' %}bg-primary{% else %}bg-success{% endif %}" 
+                                     style="width: 35px; height: 35px; font-size: 0.8rem;">
+                                    <i class="fas {% if msg.direction == 'incoming' %}fa-user{% else %}fa-user-tie{% endif %}"></i>
+                                </div>
+                                <div class="message-bubble">
+                                    <div>{{ msg.content }}</div>
+                                    {% if msg.file %}
+                                        <div class="mt-2">
+                                            <a href="{{ msg.file.url }}" target="_blank" class="btn btn-sm btn-outline-light">
+                                                <i class="fas fa-paperclip"></i> ملف مرفق
+                                            </a>
+                                        </div>
+                                    {% endif %}
+                                    <div class="message-time">{{ msg.sent_at|date:"h:i A" }}</div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% elif selected_customer %}
+                            <div class="text-center text-muted py-5">
+                                <i class="fas fa-comments fa-3x mb-3 d-block"></i>
+                                <p>لا توجد رسائل مع هذا العميل</p>
+                            </div>
+                        {% else %}
+                            <div class="text-center text-muted py-5">
+                                <i class="fas fa-arrow-right fa-3x mb-3 d-block"></i>
+                                <p>اختر محادثة من القائمة</p>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Chat Input -->
+                    <div class="chat-input">
+                        <form id="messageForm" onsubmit="return sendMessage(event)">
+                            <div class="input-group">
+                                <button type="button" class="btn btn-outline-secondary" onclick="attachFile()">
+                                    <i class="fas fa-paperclip"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" onclick="attachImage()">
+                                    <i class="fas fa-image"></i>
+                                </button>
+                                <input type="text" class="form-control" id="messageInput" placeholder="اكتب رسالتك هنا..." required>
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+{% endblock content %}

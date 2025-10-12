@@ -2,7 +2,7 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
     <div class="container-fluid">
         <!-- Brand -->
-        <a class="navbar-brand d-flex align-items-center" href="index.html">
+        <a class="navbar-brand d-flex align-items-center" href="{% url 'requests:dashboard' %}">
             <i class="fas fa-link me-2 text-primary"></i>
             <span class="fw-bold d-none d-sm-inline">Quick Link System</span>
             <span class="fw-bold d-sm-none">QLS</span>
@@ -17,25 +17,25 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav me-auto">
                 <li class="nav-item">
-                    <a class="nav-link active" href="index.html">
+                    <a class="nav-link active" href="{% url 'requests:dashboard' %}">
                         <i class="fas fa-home me-1"></i>
                         الرئيسية
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="create-request.html">
+                    <a class="nav-link" href="{% url 'requests:create' %}">
                         <i class="fas fa-plus-circle me-1"></i>
                         طلب جديد
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="requests.html">
+                    <a class="nav-link" href="{% url 'requests:list' %}">
                         <i class="fas fa-list me-1"></i>
                         الطلبات
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="customers.html">
+                    <a class="nav-link" href="{% url 'clients:list' %}">
                         <i class="fas fa-users me-1"></i>
                         العملاء
                     </a>
@@ -50,14 +50,14 @@
                         <span>أحمد محمد</span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="profile.html">
+                        <li><a class="dropdown-item" href="{% url 'accounts:profile' %}">
                             <i class="fas fa-user me-2"></i>الملف الشخصي
                         </a></li>
-                        <li><a class="dropdown-item" href="settings.html">
+                        <li><a class="dropdown-item" href="{% url 'settings_app:general' %}">
                             <i class="fas fa-cog me-2"></i>الإعدادات
                         </a></li>
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="login.html">
+                        <li><a class="dropdown-item" href="{% url 'accounts:login' %}">
                             <i class="fas fa-sign-out-alt me-2"></i>تسجيل الخروج
                         </a></li>
                     </ul>

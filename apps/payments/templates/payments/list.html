@@ -1,0 +1,329 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Page Title -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">
+                    <i class="fas fa-credit-card me-2 text-success"></i>
+                    إدارة المدفوعات
+                </h2>
+                <button class="btn btn-success" onclick="processNewPayment()">
+                    <i class="fas fa-plus me-1"></i>
+                    معالجة دفعة جديدة
+                </button>
+            </div>
+
+            <!-- Search and Filters -->
+            <div class="card shadow-custom mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">البحث</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-search"></i>
+                                </span>
+                                <input type="text" class="form-control" placeholder="رقم الطلب أو العميل" id="paymentSearchInput">
+                            </div>
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <label class="form-label">حالة الدفع</label>
+                            <select class="form-control" id="paymentStatusFilter">
+                                <option value="all">الكل</option>
+                                <option value="completed">مكتمل</option>
+                                <option value="pending">معلق</option>
+                                <option value="failed">فاشل</option>
+                                <option value="refunded">مسترد</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <label class="form-label">بوابة الدفع</label>
+                            <select class="form-control" id="gatewayFilter">
+                                <option value="all">الكل</option>
+                                <option value="paytabs">PayTabs</option>
+                                <option value="stripe">Stripe</option>
+                                <option value="cash">نقدي</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <label class="form-label">من تاريخ</label>
+                            <input type="date" class="form-control" id="startDateFilter">
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <label class="form-label">إلى تاريخ</label>
+                            <input type="date" class="form-control" id="endDateFilter">
+                        </div>
+                        <div class="col-md-1 mb-3">
+                            <label class="form-label">&nbsp;</label>
+                            <div class="d-grid">
+                                <button class="btn btn-outline-primary" onclick="clearPaymentFilters()">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Stats -->
+            <div class="row mb-4">
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stats-card border-success">
+                        <div class="card-body text-center">
+                            <i class="fas fa-dollar-sign icon-large text-success"></i>
+                            <div class="stats-number text-success">{{ total_amount|floatformat:0|default:0 }}</div>
+                            <div class="stats-label">إجمالي المدفوعات (درهم)</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stats-card border-primary">
+                        <div class="card-body text-center">
+                            <i class="fas fa-check-circle icon-large text-primary"></i>
+                            <div class="stats-number text-primary">{{ completed_count|default:0 }}</div>
+                            <div class="stats-label">دفعات مكتملة</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stats-card border-warning">
+                        <div class="card-body text-center">
+                            <i class="fas fa-hourglass-half icon-large text-warning"></i>
+                            <div class="stats-number text-warning">{{ pending_count|default:0 }}</div>
+                            <div class="stats-label">دفعات معلقة</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stats-card border-danger">
+                        <div class="card-body text-center">
+                            <i class="fas fa-times-circle icon-large text-danger"></i>
+                            <div class="stats-number text-danger">{{ failed_count|default:0 }}</div>
+                            <div class="stats-label">دفعات فاشلة</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Methods Stats -->
+            <div class="row mb-4">
+                <div class="col-lg-8 mb-4">
+                    <div class="card shadow-custom">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-chart-line me-2"></i>
+                                إحصائيات المدفوعات الشهرية
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-placeholder">
+                                <div class="text-center py-5">
+                                    <i class="fas fa-chart-line text-muted" style="font-size: 4rem;"></i>
+                                    <h5 class="text-muted mt-3">رسم بياني للمدفوعات</h5>
+                                    <p class="text-muted">سيتم عرض الرسم البياني هنا</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 mb-4">
+                    <div class="card shadow-custom">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-wallet me-2"></i>
+                                بوابات الدفع
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% if gateway_percentages.paytabs %}
+                            <div class="payment-method-item mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div>
+                                        <i class="fas fa-credit-card text-primary me-2"></i>
+                                        <strong>PayTabs</strong>
+                                    </div>
+                                    <span class="badge bg-success">نشط</span>
+                                </div>
+                                <div class="progress mb-2">
+                                    <div class="progress-bar bg-primary" style="width: {{ gateway_percentages.paytabs.percentage }}%">
+                                        {{ gateway_percentages.paytabs.percentage }}%
+                                    </div>
+                                </div>
+                                <small class="text-muted">{{ gateway_percentages.paytabs.count }} عملية - {{ gateway_percentages.paytabs.total|floatformat:0 }} درهم</small>
+                            </div>
+                            <hr>
+                            {% endif %}
+                            
+                            {% if gateway_percentages.stripe %}
+                            <div class="payment-method-item mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div>
+                                        <i class="fas fa-credit-card text-success me-2"></i>
+                                        <strong>Stripe</strong>
+                                    </div>
+                                    <span class="badge bg-success">نشط</span>
+                                </div>
+                                <div class="progress mb-2">
+                                    <div class="progress-bar bg-success" style="width: {{ gateway_percentages.stripe.percentage }}%">
+                                        {{ gateway_percentages.stripe.percentage }}%
+                                    </div>
+                                </div>
+                                <small class="text-muted">{{ gateway_percentages.stripe.count }} عملية - {{ gateway_percentages.stripe.total|floatformat:0 }} درهم</small>
+                            </div>
+                            <hr>
+                            {% endif %}
+                            
+                            {% if gateway_percentages.cash %}
+                            <div class="payment-method-item">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div>
+                                        <i class="fas fa-money-bill-wave text-warning me-2"></i>
+                                        <strong>نقدي</strong>
+                                    </div>
+                                    <span class="badge bg-info">متاح</span>
+                                </div>
+                                <div class="progress mb-2">
+                                    <div class="progress-bar bg-warning" style="width: {{ gateway_percentages.cash.percentage }}%">
+                                        {{ gateway_percentages.cash.percentage }}%
+                                    </div>
+                                </div>
+                                <small class="text-muted">{{ gateway_percentages.cash.count }} عملية - {{ gateway_percentages.cash.total|floatformat:0 }} درهم</small>
+                            </div>
+                            {% endif %}
+                            
+                            {% if not gateway_percentages %}
+                                <div class="text-center text-muted py-3">
+                                    <p>لا توجد بيانات</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payments Table -->
+            <div class="card shadow-custom">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-table me-2"></i>
+                        سجل المدفوعات
+                    </h5>
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-outline-success btn-sm" onclick="exportPaymentsToExcel()">
+                            <i class="fas fa-file-excel me-1"></i>
+                            تصدير Excel
+                        </button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="printPaymentReport()">
+                            <i class="fas fa-print me-1"></i>
+                            طباعة
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="paymentsTable">
+                            <thead>
+                                <tr>
+                                    <th>رقم العملية</th>
+                                    <th>رقم الطلب</th>
+                                    <th>العميل</th>
+                                    <th>المبلغ</th>
+                                    <th>بوابة الدفع</th>
+                                    <th>الحالة</th>
+                                    <th>التاريخ</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if payments %}
+                                    {% for payment in payments %}
+                                <tr>
+                                    <td><strong>{{ payment.receipt_number|default:payment.transaction_id|default:"N/A" }}</strong></td>
+                                    <td>{{ payment.request.reference_number }}</td>
+                                    <td>{{ payment.request.customer.full_name }}</td>
+                                    <td>
+                                        <strong class="
+                                            {% if payment.status == 'paid' %}text-success
+                                            {% elif payment.status == 'pending' %}text-warning
+                                            {% elif payment.status == 'failed' %}text-danger
+                                            {% else %}text-info{% endif %}">
+                                            {{ payment.amount }} درهم
+                                        </strong>
+                                    </td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if payment.payment_method == 'paytabs' %}bg-primary
+                                            {% elif payment.payment_method == 'cash' %}bg-warning text-dark
+                                            {% else %}bg-success{% endif %}">
+                                            <i class="fas 
+                                                {% if payment.payment_method == 'cash' %}fa-money-bill-wave
+                                                {% else %}fa-credit-card{% endif %}"></i>
+                                            {{ payment.get_payment_method_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if payment.status == 'paid' %}bg-success
+                                            {% elif payment.status == 'pending' %}bg-warning
+                                            {% elif payment.status == 'failed' %}bg-danger
+                                            {% elif payment.status == 'refunded' %}bg-info
+                                            {% else %}bg-secondary{% endif %}">
+                                            <i class="fas 
+                                                {% if payment.status == 'paid' %}fa-check-circle
+                                                {% elif payment.status == 'pending' %}fa-hourglass-half
+                                                {% elif payment.status == 'failed' %}fa-times-circle
+                                                {% elif payment.status == 'refunded' %}fa-undo
+                                                {% else %}fa-clock{% endif %}"></i>
+                                            {{ payment.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>{{ payment.created_at|date:"d يناير Y - H:i" }}</td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-action btn-view" onclick="viewPaymentDetails({{ payment.id }})" title="التفاصيل">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            {% if payment.status == 'paid' %}
+                                                <button class="btn btn-action btn-info" onclick="printReceipt({{ payment.id }})" title="طباعة الإيصال">
+                                                    <i class="fas fa-receipt"></i>
+                                                </button>
+                                                <button class="btn btn-action btn-warning" onclick="sendPaymentEmail({{ payment.id }})" title="إرسال بريد">
+                                                    <i class="fas fa-envelope"></i>
+                                                </button>
+                                            {% elif payment.status == 'pending' %}
+                                                <button class="btn btn-action btn-success" onclick="confirmPayment({{ payment.id }})" title="تأكيد">
+                                                    <i class="fas fa-check"></i>
+                                                </button>
+                                                <button class="btn btn-action btn-delete" onclick="cancelPayment({{ payment.id }})" title="إلغاء">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            {% elif payment.status == 'failed' %}
+                                                <button class="btn btn-action btn-warning" onclick="retryPayment({{ payment.id }})" title="إعادة المحاولة">
+                                                    <i class="fas fa-redo"></i>
+                                                </button>
+                                                <button class="btn btn-action btn-info" onclick="contactCustomer({{ payment.request.customer.id }})" title="الاتصال بالعميل">
+                                                    <i class="fas fa-phone"></i>
+                                                </button>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                    {% endfor %}
+                                {% else %}
+                                <tr>
+                                    <td colspan="8" class="text-center text-muted py-5">
+                                        <i class="fas fa-inbox fa-3x mb-3 d-block"></i>
+                                        <p>لا توجد مدفوعات</p>
+                                    </td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            {% include 'pagination.html' %}
+{% endblock content %}

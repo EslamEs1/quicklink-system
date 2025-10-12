@@ -1,0 +1,271 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- رأس الصفحة -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="page-title mb-2">
+                        <i class="fas fa-paperclip text-primary me-2"></i>
+                        إدارة المرفقات
+                    </h2>
+                    <p class="page-subtitle text-muted">عرض وإدارة جميع الملفات المرفقة{% if request_obj %} للطلب <strong>{{ request_obj.reference_number }}</strong>{% endif %}</p>
+                </div>
+                <div>
+                    {% if request_obj %}
+                        <a href="{% url 'requests:detail' pk=request_obj.pk %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-right me-1"></i>
+                            رجوع للطلب
+                        </a>
+                    {% else %}
+                        <a href="{% url 'requests:list' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-right me-1"></i>
+                            رجوع للطلبات
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- تنبيه الأمان -->
+            <div class="alert alert-warning mb-4">
+                <i class="fas fa-shield-alt me-2"></i>
+                <strong>حماية البيانات:</strong> جميع الملفات مشفّرة ومحمية. يُمنع النسخ أو التحميل غير المصرح به. جميع العمليات مسجلة في سجل التدقيق.
+            </div>
+
+            <!-- إحصائيات المرفقات -->
+            <div class="row mb-4">
+                <div class="col-md-3 col-6 mb-3">
+                    <div class="card stats-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-file icon-large text-primary"></i>
+                            <div class="stats-number">{{ total_files|default:0 }}</div>
+                            <div class="stats-label">إجمالي الملفات</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6 mb-3">
+                    <div class="card stats-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-image icon-large text-success"></i>
+                            <div class="stats-number">{{ image_files|default:0 }}</div>
+                            <div class="stats-label">صور</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6 mb-3">
+                    <div class="card stats-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-file-pdf icon-large text-danger"></i>
+                            <div class="stats-number">{{ pdf_files|default:0 }}</div>
+                            <div class="stats-label">PDF</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6 mb-3">
+                    <div class="card stats-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-hdd icon-large text-info"></i>
+                            <div class="stats-number">{{ total_size_mb|default:0 }}</div>
+                            <div class="stats-label">MB</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- رفع ملف جديد -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-cloud-upload-alt text-primary me-2"></i>
+                        رفع ملف جديد
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form id="uploadForm" onsubmit="return uploadFile(event)">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">نوع الملف <span class="text-danger">*</span></label>
+                                <select class="form-control" id="fileType" required>
+                                    <option value="">اختر نوع الملف</option>
+                                    <option value="id-front">صورة الهوية (الوجه الأمامي)</option>
+                                    <option value="id-back">صورة الهوية (الوجه الخلفي)</option>
+                                    <option value="authorization">التفويض القانوني الموقّع</option>
+                                    <option value="passport">جواز السفر</option>
+                                    <option value="contract">عقد أو اتفاقية</option>
+                                    <option value="receipt">إيصال دفع</option>
+                                    <option value="other">مستند آخر</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">اختر الملف <span class="text-danger">*</span></label>
+                                <input type="file" class="form-control" id="fileInput" accept=".jpg,.jpeg,.png,.pdf" required>
+                                <div class="form-text">الملفات المسموحة: JPG, PNG, PDF (حد أقصى 5 MB)</div>
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label">ملاحظات</label>
+                                <textarea class="form-control" id="fileNotes" rows="2" placeholder="أضف ملاحظات إضافية عن الملف..."></textarea>
+                            </div>
+                            <div class="col-md-12">
+                                <button type="submit" class="btn btn-primary" id="uploadBtn">
+                                    <i class="fas fa-upload me-1"></i>
+                                    رفع الملف
+                                </button>
+                                <button type="reset" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times me-1"></i>
+                                    إلغاء
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- قائمة المرفقات -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list text-primary me-2"></i>
+                        قائمة المرفقات
+                    </h5>
+                    <div>
+                        <button class="btn btn-sm btn-outline-primary" onclick="filterFiles('all')">
+                            <i class="fas fa-filter me-1"></i>
+                            الكل
+                        </button>
+                        <button class="btn btn-sm btn-outline-success" onclick="filterFiles('image')">
+                            <i class="fas fa-image me-1"></i>
+                            صور
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="filterFiles('pdf')">
+                            <i class="fas fa-file-pdf me-1"></i>
+                            PDF
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="attachmentsTable">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>اسم الملف</th>
+                                    <th>نوع الملف</th>
+                                    <th>الحجم</th>
+                                    <th>تاريخ الرفع</th>
+                                    <th>المستخدم</th>
+                                    <th>الحالة</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if attachments %}
+                                    {% for attachment in attachments %}
+                                    <tr data-type="{% if 'pdf' in attachment.file_type %}pdf{% else %}image{% endif %}">
+                                        <td>{{ forloop.counter }}</td>
+                                        <td>
+                                            {% if 'pdf' in attachment.file_type %}
+                                                <i class="fas fa-file-pdf text-danger me-2"></i>
+                                            {% else %}
+                                                <i class="fas fa-image text-success me-2"></i>
+                                            {% endif %}
+                                            <strong>{{ attachment.file_name }}</strong>
+                                        </td>
+                                        <td>
+                                            <span class="badge 
+                                                {% if attachment.category == 'identity' %}bg-success
+                                                {% elif attachment.category == 'authorization' %}bg-danger
+                                                {% elif attachment.category == 'contract' %}bg-warning
+                                                {% elif attachment.category == 'receipt' %}bg-primary
+                                                {% else %}bg-secondary{% endif %}">
+                                                {{ attachment.get_category_display }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% if attachment.file_size %}
+                                                {% if attachment.file_size < 1048576 %}
+                                                    {{ attachment.file_size|filesizeformat }}
+                                                {% else %}
+                                                    {{ attachment.file_size|filesizeformat }}
+                                                {% endif %}
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ attachment.uploaded_at|date:"Y-m-d H:i" }}</td>
+                                        <td>
+                                            <i class="fas fa-user-circle text-primary me-1"></i>
+                                            {{ attachment.uploaded_by.get_full_name|default:"نظام" }}
+                                        </td>
+                                        <td>
+                                            {% if attachment.is_approved %}
+                                                <span class="badge bg-success">موثّق</span>
+                                            {% else %}
+                                                <span class="badge bg-warning">قيد المراجعة</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <button class="btn btn-sm btn-outline-primary" onclick="previewFile({{ attachment.id }})" title="معاينة">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-info" onclick="downloadFile({{ attachment.id }})" title="تحميل">
+                                                    <i class="fas fa-download"></i>
+                                                </button>
+                                                {% if not attachment.is_approved %}
+                                                <button class="btn btn-sm btn-outline-success" onclick="approveFile({{ attachment.id }})" title="موافقة">
+                                                    <i class="fas fa-check"></i>
+                                                </button>
+                                                {% endif %}
+                                                <button class="btn btn-sm btn-outline-danger" onclick="deleteFile({{ attachment.id }})" title="حذف">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="8" class="text-center text-muted py-5">
+                                            <i class="fas fa-inbox fa-3x mb-3 d-block"></i>
+                                            <p>لا توجد مرفقات</p>
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- إرشادات -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle text-primary me-2"></i>
+                        إرشادات رفع الملفات
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-success"><i class="fas fa-check-circle me-1"></i> الملفات المسموحة:</h6>
+                            <ul>
+                                <li>صور: JPG, JPEG, PNG</li>
+                                <li>مستندات: PDF</li>
+                                <li>الحجم الأقصى: 5 ميجابايت</li>
+                                <li>جودة واضحة وقابلة للقراءة</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-danger"><i class="fas fa-exclamation-triangle me-1"></i> محظورات:</h6>
+                            <ul>
+                                <li>ملفات معطوبة أو غير واضحة</li>
+                                <li>ملفات أكبر من 5 ميجابايت</li>
+                                <li>صيغ غير مدعومة</li>
+                                <li>صور شخصية غير رسمية</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+{% endblock content %}

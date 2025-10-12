@@ -1,0 +1,241 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- رأس الصفحة -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="page-title mb-2">
+                        <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                        كشف تعارضات الهوية
+                    </h2>
+                    <p class="page-subtitle text-muted">رصد الأسماء المتطابقة مع أرقام هوية مختلفة</p>
+                </div>
+                <div>
+                    <a href="{% url 'clients:list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-right me-1"></i>
+                        رجوع للعملاء
+                    </a>
+                </div>
+            </div>
+
+            <!-- تنبيه مهم -->
+            {% if active_conflicts > 0 %}
+            <div class="alert alert-danger mb-4">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>تحذير أمني:</strong> تم اكتشاف <strong>{{ active_conflicts }}</strong> حالة تعارض محتملة. يرجى المراجعة الفورية للتأكد من صحة البيانات.
+            </div>
+            {% endif %}
+
+            <!-- إحصائيات التعارضات -->
+            <div class="row mb-4">
+                <div class="col-md-4 mb-3">
+                    <div class="card stats-card border-danger">
+                        <div class="card-body text-center">
+                            <i class="fas fa-user-times icon-large text-danger"></i>
+                            <div class="stats-number text-danger">{{ active_conflicts|default:0 }}</div>
+                            <div class="stats-label">تعارضات نشطة</div>
+                            <small class="text-muted">تحتاج مراجعة</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card stats-card border-warning">
+                        <div class="card-body text-center">
+                            <i class="fas fa-clock icon-large text-warning"></i>
+                            <div class="stats-number text-warning">{{ reviewing_conflicts|default:0 }}</div>
+                            <div class="stats-label">قيد المراجعة</div>
+                            <small class="text-muted">تحت التحقيق</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card stats-card border-success">
+                        <div class="card-body text-center">
+                            <i class="fas fa-check-circle icon-large text-success"></i>
+                            <div class="stats-number text-success">{{ resolved_conflicts|default:0 }}</div>
+                            <div class="stats-label">تم حلها</div>
+                            <small class="text-muted">محلولة سابقاً</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- فلاتر البحث -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-filter text-primary me-2"></i>
+                        فلترة التعارضات
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">البحث بالاسم</label>
+                            <input type="text" class="form-control" id="searchName" placeholder="ابحث عن اسم العميل...">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">حالة التعارض</label>
+                            <select class="form-control" id="statusFilter">
+                                <option value="all">جميع الحالات</option>
+                                <option value="active" selected>تعارضات نشطة</option>
+                                <option value="review">قيد المراجعة</option>
+                                <option value="resolved">تم حلها</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">ترتيب حسب</label>
+                            <select class="form-control" id="sortBy">
+                                <option value="recent">الأحدث</option>
+                                <option value="oldest">الأقدم</option>
+                                <option value="requests">عدد الطلبات</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        <button class="btn btn-outline-secondary" onclick="clearFilters()">
+                            <i class="fas fa-times me-1"></i>
+                            مسح الفلاتر
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- جدول التعارضات -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-table text-primary me-2"></i>
+                        قائمة التعارضات المكتشفة
+                    </h5>
+                    <button class="btn btn-sm btn-primary" onclick="exportConflicts()">
+                        <i class="fas fa-file-export me-1"></i>
+                        تصدير التقرير
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="conflictsTable">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>الاسم المتطابق</th>
+                                    <th>رقم الهوية (1)</th>
+                                    <th>رقم الهوية (2)</th>
+                                    <th>عدد الطلبات (1)</th>
+                                    <th>عدد الطلبات (2)</th>
+                                    <th>تاريخ الاكتشاف</th>
+                                    <th>الحالة</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if conflicts %}
+                                    {% for conflict in conflicts %}
+                                <tr class="
+                                    {% if conflict.status == 'pending' %}table-danger
+                                    {% elif conflict.status == 'reviewing' %}table-warning
+                                    {% else %}table-success{% endif %}">
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>
+                                        <strong class="
+                                            {% if conflict.status == 'pending' %}text-danger
+                                            {% elif conflict.status == 'reviewing' %}text-warning
+                                            {% else %}text-success{% endif %}">
+                                            <i class="fas 
+                                                {% if conflict.status == 'pending' %}fa-exclamation-triangle
+                                                {% elif conflict.status == 'reviewing' %}fa-clock
+                                                {% else %}fa-check-circle{% endif %} me-1"></i>
+                                            {{ conflict.customer1.full_name }}
+                                        </strong>
+                                    </td>
+                                    <td>
+                                        <code>{{ conflict.customer1.emirates_id }}</code>
+                                    </td>
+                                    <td>
+                                        <code>{{ conflict.customer2.emirates_id }}</code>
+                                    </td>
+                                    <td><span class="badge bg-primary">{{ conflict.customer1_requests_count }} طلبات</span></td>
+                                    <td><span class="badge bg-primary">{{ conflict.customer2_requests_count }} طلبات</span></td>
+                                    <td>{{ conflict.detected_at|date:"Y-m-d" }}</td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if conflict.status == 'pending' %}bg-danger
+                                            {% elif conflict.status == 'reviewing' %}bg-warning
+                                            {% else %}bg-success{% endif %}">
+                                            <i class="fas 
+                                                {% if conflict.status == 'pending' %}fa-exclamation-circle
+                                                {% elif conflict.status == 'reviewing' %}fa-search
+                                                {% else %}fa-check-double{% endif %} me-1"></i>
+                                            {{ conflict.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            {% if conflict.status != 'resolved' %}
+                                                <button class="btn btn-sm btn-outline-primary" onclick="viewCustomer({{ conflict.customer1.id }})" title="مراجعة العميل الأول">
+                                                    <i class="fas fa-user"></i> 1
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-primary" onclick="viewCustomer({{ conflict.customer2.id }})" title="مراجعة العميل الثاني">
+                                                    <i class="fas fa-user"></i> 2
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-success" onclick="resolveConflict({{ conflict.id }})" title="حل التعارض">
+                                                    <i class="fas fa-check"></i>
+                                                </button>
+                                            {% else %}
+                                                <button class="btn btn-sm btn-outline-info" onclick="viewResolution({{ conflict.id }})" title="عرض الحل">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                    {% endfor %}
+                                {% else %}
+                                <tr>
+                                    <td colspan="9" class="text-center text-muted py-5">
+                                        <i class="fas fa-check-circle fa-3x mb-3 d-block text-success"></i>
+                                        <p>لا توجد تعارضات حالياً!</p>
+                                    </td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- إرشادات المراجعة -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle text-primary me-2"></i>
+                        إرشادات معالجة التعارضات
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-primary"><i class="fas fa-check-circle me-1"></i> خطوات المراجعة:</h6>
+                            <ol>
+                                <li>مراجعة ملف كل عميل على حدة</li>
+                                <li>التحقق من صور الهوية ومطابقتها</li>
+                                <li>مراجعة تاريخ الطلبات وصحتها</li>
+                                <li>التواصل مع العميل للتوضيح إن لزم</li>
+                                <li>دمج الملفات أو الإبلاغ عن احتيال</li>
+                            </ol>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-danger"><i class="fas fa-exclamation-triangle me-1"></i> حالات شائعة:</h6>
+                            <ul>
+                                <li><strong>خطأ إدخال:</strong> نفس الشخص بأخطاء كتابية</li>
+                                <li><strong>تجديد الهوية:</strong> تغيير رقم الهوية الرسمي</li>
+                                <li><strong>تشابه الأسماء:</strong> أشخاص مختلفون بنفس الاسم</li>
+                                <li><strong>احتيال محتمل:</strong> استخدام بيانات مزيفة</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+{% endblock content %}

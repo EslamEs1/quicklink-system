@@ -1,0 +1,288 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Page Title -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">
+                    <i class="fas fa-clock me-2 text-warning"></i>
+                    الطلبات المعلقة
+                    {% if total_pending > 0 %}
+                        <span class="badge bg-warning text-dark ms-2">{{ total_pending }}</span>
+                    {% endif %}
+                </h2>
+                <div class="btn-group">
+                    <button class="btn btn-success" onclick="approveSelected()">
+                        <i class="fas fa-check me-1"></i>
+                        الموافقة على المحدد
+                    </button>
+                    <button class="btn btn-danger" onclick="rejectSelected()">
+                        <i class="fas fa-times me-1"></i>
+                        رفض المحدد
+                    </button>
+                </div>
+            </div>
+
+            <!-- Priority Alert -->
+            {% if overdue_count > 0 %}
+            <div class="alert alert-warning d-flex align-items-center mb-4" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <div>
+                    <strong>تنبيه!</strong> لديك {{ overdue_count }} طلب متأخر عن الموعد المحدد يحتاج إلى مراجعة فورية.
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Filters -->
+            <div class="card shadow-custom mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">فلترة حسب الأولوية</label>
+                            <select class="form-control" id="priorityFilter">
+                                <option value="all">جميع الأولويات</option>
+                                <option value="urgent">عاجل</option>
+                                <option value="high">عالية</option>
+                                <option value="medium">متوسطة</option>
+                                <option value="low">منخفضة</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">فلترة حسب المدة</label>
+                            <select class="form-control" id="durationFilter">
+                                <option value="all">جميع المدد</option>
+                                <option value="overdue">متأخر</option>
+                                <option value="today">اليوم</option>
+                                <option value="week">هذا الأسبوع</option>
+                                <option value="month">هذا الشهر</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">فلترة حسب المراجع</label>
+                            <select class="form-control" id="reviewerFilter">
+                                <option value="all">جميع المراجعين</option>
+                                <option value="me">طلباتي فقط</option>
+                                <option value="unassigned">غير مخصصة</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">&nbsp;</label>
+                            <div class="d-grid">
+                                <button class="btn btn-outline-primary" onclick="clearPendingFilters()">
+                                    <i class="fas fa-times me-1"></i>
+                                    مسح الفلاتر
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="row mb-4">
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stats-card border-warning">
+                        <div class="card-body text-center">
+                            <i class="fas fa-hourglass-half icon-large text-warning"></i>
+                            <div class="stats-number text-warning">{{ total_pending|default:0 }}</div>
+                            <div class="stats-label">طلبات معلقة</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stats-card border-danger">
+                        <div class="card-body text-center">
+                            <i class="fas fa-exclamation-circle icon-large text-danger"></i>
+                            <div class="stats-number text-danger">{{ overdue_count|default:0 }}</div>
+                            <div class="stats-label">متأخرة</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stats-card border-info">
+                        <div class="card-body text-center">
+                            <i class="fas fa-user-clock icon-large text-info"></i>
+                            <div class="stats-number text-info">{{ assigned_to_me|default:0 }}</div>
+                            <div class="stats-label">مخصصة لي</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stats-card border-success">
+                        <div class="card-body text-center">
+                            <i class="fas fa-clock icon-large text-success"></i>
+                            <div class="stats-number text-success">2.5</div>
+                            <div class="stats-label">متوسط وقت المراجعة (ساعة)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pending Requests Table -->
+            <div class="card shadow-custom">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-table me-2"></i>
+                        قائمة الطلبات المعلقة
+                    </h5>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="selectAll" onclick="toggleSelectAll()">
+                        <label class="form-check-label" for="selectAll">
+                            تحديد الكل
+                        </label>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="pendingRequestsTable">
+                            <thead>
+                                <tr>
+                                    <th width="40">
+                                        <input type="checkbox" class="form-check-input">
+                                    </th>
+                                    <th>الأولوية</th>
+                                    <th>الرقم المرجعي</th>
+                                    <th>اسم العميل</th>
+                                    <th>نوع الطلب</th>
+                                    <th>المبلغ</th>
+                                    <th>تاريخ الإنشاء</th>
+                                    <th>الوقت المتبقي</th>
+                                    <th>المراجع</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if requests %}
+                                    {% for req in requests %}
+                                <tr class="
+                                    {% if req.priority == 'urgent' %}priority-urgent
+                                    {% elif req.priority == 'high' %}priority-high
+                                    {% else %}priority-medium{% endif %}">
+                                    <td>
+                                        <input type="checkbox" class="form-check-input request-checkbox">
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-exclamation-triangle"></i>
+                                            عاجل
+                                        </span>
+                                    </td>
+                                    <td><strong>QL-2025-001</strong></td>
+                                    <td>أحمد محمد علي</td>
+                                    <td>ربط حساب PayTabs</td>
+                                    <td>420 درهم</td>
+                                    <td>18 يناير 2025</td>
+                                    <td>
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-clock"></i>
+                                            متأخر بـ 2 ساعة
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">أنت</span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-action btn-view" onclick="viewPendingRequest(1)" title="عرض التفاصيل">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-action btn-success" onclick="approveRequest(1)" title="موافقة">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                            <button class="btn btn-action btn-delete" onclick="rejectRequest(1)" title="رفض">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                            <button class="btn btn-action btn-warning" onclick="assignRequest(1)" title="إعادة تخصيص">
+                                                <i class="fas fa-user"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="priority-high">
+                                    <td>
+                                        <input type="checkbox" class="form-check-input request-checkbox">
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-warning">
+                                            <i class="fas fa-exclamation"></i>
+                                            عالية
+                                        </span>
+                                    </td>
+                                    <td><strong>QL-2025-002</strong></td>
+                                    <td>فاطمة عبدالله السعد</td>
+                                    <td>بوابة دفع إلكترونية</td>
+                                    <td>750 درهم</td>
+                                    <td>19 يناير 2025</td>
+                                    <td>
+                                        <span class="badge bg-warning">
+                                            <i class="fas fa-clock"></i>
+                                            متبقي ساعة
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">أنت</span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-action btn-view" onclick="viewPendingRequest(2)" title="عرض التفاصيل">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-action btn-success" onclick="approveRequest(2)" title="موافقة">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                            <button class="btn btn-action btn-delete" onclick="rejectRequest(2)" title="رفض">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                            <button class="btn btn-action btn-warning" onclick="assignRequest(2)" title="إعادة تخصيص">
+                                                <i class="fas fa-user"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="priority-medium">
+                                    <td>
+                                        <input type="checkbox" class="form-check-input request-checkbox">
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary">
+                                            <i class="fas fa-minus"></i>
+                                            متوسطة
+                                        </span>
+                                    </td>
+                                    <td><strong>QL-2025-003</strong></td>
+                                    <td>محمد سالم الأحمد</td>
+                                    <td>تكامل بنكي</td>
+                                    <td>650 درهم</td>
+                                    <td>20 يناير 2025</td>
+                                    <td>
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-clock"></i>
+                                            متبقي 5 ساعات
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">غير مخصص</span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-action btn-view" onclick="viewPendingRequest(3)" title="عرض التفاصيل">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-action btn-success" onclick="approveRequest(3)" title="موافقة">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                            <button class="btn btn-action btn-delete" onclick="rejectRequest(3)" title="رفض">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                            <button class="btn btn-action btn-warning" onclick="assignRequest(3)" title="تخصيص لي">
+                                                <i class="fas fa-user-plus"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+{% endblock content %}

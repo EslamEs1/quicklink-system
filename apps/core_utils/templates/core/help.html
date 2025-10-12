@@ -1,0 +1,396 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- رأس الصفحة -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="page-title mb-2">
+                        <i class="fas fa-question-circle text-primary me-2"></i>
+                        المساعدة والأسئلة الشائعة
+                    </h2>
+                    <p class="page-subtitle text-muted">دليل شامل لاستخدام نظام Quick Link</p>
+                </div>
+            </div>
+
+            <!-- البحث في المساعدة -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="input-group input-group-lg">
+                        <span class="input-group-text bg-white">
+                            <i class="fas fa-search text-primary"></i>
+                        </span>
+                        <input type="text" class="form-control" id="helpSearch" placeholder="ابحث عن موضوع معين... مثال: كيف أنشئ طلب جديد؟">
+                    </div>
+                </div>
+            </div>
+
+            <!-- بطاقات المساعدة السريعة -->
+            <div class="row mb-4">
+                <div class="col-md-4 mb-3">
+                    <div class="card text-center h-100">
+                        <div class="card-body">
+                            <i class="fas fa-book fa-3x text-primary mb-3"></i>
+                            <h5>دليل البدء السريع</h5>
+                            <p class="text-muted">تعلم أساسيات النظام في 5 دقائق</p>
+                            <a href="#getting-started" class="btn btn-outline-primary btn-sm">ابدأ الآن</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card text-center h-100">
+                        <div class="card-body">
+                            <i class="fas fa-video fa-3x text-success mb-3"></i>
+                            <h5>فيديوهات تعليمية</h5>
+                            <p class="text-muted">شاهد شرح مصور للنظام</p>
+                            <a href="#videos" class="btn btn-outline-success btn-sm">شاهد الآن</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card text-center h-100">
+                        <div class="card-body">
+                            <i class="fas fa-headset fa-3x text-warning mb-3"></i>
+                            <h5>الدعم الفني</h5>
+                            <p class="text-muted">تواصل مع فريق الدعم مباشرة</p>
+                            <button class="btn btn-outline-warning btn-sm" onclick="contactSupport()">تواصل معنا</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- الأسئلة الشائعة -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-star text-primary me-2"></i>
+                        الأسئلة الأكثر شيوعاً
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="accordion" id="faqAccordion">
+                        <!-- سؤال 1 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="faq1">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse1">
+                                    <i class="fas fa-plus-circle text-primary me-2"></i>
+                                    كيف أقوم بإنشاء طلب جديد؟
+                                </button>
+                            </h2>
+                            <div id="collapse1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    <ol>
+                                        <li>اضغط على زر "طلب جديد" من الصفحة الرئيسية أو من صفحة الطلبات</li>
+                                        <li>أدخل بيانات العميل الأساسية (الاسم، رقم الهوية، الجوال، البريد)</li>
+                                        <li>اختر نوع الخدمة المطلوبة (ربط حساب PayTabs، بوابة دفع، إلخ)</li>
+                                        <li>ارفع المستندات المطلوبة (صورة الهوية الأمامية والخلفية، التفويض الموقّع)</li>
+                                        <li>أكمل قائمة التحقق الإلزامية</li>
+                                        <li>اضغط على "إرسال الطلب" للمراجعة</li>
+                                    </ol>
+                                    <div class="alert alert-info mt-3">
+                                        <i class="fas fa-lightbulb me-2"></i>
+                                        <strong>نصيحة:</strong> تأكد من رفع صور واضحة للمستندات بصيغة JPG أو PDF.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- سؤال 2 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="faq2">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse2">
+                                    <i class="fas fa-id-card text-success me-2"></i>
+                                    ما هي صيغة رقم الهوية الإماراتية الصحيحة؟
+                                </button>
+                            </h2>
+                            <div id="collapse2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    <p><strong>صيغة رقم الهوية:</strong> 784-XXXX-XXXXXXX-X</p>
+                                    <p><strong>مثال:</strong> 784-1990-1234567-8</p>
+                                    <p>النظام يتحقق تلقائياً من صحة الصيغة ويرفض الأرقام غير الصحيحة.</p>
+                                    <div class="alert alert-warning mt-3">
+                                        <i class="fas fa-exclamation-triangle me-2"></i>
+                                        <strong>تنبيه:</strong> إذا كان الاسم متطابق مع رقم هوية مختلف في النظام، سيظهر تحذير تعارض.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- سؤال 3 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="faq3">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse3">
+                                    <i class="fas fa-credit-card text-warning me-2"></i>
+                                    كيف يتم الدفع في النظام؟
+                                </button>
+                            </h2>
+                            <div id="collapse3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    <p><strong>الدفع مركزي وإلزامي عبر بوابة PayTabs فقط.</strong></p>
+                                    <ul>
+                                        <li>لا يُسمح بأي دفع خارج النظام</li>
+                                        <li>يتم توجيه العميل لرابط دفع آمن</li>
+                                        <li>النظام يسجل تلقائياً حالة الدفع</li>
+                                        <li>لا يمكن إغلاق الطلب إلا بعد استكمال الدفع</li>
+                                    </ul>
+                                    <p><strong>صلاحية الدفع:</strong> المدير فقط يستطيع معالجة الدفع.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- سؤال 4 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="faq4">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse4">
+                                    <i class="fas fa-shield-alt text-info me-2"></i>
+                                    ما هي الصلاحيات المختلفة في النظام؟
+                                </button>
+                            </h2>
+                            <div id="collapse4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    <table class="table table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th>الدور</th>
+                                                <th>الصلاحيات</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td><span class="badge bg-primary">جامع البيانات (Intake User)</span></td>
+                                                <td>إدخال البيانات فقط، لا يستطيع الموافقة أو التعديل</td>
+                                            </tr>
+                                            <tr>
+                                                <td><span class="badge bg-info">مراجع (Reviewer)</span></td>
+                                                <td>مراجعة البيانات، الموافقة أو الرفض، لا يستطيع الدفع</td>
+                                            </tr>
+                                            <tr>
+                                                <td><span class="badge bg-warning">مدير (Manager)</span></td>
+                                                <td>إدارة الطلبات، معالجة الدفع، إغلاق الطلبات، يرى جميع الملفات</td>
+                                            </tr>
+                                            <tr>
+                                                <td><span class="badge bg-danger">مشرف أعلى (Admin)</span></td>
+                                                <td>صلاحيات كاملة، إعداد القوالب، إدارة المستخدمين، السياسات</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <div class="alert alert-info mt-3">
+                                        <i class="fas fa-eye me-2"></i>
+                                        <strong>الصلاحيات الذكية:</strong> الموظف يرى فقط العملاء الذين لديه طلبات مفتوحة معهم.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- سؤال 5 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="faq5">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse5">
+                                    <i class="fas fa-file-contract text-danger me-2"></i>
+                                    ما هي القوالب القانونية المركزية؟
+                                </button>
+                            </h2>
+                            <div id="collapse5" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    <p><strong>القوالب المركزية فقط مسموحة في النظام.</strong></p>
+                                    <ul>
+                                        <li>لا يُسمح باستخدام قوالب خارجية أو قديمة</li>
+                                        <li>جميع القوالب محدثة ومصادق عليها قانونياً</li>
+                                        <li>فقط المشرف الأعلى يستطيع إضافة أو تعديل القوالب</li>
+                                        <li>القوالب متاحة للجميع للاستخدام فقط</li>
+                                    </ul>
+                                    <p><strong>أنواع القوالب المتاحة:</strong> تفويض ربط حساب، اتفاقية خدمة، عقد خدمات مالية، إقرار العميل، إلخ.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- سؤال 6 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="faq6">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse6">
+                                    <i class="fas fa-bell text-warning me-2"></i>
+                                    كيف تعمل التنبيهات الذكية؟
+                                </button>
+                            </h2>
+                            <div id="collapse6" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    <p><strong>التنبيهات الذكية تعمل تلقائياً:</strong></p>
+                                    <ul>
+                                        <li><strong>طلبات متأخرة:</strong> تنبيه إذا تأخر الطلب أكثر من المدة المحددة</li>
+                                        <li><strong>أعياد ميلاد:</strong> تذكير بأعياد ميلاد العملاء قبل 3 أيام</li>
+                                        <li><strong>تعارضات الهوية:</strong> تنبيه فوري عند اكتشاف اسم متطابق مع هوية مختلفة</li>
+                                        <li><strong>النسخ الاحتياطي:</strong> تنبيه بحالة النسخ اليومي</li>
+                                        <li><strong>مستندات ناقصة:</strong> تذكير بالمستندات المطلوبة</li>
+                                    </ul>
+                                    <p>يمكنك إنشاء تنبيهات مخصصة من صفحة "التنبيهات الذكية".</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- سؤال 7 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="faq7">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse7">
+                                    <i class="fas fa-lock text-danger me-2"></i>
+                                    كيف يحمي النظام البيانات الحساسة؟
+                                </button>
+                            </h2>
+                            <div id="collapse7" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    <p><strong>حماية متقدمة للبيانات:</strong></p>
+                                    <ul>
+                                        <li><strong>إخفاء جزئي:</strong> أرقام الهوية والجوال تظهر جزئياً فقط (784-XXXX-XXXXXXX-X)</li>
+                                        <li><strong>منع النسخ/التحميل:</strong> لا يمكن نسخ أو تحميل المستندات بدون صلاحية</li>
+                                        <li><strong>نسخ احتياطي مشفّر:</strong> يومياً على AWS أو Google Drive</li>
+                                        <li><strong>WhatsApp Business آمن:</strong> التواصل داخل النظام بدون كشف الأرقام</li>
+                                        <li><strong>سجل تدقيق شامل:</strong> كل تعديل يُسجّل ولا يمكن حذفه</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- سؤال 8 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="faq8">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse8">
+                                    <i class="fas fa-folder text-success me-2"></i>
+                                    ما هو الملف المركزي للعميل؟
+                                </button>
+                            </h2>
+                            <div id="collapse8" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    <p><strong>كل عميل له ملف دائم واحد يحتوي على:</strong></p>
+                                    <ul>
+                                        <li>جميع الطلبات السابقة والحالية</li>
+                                        <li>المستندات المرفوعة</li>
+                                        <li>سجل التواصل (WhatsApp، بريد، اتصالات)</li>
+                                        <li>المدفوعات والفواتير</li>
+                                        <li>سجل التعديلات والملاحظات</li>
+                                    </ul>
+                                    <p>يمكن الوصول للملف من صفحة "العملاء" → زر "عرض الملف".</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- دليل البدء السريع -->
+            <div class="card mb-4" id="getting-started">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-rocket me-2"></i>
+                        دليل البدء السريع (5 دقائق)
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-primary"><i class="fas fa-step-forward me-2"></i>الخطوة 1: التعرف على واجهة النظام</h6>
+                            <ul>
+                                <li>القائمة الجانبية: الوصول السريع لجميع الصفحات</li>
+                                <li>الصفحة الرئيسية: إحصائيات وملخص النشاط</li>
+                                <li>شريط الإشعارات: تنبيهات فورية</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-primary"><i class="fas fa-step-forward me-2"></i>الخطوة 2: إنشاء أول طلب</h6>
+                            <ul>
+                                <li>اضغط "طلب جديد"</li>
+                                <li>أدخل بيانات العميل</li>
+                                <li>ارفع المستندات</li>
+                                <li>أرسل للمراجعة</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-primary"><i class="fas fa-step-forward me-2"></i>الخطوة 3: متابعة الطلبات</h6>
+                            <ul>
+                                <li>من صفحة "الطلبات" شاهد كل الطلبات</li>
+                                <li>استخدم الفلاتر للبحث السريع</li>
+                                <li>اضغط "تفاصيل" لرؤية الطلب كاملاً</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-primary"><i class="fas fa-step-forward me-2"></i>الخطوة 4: استخدم التنبيهات الذكية</h6>
+                            <ul>
+                                <li>فعّل التنبيهات من الإعدادات</li>
+                                <li>خصص تنبيهات حسب احتياجك</li>
+                                <li>استقبل إشعارات فورية</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- نصائح وأفضل الممارسات -->
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-lightbulb me-2"></i>
+                        نصائح وأفضل الممارسات
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="alert alert-success">
+                                <h6><i class="fas fa-check-circle me-2"></i>افعل:</h6>
+                                <ul class="mb-0">
+                                    <li>تحقق دائماً من صحة رقم الهوية قبل الإرسال</li>
+                                    <li>ارفع صور واضحة للمستندات</li>
+                                    <li>استخدم القوالب المركزية فقط</li>
+                                    <li>تابع التنبيهات بانتظام</li>
+                                    <li>سجّل خروجك بعد الانتهاء</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="alert alert-danger">
+                                <h6><i class="fas fa-times-circle me-2"></i>لا تفعل:</h6>
+                                <ul class="mb-0">
+                                    <li>لا ترسل بيانات عبر WhatsApp الشخصي</li>
+                                    <li>لا تستخدم قوالب خارجية</li>
+                                    <li>لا تقبل دفع خارج النظام</li>
+                                    <li>لا تشارك معلومات تسجيل دخولك</li>
+                                    <li>لا تتجاوز قائمة التحقق</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- التواصل والدعم -->
+            <div class="card">
+                <div class="card-header bg-warning">
+                    <h5 class="mb-0">
+                        <i class="fas fa-headset me-2"></i>
+                        تحتاج مساعدة إضافية؟
+                    </h5>
+                </div>
+                <div class="card-body text-center">
+                    <p class="lead mb-4">فريق الدعم الفني متاح دائماً لمساعدتك</p>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <i class="fas fa-envelope fa-2x text-primary mb-2"></i>
+                            <p class="mb-1"><strong>البريد الإلكتروني</strong></p>
+                            <p><a href="mailto:support@quicklink.ae">support@quicklink.ae</a></p>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <i class="fas fa-phone fa-2x text-success mb-2"></i>
+                            <p class="mb-1"><strong>الهاتف</strong></p>
+                            <p dir="ltr">+971 4 123 4567</p>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <i class="fab fa-whatsapp fa-2x text-success mb-2"></i>
+                            <p class="mb-1"><strong>WhatsApp</strong></p>
+                            <p dir="ltr">+971 50 123 4567</p>
+                        </div>
+                    </div>
+                    <button class="btn btn-warning btn-lg mt-3" onclick="contactSupport()">
+                        <i class="fas fa-paper-plane me-2"></i>
+                        تواصل مع الدعم الفني
+                    </button>
+                </div>
+            </div>
+{% endblock content %}

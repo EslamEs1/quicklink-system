@@ -1,0 +1,598 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Page Title -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">
+                    <i class="fas fa-cog me-2 text-primary"></i>
+                    إعدادات النظام
+                </h2>
+                <button class="btn btn-success" onclick="saveAllSettings()">
+                    <i class="fas fa-save me-1"></i>
+                    حفظ جميع التغييرات
+                </button>
+            </div>
+
+            <!-- Settings Navigation Tabs -->
+            <ul class="nav nav-tabs mb-4" id="settingsTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="general-tab" data-bs-toggle="tab" data-bs-target="#general" type="button">
+                        <i class="fas fa-sliders-h me-1"></i>
+                        عام
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="payment-tab" data-bs-toggle="tab" data-bs-target="#payment" type="button">
+                        <i class="fas fa-credit-card me-1"></i>
+                        بوابات الدفع
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="notifications-tab" data-bs-toggle="tab" data-bs-target="#notifications" type="button">
+                        <i class="fas fa-bell me-1"></i>
+                        الإشعارات
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="security-tab" data-bs-toggle="tab" data-bs-target="#security" type="button">
+                        <i class="fas fa-shield-alt me-1"></i>
+                        الأمان
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="backup-tab" data-bs-toggle="tab" data-bs-target="#backup" type="button">
+                        <i class="fas fa-database me-1"></i>
+                        النسخ الاحتياطي
+                    </button>
+                </li>
+            </ul>
+
+            <!-- Settings Content -->
+            <div class="tab-content" id="settingsTabContent">
+                <!-- General Settings -->
+                <div class="tab-pane fade show active" id="general" role="tabpanel">
+                    <div class="card shadow-custom mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-building me-2"></i>
+                                معلومات الشركة
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">اسم الشركة</label>
+                                    <input type="text" class="form-control" value="Quick Link System" id="companyName">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">البريد الإلكتروني</label>
+                                    <input type="email" class="form-control" value="info@quicklink.ae" id="companyEmail">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">رقم الهاتف</label>
+                                    <input type="tel" class="form-control" value="+971 4 123 4567" id="companyPhone">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">الموقع الإلكتروني</label>
+                                    <input type="url" class="form-control" value="www.quicklink.ae" id="companyWebsite">
+                                </div>
+                                <div class="col-12 mb-3">
+                                    <label class="form-label">العنوان</label>
+                                    <textarea class="form-control" rows="2" id="companyAddress">دبي، الإمارات العربية المتحدة</textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card shadow-custom mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-palette me-2"></i>
+                                إعدادات المظهر
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">اللغة الافتراضية</label>
+                                    <select class="form-control" id="defaultLanguage">
+                                        <option value="ar" selected>العربية</option>
+                                        <option value="en">English</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">المنطقة الزمنية</label>
+                                    <select class="form-control" id="timezone">
+                                        <option value="asia/dubai" selected>دبي (UTC+4)</option>
+                                        <option value="asia/riyadh">الرياض (UTC+3)</option>
+                                        <option value="africa/cairo">القاهرة (UTC+2)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">تنسيق التاريخ</label>
+                                    <select class="form-control" id="dateFormat">
+                                        <option value="dd/mm/yyyy" selected>يوم/شهر/سنة</option>
+                                        <option value="mm/dd/yyyy">شهر/يوم/سنة</option>
+                                        <option value="yyyy-mm-dd">سنة-شهر-يوم</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">العملة</label>
+                                    <select class="form-control" id="currency">
+                                        <option value="aed" selected>درهم إماراتي (AED)</option>
+                                        <option value="sar">ريال سعودي (SAR)</option>
+                                        <option value="usd">دولار أمريكي (USD)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card shadow-custom">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-file-alt me-2"></i>
+                                إعدادات الطلبات
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">بادئة الرقم المرجعي</label>
+                                    <input type="text" class="form-control" value="QL" id="referencePrefix">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">مدة صلاحية الطلب (أيام)</label>
+                                    <input type="number" class="form-control" value="30" id="requestValidity">
+                                </div>
+                                <div class="col-12 mb-3">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="autoApproval" checked>
+                                        <label class="form-check-label" for="autoApproval">
+                                            الموافقة التلقائية على الطلبات
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-12 mb-3">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="duplicateCheck" checked>
+                                        <label class="form-check-label" for="duplicateCheck">
+                                            التحقق من الطلبات المكررة
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Settings -->
+                <div class="tab-pane fade" id="payment" role="tabpanel">
+                    <div class="card shadow-custom mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-credit-card me-2"></i>
+                                بوابات الدفع المتاحة
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-4">
+                                    <div class="payment-gateway-card">
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <h6 class="mb-0">PayTabs</h6>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="paytabsEnabled" checked>
+                                            </div>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="form-label">Merchant ID</label>
+                                            <input type="text" class="form-control" placeholder="أدخل Merchant ID">
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="form-label">API Key</label>
+                                            <input type="password" class="form-control" placeholder="أدخل API Key">
+                                        </div>
+                                        <button class="btn btn-sm btn-outline-primary" onclick="testPaymentGateway('paytabs')">
+                                            <i class="fas fa-vial me-1"></i>
+                                            اختبار الاتصال
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-4">
+                                    <div class="payment-gateway-card">
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <h6 class="mb-0">Stripe</h6>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="stripeEnabled">
+                                            </div>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="form-label">Publishable Key</label>
+                                            <input type="text" class="form-control" placeholder="أدخل Publishable Key">
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="form-label">Secret Key</label>
+                                            <input type="password" class="form-control" placeholder="أدخل Secret Key">
+                                        </div>
+                                        <button class="btn btn-sm btn-outline-primary" onclick="testPaymentGateway('stripe')">
+                                            <i class="fas fa-vial me-1"></i>
+                                            اختبار الاتصال
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card shadow-custom">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-money-bill-wave me-2"></i>
+                                إعدادات الدفع
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">الحد الأدنى للدفع</label>
+                                    <input type="number" class="form-control" value="100" id="minPayment">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">الحد الأقصى للدفع</label>
+                                    <input type="number" class="form-control" value="50000" id="maxPayment">
+                                </div>
+                                <div class="col-12 mb-3">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="partialPayment">
+                                        <label class="form-check-label" for="partialPayment">
+                                            السماح بالدفع الجزئي
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-12 mb-3">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="paymentReminder" checked>
+                                        <label class="form-check-label" for="paymentReminder">
+                                            إرسال تذكير بالدفع
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notifications Settings -->
+                <div class="tab-pane fade" id="notifications" role="tabpanel">
+                    <div class="card shadow-custom mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-envelope me-2"></i>
+                                إعدادات البريد الإلكتروني
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">خادم SMTP</label>
+                                    <input type="text" class="form-control" placeholder="smtp.example.com" id="smtpServer">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">منفذ SMTP</label>
+                                    <input type="number" class="form-control" value="587" id="smtpPort">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">اسم المستخدم</label>
+                                    <input type="text" class="form-control" placeholder="username@example.com" id="smtpUsername">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">كلمة المرور</label>
+                                    <input type="password" class="form-control" id="smtpPassword">
+                                </div>
+                                <div class="col-12 mb-3">
+                                    <button class="btn btn-outline-primary" onclick="testEmailConnection()">
+                                        <i class="fas fa-paper-plane me-1"></i>
+                                        إرسال بريد تجريبي
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card shadow-custom">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-bell me-2"></i>
+                                أنواع الإشعارات
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="notification-item">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="notifyNewRequest" checked>
+                                    <label class="form-check-label" for="notifyNewRequest">
+                                        طلب جديد تم إنشاؤه
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="notification-item">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="notifyStatusChange" checked>
+                                    <label class="form-check-label" for="notifyStatusChange">
+                                        تغيير حالة الطلب
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="notification-item">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="notifyPayment" checked>
+                                    <label class="form-check-label" for="notifyPayment">
+                                        عملية دفع جديدة
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="notification-item">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="notifyNewCustomer" checked>
+                                    <label class="form-check-label" for="notifyNewCustomer">
+                                        عميل جديد مسجل
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="notification-item">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="notifyDuplicate" checked>
+                                    <label class="form-check-label" for="notifyDuplicate">
+                                        اكتشاف طلب مكرر
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Security Settings -->
+                <div class="tab-pane fade" id="security" role="tabpanel">
+                    <div class="card shadow-custom mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-lock me-2"></i>
+                                إعدادات كلمة المرور
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">الحد الأدنى لطول كلمة المرور</label>
+                                    <input type="number" class="form-control" value="8" id="minPasswordLength">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">مدة صلاحية كلمة المرور (أيام)</label>
+                                    <input type="number" class="form-control" value="90" id="passwordExpiry">
+                                </div>
+                                <div class="col-12 mb-3">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="requireUppercase" checked>
+                                        <label class="form-check-label" for="requireUppercase">
+                                            يجب أن تحتوي على أحرف كبيرة
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-12 mb-3">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="requireNumbers" checked>
+                                        <label class="form-check-label" for="requireNumbers">
+                                            يجب أن تحتوي على أرقام
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-12 mb-3">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="requireSpecialChars" checked>
+                                        <label class="form-check-label" for="requireSpecialChars">
+                                            يجب أن تحتوي على رموز خاصة
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card shadow-custom mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-user-shield me-2"></i>
+                                إعدادات الجلسة
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">مدة الجلسة (دقائق)</label>
+                                    <input type="number" class="form-control" value="30" id="sessionTimeout">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">عدد محاولات تسجيل الدخول</label>
+                                    <input type="number" class="form-control" value="3" id="maxLoginAttempts">
+                                </div>
+                                <div class="col-12 mb-3">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="twoFactorAuth">
+                                        <label class="form-check-label" for="twoFactorAuth">
+                                            تفعيل المصادقة الثنائية
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-12 mb-3">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="ipWhitelist">
+                                        <label class="form-check-label" for="ipWhitelist">
+                                            تفعيل قائمة IP المسموحة
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card shadow-custom">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-history me-2"></i>
+                                سجل الأنشطة
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-12 mb-3">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="logUserActivity" checked>
+                                        <label class="form-check-label" for="logUserActivity">
+                                            تسجيل نشاط المستخدمين
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-12 mb-3">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="logSystemChanges" checked>
+                                        <label class="form-check-label" for="logSystemChanges">
+                                            تسجيل تغييرات النظام
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">مدة الاحتفاظ بالسجلات (أيام)</label>
+                                    <input type="number" class="form-control" value="365" id="logRetention">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Backup Settings -->
+                <div class="tab-pane fade" id="backup" role="tabpanel">
+                    <div class="card shadow-custom mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-cloud-upload-alt me-2"></i>
+                                النسخ الاحتياطي التلقائي
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-12 mb-3">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="autoBackup" checked>
+                                        <label class="form-check-label" for="autoBackup">
+                                            تفعيل النسخ الاحتياطي التلقائي
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">تكرار النسخ الاحتياطي</label>
+                                    <select class="form-control" id="backupFrequency">
+                                        <option value="daily" selected>يومي</option>
+                                        <option value="weekly">أسبوعي</option>
+                                        <option value="monthly">شهري</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">وقت النسخ الاحتياطي</label>
+                                    <input type="time" class="form-control" value="02:00" id="backupTime">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">عدد النسخ الاحتياطية المحفوظة</label>
+                                    <input type="number" class="form-control" value="7" id="backupRetention">
+                                </div>
+                                <div class="col-12 mb-3">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="cloudBackup" checked>
+                                        <label class="form-check-label" for="cloudBackup">
+                                            حفظ تلقائي على Cloud (AWS/Google Drive) - <strong>مطلوب</strong>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-12 mb-3">
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        <strong>ملاحظة:</strong> النسخ الاحتياطي مشفّر تلقائياً ويُحفظ على التخزين السحابي يومياً في الساعة 2:00 صباحاً.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card shadow-custom mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-database me-2"></i>
+                                النسخ الاحتياطية المتاحة
+                            </h5>
+                            <a href="{% url 'core_utils:backup' %}" class="btn btn-sm btn-primary">
+                                <i class="fas fa-cog me-1"></i>
+                                إدارة النسخ الاحتياطي
+                            </a>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>التاريخ</th>
+                                            <th>الحجم</th>
+                                            <th>النوع</th>
+                                            <th>الحالة</th>
+                                            <th>الإجراءات</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>20 يناير 2025 - 02:00</td>
+                                            <td>245 MB</td>
+                                            <td><span class="badge bg-primary">تلقائي</span></td>
+                                            <td><span class="badge bg-success">مكتمل</span></td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary" onclick="downloadBackup(1)">
+                                                    <i class="fas fa-download"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-success" onclick="restoreBackup(1)">
+                                                    <i class="fas fa-undo"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger" onclick="deleteBackup(1)">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>19 يناير 2025 - 02:00</td>
+                                            <td>243 MB</td>
+                                            <td><span class="badge bg-primary">تلقائي</span></td>
+                                            <td><span class="badge bg-success">مكتمل</span></td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary" onclick="downloadBackup(2)">
+                                                    <i class="fas fa-download"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-success" onclick="restoreBackup(2)">
+                                                    <i class="fas fa-undo"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger" onclick="deleteBackup(2)">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="text-center mt-3">
+                                <button class="btn btn-primary" onclick="createManualBackup()">
+                                    <i class="fas fa-plus me-1"></i>
+                                    إنشاء نسخة احتياطية يدوية
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+{% endblock content %}

@@ -3,4 +3,5 @@ from django.apps import AppConfig
 
 class RequestsConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'requests'
+    name = 'apps.requests'
+    verbose_name = 'إدارة الطلبات'

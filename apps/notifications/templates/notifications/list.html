@@ -1,0 +1,285 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Page Title -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">
+                    <i class="fas fa-bell me-2 text-warning"></i>
+                    التنبيهات
+                    {% if unread_count > 0 %}
+                        <span class="badge bg-danger ms-2">{{ unread_count }}</span>
+                    {% endif %}
+                </h2>
+                <div class="btn-group">
+                    <button class="btn btn-outline-success" onclick="markAllAsRead()">
+                        <i class="fas fa-check-double me-1"></i>
+                        تحديد الكل كمقروء
+                    </button>
+                    <button class="btn btn-outline-danger" onclick="deleteAllNotifications()">
+                        <i class="fas fa-trash me-1"></i>
+                        حذف الكل
+                    </button>
+                </div>
+            </div>
+
+            <!-- Notification Filters -->
+            <div class="card shadow-custom mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">نوع التنبيه</label>
+                            <select class="form-control" id="notificationTypeFilter">
+                                <option value="all">جميع الأنواع</option>
+                                <option value="request">طلبات</option>
+                                <option value="payment">مدفوعات</option>
+                                <option value="system">نظام</option>
+                                <option value="user">مستخدمين</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">الحالة</label>
+                            <select class="form-control" id="notificationStatusFilter">
+                                <option value="all">الكل</option>
+                                <option value="unread">غير مقروء</option>
+                                <option value="read">مقروء</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">الأولوية</label>
+                            <select class="form-control" id="priorityFilter">
+                                <option value="all">جميع الأولويات</option>
+                                <option value="high">عالية</option>
+                                <option value="medium">متوسطة</option>
+                                <option value="low">منخفضة</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">&nbsp;</label>
+                            <div class="d-grid">
+                                <button class="btn btn-outline-primary" onclick="clearNotificationFilters()">
+                                    <i class="fas fa-times me-1"></i>
+                                    مسح الفلاتر
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notification Stats -->
+            <div class="row mb-4">
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stats-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-bell icon-large text-primary"></i>
+                            <div class="stats-number">{{ total_count|default:0 }}</div>
+                            <div class="stats-label">إجمالي التنبيهات</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stats-card border-danger">
+                        <div class="card-body text-center">
+                            <i class="fas fa-envelope icon-large text-danger"></i>
+                            <div class="stats-number text-danger">{{ unread_count|default:0 }}</div>
+                            <div class="stats-label">غير مقروء</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stats-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-check-circle icon-large text-success"></i>
+                            <div class="stats-number">{{ read_count|default:0 }}</div>
+                            <div class="stats-label">مقروء</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stats-card border-warning">
+                        <div class="card-body text-center">
+                            <i class="fas fa-exclamation-triangle icon-large text-warning"></i>
+                            <div class="stats-number text-warning">{{ high_priority_count|default:0 }}</div>
+                            <div class="stats-label">عالية الأولوية</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notifications List -->
+            <div class="row">
+                <div class="col-lg-8 mb-4">
+                    <div class="card shadow-custom">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-list me-2"></i>
+                                قائمة التنبيهات
+                            </h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="notifications-list">
+                                {% if notifications %}
+                                    {% for notification in notifications %}
+                                <!-- {{ notification.get_notification_type_display }} -->
+                                <div class="notification-item {% if not notification.is_read %}unread{% else %}read{% endif %}">
+                                    <div class="notification-icon 
+                                        {% if notification.priority == 'critical' or notification.priority == 'high' %}bg-danger
+                                        {% elif notification.priority == 'medium' %}bg-warning
+                                        {% elif 'payment' in notification.notification_type %}bg-success
+                                        {% elif 'system' in notification.notification_type %}bg-secondary
+                                        {% else %}bg-primary{% endif %}">
+                                        <i class="fas 
+                                            {% if 'request' in notification.notification_type %}fa-file-alt
+                                            {% elif 'payment' in notification.notification_type %}fa-credit-card
+                                            {% elif 'birthday' in notification.notification_type %}fa-birthday-cake
+                                            {% elif 'conflict' in notification.notification_type %}fa-exclamation-triangle
+                                            {% elif 'system' in notification.notification_type %}fa-cog
+                                            {% else %}fa-bell{% endif %}"></i>
+                                    </div>
+                                    <div class="notification-content">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <h6 class="mb-0">{{ notification.title }}</h6>
+                                            <span class="badge 
+                                                {% if notification.priority == 'critical' %}bg-danger
+                                                {% elif notification.priority == 'high' %}bg-warning
+                                                {% elif notification.priority == 'medium' %}bg-info
+                                                {% else %}bg-secondary{% endif %}">
+                                                {{ notification.get_priority_display }}
+                                            </span>
+                                        </div>
+                                        <p class="text-muted mb-2">{{ notification.message }}</p>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small class="text-muted">
+                                                <i class="fas fa-clock me-1"></i>
+                                                {{ notification.created_at|timesince }}
+                                            </small>
+                                            <div class="btn-group btn-group-sm">
+                                                {% if notification.action_url %}
+                                                    <a href="{{ notification.action_url }}" class="btn btn-outline-primary">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                {% endif %}
+                                                {% if not notification.is_read %}
+                                                    <button class="btn btn-outline-success" onclick="markAsRead({{ notification.id }})">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                {% endif %}
+                                                <button class="btn btn-outline-danger" onclick="deleteNotification({{ notification.id }})">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="text-center text-muted py-5">
+                                        <i class="fas fa-bell-slash fa-3x mb-3 d-block"></i>
+                                        <p>لا توجد إشعارات</p>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notification Settings -->
+                <div class="col-lg-4 mb-4">
+                    <div class="card shadow-custom mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-cog me-2"></i>
+                                إعدادات التنبيهات
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="notification-setting-item">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="emailNotifications" checked>
+                                    <label class="form-check-label" for="emailNotifications">
+                                        تنبيهات البريد الإلكتروني
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="notification-setting-item">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="browserNotifications" checked>
+                                    <label class="form-check-label" for="browserNotifications">
+                                        تنبيهات المتصفح
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="notification-setting-item">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="requestNotifications" checked>
+                                    <label class="form-check-label" for="requestNotifications">
+                                        تنبيهات الطلبات
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="notification-setting-item">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="paymentNotifications" checked>
+                                    <label class="form-check-label" for="paymentNotifications">
+                                        تنبيهات المدفوعات
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="notification-setting-item">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="systemNotifications">
+                                    <label class="form-check-label" for="systemNotifications">
+                                        تنبيهات النظام
+                                    </label>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary w-100 mt-3" onclick="saveNotificationSettings()">
+                                <i class="fas fa-save me-1"></i>
+                                حفظ الإعدادات
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card shadow-custom">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-chart-pie me-2"></i>
+                                إحصائيات التنبيهات
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% for type_key, percentage in type_percentages.items %}
+                                <div class="stat-item mb-3">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>
+                                            {% if 'request' in type_key %}طلبات
+                                            {% elif 'payment' in type_key %}مدفوعات
+                                            {% elif 'system' in type_key %}نظام
+                                            {% elif 'birthday' in type_key %}أعياد ميلاد
+                                            {% elif 'conflict' in type_key %}تعارضات
+                                            {% else %}عام{% endif %}
+                                        </span>
+                                        <strong>{{ percentage }}%</strong>
+                                    </div>
+                                    <div class="progress">
+                                        <div class="progress-bar 
+                                            {% if 'request' in type_key %}bg-primary
+                                            {% elif 'payment' in type_key %}bg-success
+                                            {% elif 'system' in type_key %}bg-info
+                                            {% else %}bg-warning{% endif %}" 
+                                            style="width: {{ percentage }}%"></div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                            
+                            {% if not type_percentages %}
+                                <div class="text-center text-muted py-3">
+                                    <p>لا توجد إحصائيات</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+{% endblock content %}

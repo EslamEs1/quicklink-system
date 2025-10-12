@@ -1,0 +1,326 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- رأس الصفحة -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="page-title mb-2">
+                        <i class="fas fa-bell text-primary me-2"></i>
+                        إدارة التنبيهات الذكية
+                    </h2>
+                    <p class="page-subtitle text-muted">إنشاء وإدارة التنبيهات التلقائية في النظام</p>
+                </div>
+                <div>
+                    <a href="{% url 'settings_app:general' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-right me-1"></i>
+                        رجوع للإعدادات
+                    </a>
+                </div>
+            </div>
+
+            <!-- معلومات مهمة -->
+            <div class="alert alert-info mb-4">
+                <i class="fas fa-lightbulb me-2"></i>
+                <strong>التنبيهات الذكية:</strong> يمكنك إنشاء تنبيهات تلقائية لمتابعة الأحداث المهمة في النظام مثل الطلبات المتأخرة، أعياد الميلاد، التعارضات، والنسخ الاحتياطي.
+            </div>
+
+            <!-- إحصائيات التنبيهات -->
+            <div class="row mb-4">
+                <div class="col-md-3 col-6 mb-3">
+                    <div class="card stats-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-bell-on icon-large text-success"></i>
+                            <div class="stats-number">{{ active_alerts|default:0 }}</div>
+                            <div class="stats-label">تنبيهات نشطة</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6 mb-3">
+                    <div class="card stats-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-bell-slash icon-large text-secondary"></i>
+                            <div class="stats-number">{{ inactive_alerts|default:0 }}</div>
+                            <div class="stats-label">تنبيهات معطلة</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6 mb-3">
+                    <div class="card stats-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-paper-plane icon-large text-primary"></i>
+                            <div class="stats-number">{{ today_executions|default:0 }}</div>
+                            <div class="stats-label">إرسال اليوم</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6 mb-3">
+                    <div class="card stats-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-history icon-large text-warning"></i>
+                            <div class="stats-number">{{ total_executions|default:0 }}</div>
+                            <div class="stats-label">إجمالي الإرسال</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- إنشاء تنبيه جديد -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-plus-circle text-primary me-2"></i>
+                        إنشاء تنبيه ذكي جديد
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form id="alertForm" onsubmit="return createAlert(event)">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">اسم التنبيه <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="alertName" placeholder="مثال: طلبات متأخرة" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">نوع التنبيه <span class="text-danger">*</span></label>
+                                <select class="form-control" id="alertType" required onchange="updateAlertConditions()">
+                                    <option value="">اختر نوع التنبيه</option>
+                                    <option value="overdue">طلبات متأخرة</option>
+                                    <option value="birthday">أعياد ميلاد العملاء</option>
+                                    <option value="conflict">تعارضات الهوية</option>
+                                    <option value="backup">النسخ الاحتياطي</option>
+                                    <option value="payment">مدفوعات معلقة</option>
+                                    <option value="documents">مستندات ناقصة</option>
+                                    <option value="approval">طلبات تحتاج موافقة</option>
+                                    <option value="custom">تنبيه مخصص</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">الشرط <span class="text-danger">*</span></label>
+                                <select class="form-control" id="alertCondition" required>
+                                    <option value="">اختر الشرط</option>
+                                    <option value="equal">يساوي</option>
+                                    <option value="greater">أكبر من</option>
+                                    <option value="less">أقل من</option>
+                                    <option value="between">بين</option>
+                                    <option value="contains">يحتوي على</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">القيمة</label>
+                                <input type="text" class="form-control" id="alertValue" placeholder="مثال: 24 ساعة">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">المدة / التكرار <span class="text-danger">*</span></label>
+                                <select class="form-control" id="alertFrequency" required>
+                                    <option value="realtime">فوري (عند الحدث)</option>
+                                    <option value="hourly">كل ساعة</option>
+                                    <option value="daily">يومياً</option>
+                                    <option value="weekly">أسبوعياً</option>
+                                    <option value="monthly">شهرياً</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">الأولوية</label>
+                                <select class="form-control" id="alertPriority">
+                                    <option value="low">منخفضة</option>
+                                    <option value="medium" selected>متوسطة</option>
+                                    <option value="high">عالية</option>
+                                    <option value="critical">حرجة</option>
+                                </select>
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label">المستلمون</label>
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="notifyAdmin" checked>
+                                            <label class="form-check-label" for="notifyAdmin">المدراء</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="notifyReviewer">
+                                            <label class="form-check-label" for="notifyReviewer">المراجعين</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="notifyIntake">
+                                            <label class="form-check-label" for="notifyIntake">جامعي البيانات</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="notifyEmail">
+                                            <label class="form-check-label" for="notifyEmail">إرسال بالبريد</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label">رسالة التنبيه</label>
+                                <textarea class="form-control" id="alertMessage" rows="3" placeholder="اكتب رسالة التنبيه المخصصة..."></textarea>
+                                <div class="form-text">استخدم {name}, {date}, {time} للقيم الديناميكية</div>
+                            </div>
+                            <div class="col-md-12">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-save me-1"></i>
+                                    إنشاء التنبيه
+                                </button>
+                                <button type="reset" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times me-1"></i>
+                                    إلغاء
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- قائمة التنبيهات الحالية -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list text-primary me-2"></i>
+                        التنبيهات المُفعّلة حالياً
+                    </h5>
+                    <div>
+                        <button class="btn btn-sm btn-outline-success" onclick="enableAllAlerts()">
+                            <i class="fas fa-check-double me-1"></i>
+                            تفعيل الكل
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="disableAllAlerts()">
+                            <i class="fas fa-ban me-1"></i>
+                            تعطيل الكل
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="alertsTable">
+                            <thead>
+                                <tr>
+                                    <th>اسم التنبيه</th>
+                                    <th>النوع</th>
+                                    <th>الشرط</th>
+                                    <th>التكرار</th>
+                                    <th>الأولوية</th>
+                                    <th>آخر إرسال</th>
+                                    <th>الحالة</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if alerts %}
+                                    {% for alert in alerts %}
+                                <tr {% if not alert.is_active %}class="table-secondary"{% endif %}>
+                                    <td><strong>{{ alert.name }}</strong></td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if alert.alert_type == 'overdue_requests' %}bg-danger
+                                            {% elif alert.alert_type == 'birthday' %}bg-warning
+                                            {% elif alert.alert_type == 'identity_conflict' %}bg-danger
+                                            {% elif alert.alert_type == 'backup' %}bg-success
+                                            {% elif alert.alert_type == 'pending_payment' %}bg-primary
+                                            {% else %}bg-secondary{% endif %}">
+                                            {{ alert.get_alert_type_display }}
+                                        </span>
+                                    </td>
+                                    <td>{{ alert.condition|default:"غير محدد" }}</td>
+                                    <td>{{ alert.get_frequency_display }}</td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if 'critical' in alert.description %}bg-danger
+                                            {% elif 'high' in alert.description %}bg-warning
+                                            {% elif 'medium' in alert.description %}bg-info
+                                            {% else %}bg-secondary{% endif %}">
+                                            {% if 'critical' in alert.description %}حرجة
+                                            {% elif 'high' in alert.description %}عالية
+                                            {% elif 'medium' in alert.description %}متوسطة
+                                            {% else %}منخفضة{% endif %}
+                                        </span>
+                                    </td>
+                                    <td>{{ alert.last_run|date:"Y-m-d H:i"|default:"-" }}</td>
+                                    <td>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="alert{{ alert.id }}" {% if alert.is_active %}checked{% endif %}>
+                                            <label class="form-check-label" for="alert{{ alert.id }}">
+                                                {% if alert.is_active %}مُفعّل{% else %}معطل{% endif %}
+                                            </label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-sm btn-outline-primary" onclick="editAlert({{ alert.id }})" title="تعديل">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-info" onclick="testAlert({{ alert.id }})" title="اختبار">
+                                                <i class="fas fa-vial"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="deleteAlert({{ alert.id }})" title="حذف">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="8" class="text-center text-muted py-5">
+                                            <i class="fas fa-inbox fa-3x mb-3 d-block"></i>
+                                            <p>لا توجد تنبيهات ذكية</p>
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- أمثلة التنبيهات -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-lightbulb text-primary me-2"></i>
+                        أمثلة على التنبيهات المفيدة
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <h6 class="text-primary"><i class="fas fa-clock me-1"></i> تنبيهات الوقت:</h6>
+                            <ul>
+                                <li>طلبات متأخرة عن الموعد</li>
+                                <li>طلبات تقترب من الموعد النهائي</li>
+                                <li>مراجعة دورية للطلبات المعلقة</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <h6 class="text-success"><i class="fas fa-birthday-cake me-1"></i> تنبيهات العملاء:</h6>
+                            <ul>
+                                <li>أعياد ميلاد العملاء القادمة</li>
+                                <li>عملاء جدد يحتاجون متابعة</li>
+                                <li>عملاء غير نشطين لفترة طويلة</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <h6 class="text-danger"><i class="fas fa-exclamation-triangle me-1"></i> تنبيهات الأمان:</h6>
+                            <ul>
+                                <li>تعارضات في الهوية</li>
+                                <li>محاولات دخول مشبوهة</li>
+                                <li>فشل النسخ الاحتياطي</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <h6 class="text-info"><i class="fas fa-cog me-1"></i> تنبيهات النظام:</h6>
+                            <ul>
+                                <li>مساحة التخزين منخفضة</li>
+                                <li>تحديثات النظام المتاحة</li>
+                                <li>تقارير الأداء الدورية</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+{% endblock content %}
