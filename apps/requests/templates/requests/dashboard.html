@@ -165,30 +165,36 @@
         <div class="col-lg-4 mb-4">
             <!-- System Notifications -->
             <div class="card shadow-custom mb-4">
-                <div class="card-header">
+                <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">
                         <i class="fas fa-bell me-2"></i>
-                        التنبيهات
+                        التنبيهات الأخيرة
                     </h5>
+                    <a href="{% url 'notifications:list' %}" class="btn btn-sm btn-outline-primary">عرض الكل</a>
                 </div>
                 <div class="card-body">
-                    <div class="alert alert-danger alert-dismissible fade show">
-                        <i class="fas fa-exclamation-triangle me-2"></i>
-                        <strong>تحذير:</strong> اكتشاف اسم مكرر مع هوية مختلفة - أحمد محمد علي
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                    
-                    <div class="alert alert-warning alert-dismissible fade show">
-                        <i class="fas fa-clock me-2"></i>
-                        <strong>تنبيه:</strong> طلب QL-2025-001 متأخر عن الموعد بساعة
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                    
-                    <div class="alert alert-info alert-dismissible fade show">
-                        <i class="fas fa-cloud me-2"></i>
-                        <strong>نسخ احتياطي:</strong> تم الحفظ التلقائي على Cloud بنجاح
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
+                    {% if recent_notifications %}
+                        {% for notification in recent_notifications %}
+                        <div class="alert 
+                            {% if notification.priority == 'critical' or notification.priority == 'high' %}alert-danger
+                            {% elif notification.priority == 'medium' %}alert-warning
+                            {% else %}alert-info{% endif %} 
+                            alert-dismissible fade show">
+                            <i class="fas 
+                                {% if 'conflict' in notification.notification_type %}fa-exclamation-triangle
+                                {% elif 'request' in notification.notification_type %}fa-clock
+                                {% elif 'backup' in notification.notification_type or 'system' in notification.notification_type %}fa-cloud
+                                {% else %}fa-bell{% endif %} me-2"></i>
+                            <strong>{{ notification.title }}:</strong> {{ notification.message|truncatewords:10 }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center text-muted py-3">
+                            <i class="fas fa-bell-slash fa-2x mb-2 d-block"></i>
+                            <p>لا توجد تنبيهات جديدة</p>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
 

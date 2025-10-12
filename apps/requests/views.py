@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db import models
 from .models import Request, Template
 from apps.clients.models import Customer
@@ -42,6 +43,12 @@ def dashboard(request):
     completed_requests = Request.objects.filter(status='completed', is_deleted=False).count()
     completion_rate = round((completed_requests / total_requests * 100), 1) if total_requests > 0 else 0
     
+    # الإشعارات الأخيرة
+    from apps.notifications.models import Notification
+    recent_notifications = Notification.objects.filter(
+        is_read=False
+    ).order_by('-created_at')[:3]
+    
     context = {
         'page_title': 'لوحة التحكم',
         'total_requests': total_requests,
@@ -51,6 +58,7 @@ def dashboard(request):
         'recent_requests': recent_requests,
         'today_requests': today_requests,
         'completion_rate': completion_rate,
+        'recent_notifications': recent_notifications,
     }
     return render(request, 'requests/dashboard.html', context)
 
@@ -154,6 +162,17 @@ def list(request):
     
     requests_list = requests_list.order_by('-created_at')
     
+    # Pagination
+    paginator = Paginator(requests_list, 20)  # 20 طلب لكل صفحة
+    page = request.GET.get('page', 1)
+    
+    try:
+        page_obj = paginator.page(page)
+    except PageNotAnInteger:
+        page_obj = paginator.page(1)
+    except EmptyPage:
+        page_obj = paginator.page(paginator.num_pages)
+    
     # إحصائيات
     total_count = Request.objects.filter(is_deleted=False).count()
     pending_count = Request.objects.filter(
@@ -169,7 +188,7 @@ def list(request):
     
     context = {
         'page_title': 'جميع الطلبات',
-        'requests': requests_list,
+        'page_obj': page_obj,
         'total_count': total_count,
         'pending_count': pending_count,
         'completed_count': completed_count,
@@ -263,8 +282,22 @@ def pending(request):
     
     pending_requests = pending_requests.order_by('-priority', '-created_at')
     
+    # Pagination
+    paginator = Paginator(pending_requests, 15)  # 15 طلب لكل صفحة
+    page = request.GET.get('page', 1)
+    
+    try:
+        page_obj = paginator.page(page)
+    except PageNotAnInteger:
+        page_obj = paginator.page(1)
+    except EmptyPage:
+        page_obj = paginator.page(paginator.num_pages)
+    
     # إحصائيات
-    total_pending = pending_requests.count()
+    total_pending = Request.objects.filter(
+        status__in=['new', 'in_review', 'pending_payment'],
+        is_deleted=False
+    ).count()
     overdue_count = Request.objects.filter(
         status__in=['new', 'in_review'],
         due_date__lt=timezone.now(),
@@ -274,11 +307,15 @@ def pending(request):
     # المخصصة للمستخدم الحالي
     assigned_to_me = 0
     if request.user.is_authenticated:
-        assigned_to_me = pending_requests.filter(assigned_to=request.user).count()
+        assigned_to_me = Request.objects.filter(
+            assigned_to=request.user,
+            status__in=['new', 'in_review'],
+            is_deleted=False
+        ).count()
     
     context = {
         'page_title': 'الطلبات المعلقة',
-        'requests': pending_requests,
+        'page_obj': page_obj,
         'total_pending': total_pending,
         'overdue_count': overdue_count,
         'assigned_to_me': assigned_to_me,

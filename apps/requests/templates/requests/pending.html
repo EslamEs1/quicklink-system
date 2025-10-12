@@ -152,8 +152,8 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {% if requests %}
-                                    {% for req in requests %}
+                                {% if page_obj %}
+                                    {% for req in page_obj %}
                                 <tr class="
                                     {% if req.priority == 'urgent' %}priority-urgent
                                     {% elif req.priority == 'high' %}priority-high
@@ -162,127 +162,86 @@
                                         <input type="checkbox" class="form-check-input request-checkbox">
                                     </td>
                                     <td>
-                                        <span class="badge bg-danger">
-                                            <i class="fas fa-exclamation-triangle"></i>
-                                            عاجل
+                                        <span class="badge 
+                                            {% if req.priority == 'urgent' %}bg-danger
+                                            {% elif req.priority == 'high' %}bg-warning
+                                            {% elif req.priority == 'medium' %}bg-primary
+                                            {% else %}bg-secondary{% endif %}">
+                                            <i class="fas 
+                                                {% if req.priority == 'urgent' %}fa-exclamation-triangle
+                                                {% elif req.priority == 'high' %}fa-exclamation
+                                                {% else %}fa-minus{% endif %}"></i>
+                                            {{ req.get_priority_display }}
                                         </span>
                                     </td>
-                                    <td><strong>QL-2025-001</strong></td>
-                                    <td>أحمد محمد علي</td>
-                                    <td>ربط حساب PayTabs</td>
-                                    <td>420 درهم</td>
-                                    <td>18 يناير 2025</td>
+                                    <td><strong>{{ req.reference_number }}</strong></td>
+                                    <td>{{ req.customer.full_name }}</td>
+                                    <td>{{ req.get_request_type_display }}</td>
+                                    <td>{{ req.total_amount|default:"420" }} درهم</td>
+                                    <td>{{ req.created_at|date:"d يناير Y" }}</td>
                                     <td>
-                                        <span class="badge bg-danger">
-                                            <i class="fas fa-clock"></i>
-                                            متأخر بـ 2 ساعة
-                                        </span>
+                                        {% if req.due_date %}
+                                            {% now "Y-m-d H:i:s" as current_time %}
+                                            {% if req.due_date < current_time %}
+                                                <span class="badge bg-danger">
+                                                    <i class="fas fa-clock"></i>
+                                                    متأخر
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-clock"></i>
+                                                    في الموعد
+                                                </span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="badge bg-secondary">-</span>
+                                        {% endif %}
                                     </td>
                                     <td>
-                                        <span class="badge bg-info">أنت</span>
+                                        {% if req.assigned_to %}
+                                            <span class="badge bg-info">{{ req.assigned_to.get_full_name|default:req.assigned_to.username }}</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">غير مخصص</span>
+                                        {% endif %}
                                     </td>
                                     <td>
                                         <div class="btn-group" role="group">
-                                            <button class="btn btn-action btn-view" onclick="viewPendingRequest(1)" title="عرض التفاصيل">
+                                            <button class="btn btn-action btn-view" onclick="viewPendingRequest({{ req.id }})" title="عرض التفاصيل">
                                                 <i class="fas fa-eye"></i>
                                             </button>
-                                            <button class="btn btn-action btn-success" onclick="approveRequest(1)" title="موافقة">
+                                            <button class="btn btn-action btn-success" onclick="approveRequest({{ req.id }})" title="موافقة">
                                                 <i class="fas fa-check"></i>
                                             </button>
-                                            <button class="btn btn-action btn-delete" onclick="rejectRequest(1)" title="رفض">
+                                            <button class="btn btn-action btn-delete" onclick="rejectRequest({{ req.id }})" title="رفض">
                                                 <i class="fas fa-times"></i>
                                             </button>
-                                            <button class="btn btn-action btn-warning" onclick="assignRequest(1)" title="إعادة تخصيص">
-                                                <i class="fas fa-user"></i>
-                                            </button>
+                                            {% if not req.assigned_to %}
+                                                <button class="btn btn-action btn-warning" onclick="assignRequest({{ req.id }})" title="تخصيص لي">
+                                                    <i class="fas fa-user-plus"></i>
+                                                </button>
+                                            {% else %}
+                                                <button class="btn btn-action btn-warning" onclick="assignRequest({{ req.id }})" title="إعادة تخصيص">
+                                                    <i class="fas fa-user"></i>
+                                                </button>
+                                            {% endif %}
                                         </div>
                                     </td>
                                 </tr>
-                                <tr class="priority-high">
-                                    <td>
-                                        <input type="checkbox" class="form-check-input request-checkbox">
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-warning">
-                                            <i class="fas fa-exclamation"></i>
-                                            عالية
-                                        </span>
-                                    </td>
-                                    <td><strong>QL-2025-002</strong></td>
-                                    <td>فاطمة عبدالله السعد</td>
-                                    <td>بوابة دفع إلكترونية</td>
-                                    <td>750 درهم</td>
-                                    <td>19 يناير 2025</td>
-                                    <td>
-                                        <span class="badge bg-warning">
-                                            <i class="fas fa-clock"></i>
-                                            متبقي ساعة
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-info">أنت</span>
-                                    </td>
-                                    <td>
-                                        <div class="btn-group" role="group">
-                                            <button class="btn btn-action btn-view" onclick="viewPendingRequest(2)" title="عرض التفاصيل">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
-                                            <button class="btn btn-action btn-success" onclick="approveRequest(2)" title="موافقة">
-                                                <i class="fas fa-check"></i>
-                                            </button>
-                                            <button class="btn btn-action btn-delete" onclick="rejectRequest(2)" title="رفض">
-                                                <i class="fas fa-times"></i>
-                                            </button>
-                                            <button class="btn btn-action btn-warning" onclick="assignRequest(2)" title="إعادة تخصيص">
-                                                <i class="fas fa-user"></i>
-                                            </button>
-                                        </div>
+                                    {% endfor %}
+                                {% else %}
+                                <tr>
+                                    <td colspan="10" class="text-center text-muted py-5">
+                                        <i class="fas fa-inbox fa-3x mb-3 d-block"></i>
+                                        <p>لا توجد طلبات معلقة</p>
                                     </td>
                                 </tr>
-                                <tr class="priority-medium">
-                                    <td>
-                                        <input type="checkbox" class="form-check-input request-checkbox">
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-primary">
-                                            <i class="fas fa-minus"></i>
-                                            متوسطة
-                                        </span>
-                                    </td>
-                                    <td><strong>QL-2025-003</strong></td>
-                                    <td>محمد سالم الأحمد</td>
-                                    <td>تكامل بنكي</td>
-                                    <td>650 درهم</td>
-                                    <td>20 يناير 2025</td>
-                                    <td>
-                                        <span class="badge bg-success">
-                                            <i class="fas fa-clock"></i>
-                                            متبقي 5 ساعات
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-secondary">غير مخصص</span>
-                                    </td>
-                                    <td>
-                                        <div class="btn-group" role="group">
-                                            <button class="btn btn-action btn-view" onclick="viewPendingRequest(3)" title="عرض التفاصيل">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
-                                            <button class="btn btn-action btn-success" onclick="approveRequest(3)" title="موافقة">
-                                                <i class="fas fa-check"></i>
-                                            </button>
-                                            <button class="btn btn-action btn-delete" onclick="rejectRequest(3)" title="رفض">
-                                                <i class="fas fa-times"></i>
-                                            </button>
-                                            <button class="btn btn-action btn-warning" onclick="assignRequest(3)" title="تخصيص لي">
-                                                <i class="fas fa-user-plus"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
+                                {% endif %}
                             </tbody>
                         </table>
                     </div>
                 </div>
             </div>
+
+            <!-- Pagination -->
+            {% include 'pagination.html' %}
 {% endblock content %}

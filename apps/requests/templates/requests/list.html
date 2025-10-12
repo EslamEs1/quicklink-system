@@ -128,8 +128,8 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {% if requests %}
-                                    {% for req in requests %}
+                                {% if page_obj %}
+                                    {% for req in page_obj %}
                                 <tr>
                                     <td><strong>{{ req.reference_number }}</strong></td>
                                     <td>{{ req.customer.full_name }}</td>
