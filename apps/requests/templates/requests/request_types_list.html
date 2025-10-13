@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Page Title -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">
+                    <i class="fas fa-list-ul me-2 text-primary"></i>
+                    إدارة أنواع الطلبات
+                </h2>
+                <a href="{% url 'requests:request_type_create' %}" class="btn btn-primary">
+                    <i class="fas fa-plus me-1"></i>
+                    إضافة نوع جديد
+                </a>
+            </div>
+
+            <!-- Important Notice -->
+            <div class="alert alert-info mb-4">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>معلومة:</strong> أنواع الطلبات ديناميكية - يمكنك إضافة أو تعديل أو حذف الأنواع حسب احتياجات العمل.
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="row mb-4">
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stats-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-list icon-large text-primary"></i>
+                            <div class="stats-number">{{ total_types|default:0 }}</div>
+                            <div class="stats-label">إجمالي الأنواع</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stats-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-check-circle icon-large text-success"></i>
+                            <div class="stats-number">{{ active_types|default:0 }}</div>
+                            <div class="stats-label">أنواع نشطة</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stats-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-layer-group icon-large text-info"></i>
+                            <div class="stats-number">6</div>
+                            <div class="stats-label">الفئات</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stats-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-chart-line icon-large text-warning"></i>
+                            <div class="stats-number">{{ total_usage|default:0 }}</div>
+                            <div class="stats-label">مرات الاستخدام</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Request Types Table -->
+            <div class="card shadow-custom">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-table me-2"></i>
+                        قائمة أنواع الطلبات
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>الاسم (عربي)</th>
+                                    <th>الرمز</th>
+                                    <th>الفئة</th>
+                                    <th>السعر الافتراضي</th>
+                                    <th>الاستخدام</th>
+                                    <th>الترتيب</th>
+                                    <th>الحالة</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if request_types %}
+                                    {% for type in request_types %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>
+                                        <strong>{{ type.name_arabic }}</strong>
+                                        {% if type.name_english %}
+                                        <br><small class="text-muted">{{ type.name_english }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td><code>{{ type.code }}</code></td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if type.category == 'paytabs' %}bg-primary
+                                            {% elif type.category == 'payment_gateway' %}bg-success
+                                            {% elif type.category == 'merchant' %}bg-warning text-dark
+                                            {% elif type.category == 'bank' %}bg-info
+                                            {% elif type.category == 'additional' %}bg-secondary
+                                            {% else %}bg-dark{% endif %}">
+                                            {{ type.get_category_display }}
+                                        </span>
+                                    </td>
+                                    <td><strong>{{ type.default_price }} درهم</strong></td>
+                                    <td>{{ type.usage_count|default:0 }} مرة</td>
+                                    <td>{{ type.display_order }}</td>
+                                    <td>
+                                        {% if type.is_active %}
+                                        <span class="badge bg-success">نشط</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">معطل</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'requests:request_type_edit' type.id %}" class="btn btn-action btn-edit" title="تعديل">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            {% if type.is_active %}
+                                            <button class="btn btn-action btn-warning" onclick="toggleTypeStatus({{ type.id }}, false)" title="تعطيل">
+                                                <i class="fas fa-pause"></i>
+                                            </button>
+                                            {% else %}
+                                            <button class="btn btn-action btn-success" onclick="toggleTypeStatus({{ type.id }}, true)" title="تفعيل">
+                                                <i class="fas fa-play"></i>
+                                            </button>
+                                            {% endif %}
+                                            {% if type.usage_count == 0 %}
+                                            <button class="btn btn-action btn-delete" onclick="deleteType({{ type.id }})" title="حذف">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                    {% endfor %}
+                                {% else %}
+                                <tr>
+                                    <td colspan="9" class="text-center text-muted py-5">
+                                        <i class="fas fa-inbox fa-3x mb-3 d-block"></i>
+                                        <p>لا توجد أنواع طلبات</p>
+                                        <a href="{% url 'requests:request_type_create' %}" class="btn btn-primary mt-2">
+                                            <i class="fas fa-plus me-1"></i>
+                                            إضافة نوع جديد
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+{% block extra_js %}
+<script>
+    function toggleTypeStatus(id, activate) {
+        const action = activate ? 'تفعيل' : 'تعطيل';
+        if (confirm(`هل أنت متأكد من ${action} هذا النوع؟`)) {
+            // سيتم إضافة AJAX request لاحقاً
+            showNotification(`جاري ${action} النوع...`, 'info');
+        }
+    }
+    
+    function deleteType(id) {
+        if (confirm('هل أنت متأكد من حذف هذا النوع؟ لا يمكن التراجع عن هذا الإجراء.')) {
+            // سيتم إضافة AJAX request لاحقاً
+            showNotification('جاري الحذف...', 'info');
+        }
+    }
+</script>
+{% endblock %}
+{% endblock content %}
+

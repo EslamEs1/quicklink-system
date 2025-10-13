@@ -248,63 +248,34 @@
                                             <!-- Request Type -->
                                             <div class="col-md-6 mb-3">
                                                 <label class="form-label">نوع الطلب <span class="text-danger">*</span></label>
-                                                <select class="form-control" id="requestType" name="requestType" required>
+                                                <select class="form-control" id="requestType" name="request_type_id" required>
                                                     <option value="">اختر نوع الطلب</option>
                                                     {% if request_types %}
-                                                        {% regroup request_types by 0|slice:":14" as type_groups %}
-                                                        
-                                                        <optgroup label="خدمات PayTabs">
-                                                            {% for value, label in request_types %}
-                                                                {% if 'paytabs' in value %}
-                                                            <option value="{{ value }}">{{ label }}</option>
-                                                                {% endif %}
+                                                        {% regroup request_types by category as category_groups %}
+                                                        {% for category in category_groups %}
+                                                        <optgroup label="{{ category.grouper|title }}">
+                                                            {% for type in category.list %}
+                                                            <option value="{{ type.id }}" data-price="{{ type.default_price }}">
+                                                                {{ type.name_arabic }} - {{ type.default_price }} درهم
+                                                            </option>
                                                             {% endfor %}
                                                         </optgroup>
-                                                        
-                                                        <optgroup label="بوابات الدفع">
-                                                            {% for value, label in request_types %}
-                                                                {% if 'gateway' in value %}
-                                                            <option value="{{ value }}">{{ label }}</option>
-                                                                {% endif %}
-                                                            {% endfor %}
-                                                        </optgroup>
-                                                        
-                                                        <optgroup label="حسابات تجارية">
-                                                            {% for value, label in request_types %}
-                                                                {% if 'merchant' in value %}
-                                                            <option value="{{ value }}">{{ label }}</option>
-                                                                {% endif %}
-                                                            {% endfor %}
-                                                        </optgroup>
-                                                        
-                                                        <optgroup label="تكاملات بنكية">
-                                                            {% for value, label in request_types %}
-                                                                {% if 'bank' in value %}
-                                                            <option value="{{ value }}">{{ label }}</option>
-                                                                {% endif %}
-                                                            {% endfor %}
-                                                        </optgroup>
-                                                        
-                                                        <optgroup label="خدمات إضافية">
-                                                            {% for value, label in request_types %}
-                                                                {% if value in 'pos_terminal,mobile_payment,subscription_service,refund_service' %}
-                                                            <option value="{{ value }}">{{ label }}</option>
-                                                                {% endif %}
-                                                            {% endfor %}
-                                                        </optgroup>
-                                                        
-                                                        <optgroup label="أخرى">
-                                                            {% for value, label in request_types %}
-                                                                {% if value in 'consultation,support_request,custom_solution,other' %}
-                                                            <option value="{{ value }}">{{ label }}</option>
-                                                                {% endif %}
-                                                            {% endfor %}
-                                                        </optgroup>
+                                                        {% endfor %}
+                                                    {% else %}
+                                                        <option value="" disabled>لا توجد أنواع متاحة</option>
                                                     {% endif %}
                                                 </select>
                                                 <div class="form-text">
                                                     <i class="fas fa-info-circle me-1"></i>
                                                     اختر نوع الخدمة المطلوبة
+                                                    {% if not request_types %}
+                                                    <br>
+                                                    <span class="text-danger">
+                                                        <i class="fas fa-exclamation-triangle me-1"></i>
+                                                        لا توجد أنواع طلبات. يرجى إضافة أنواع من 
+                                                        <a href="{% url 'requests:request_types_list' %}" class="text-danger">صفحة إدارة الأنواع</a>
+                                                    </span>
+                                                    {% endif %}
                                                 </div>
                                             </div>
                                         </div>

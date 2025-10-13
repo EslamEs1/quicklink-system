@@ -17,6 +17,52 @@ class RequestStatus(models.TextChoices):
     ON_HOLD = 'on_hold', 'معلق'
 
 
+class RequestType(models.Model):
+    """أنواع الطلبات (ديناميكية)"""
+    
+    # معلومات النوع
+    name_arabic = models.CharField('الاسم بالعربية', max_length=200)
+    name_english = models.CharField('الاسم بالإنجليزية', max_length=200, blank=True)
+    code = models.CharField('الرمز', max_length=50, unique=True)
+    
+    # الفئة
+    CATEGORY_CHOICES = [
+        ('paytabs', 'خدمات PayTabs'),
+        ('payment_gateway', 'بوابات الدفع'),
+        ('merchant', 'حسابات تجارية'),
+        ('bank', 'تكاملات بنكية'),
+        ('additional', 'خدمات إضافية'),
+        ('other', 'أخرى'),
+    ]
+    category = models.CharField('الفئة', max_length=50, choices=CATEGORY_CHOICES)
+    
+    # الوصف
+    description = models.TextField('الوصف', blank=True)
+    
+    # الرسوم
+    default_price = models.DecimalField('السعر الافتراضي', max_digits=10, decimal_places=2, default=420.00)
+    
+    # الحالة
+    is_active = models.BooleanField('نشط', default=True)
+    display_order = models.IntegerField('ترتيب العرض', default=0)
+    
+    # الإحصائيات
+    usage_count = models.IntegerField('عدد الاستخدامات', default=0)
+    
+    # Metadata
+    created_at = models.DateTimeField('تاريخ الإنشاء', auto_now_add=True)
+    updated_at = models.DateTimeField('آخر تحديث', auto_now=True)
+    created_by = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True)
+    
+    class Meta:
+        verbose_name = 'نوع طلب'
+        verbose_name_plural = 'أنواع الطلبات'
+        ordering = ['category', 'display_order', 'name_arabic']
+    
+    def __str__(self):
+        return self.name_arabic
+
+
 class Request(models.Model):
     """طلب ربط الحساب"""
     
@@ -36,45 +82,22 @@ class Request(models.Model):
         verbose_name='العميل'
     )
     
-    # نوع الطلب
-    REQUEST_TYPE_CHOICES = [
-        # خدمات PayTabs
-        ('paytabs_link', 'ربط حساب PayTabs'),
-        ('paytabs_integration', 'تكامل PayTabs API'),
-        ('paytabs_update', 'تحديث حساب PayTabs'),
-        
-        # بوابات الدفع
-        ('payment_gateway', 'بوابة دفع إلكترونية'),
-        ('payment_gateway_setup', 'إعداد بوابة دفع'),
-        ('payment_gateway_migration', 'نقل بوابة دفع'),
-        
-        # حسابات تجارية
-        ('merchant_account', 'حساب تاجر'),
-        ('merchant_verification', 'توثيق حساب تاجر'),
-        ('merchant_upgrade', 'ترقية حساب تاجر'),
-        
-        # تكاملات بنكية
-        ('bank_integration', 'تكامل بنكي'),
-        ('bank_account_link', 'ربط حساب بنكي'),
-        ('bank_transfer_setup', 'إعداد تحويل بنكي'),
-        
-        # خدمات إضافية
-        ('pos_terminal', 'جهاز نقاط البيع (POS)'),
-        ('mobile_payment', 'الدفع عبر الجوال'),
-        ('subscription_service', 'خدمة اشتراكات'),
-        ('refund_service', 'خدمة المرتجعات'),
-        
-        # أخرى
-        ('consultation', 'استشارة فنية'),
-        ('support_request', 'طلب دعم فني'),
-        ('custom_solution', 'حل مخصص'),
-        ('other', 'أخرى'),
-    ]
+    # نوع الطلب (ديناميكي من Database)
+    request_type = models.ForeignKey(
+        'RequestType',
+        on_delete=models.PROTECT,
+        related_name='requests',
+        verbose_name='نوع الطلب',
+        null=True,  # للتوافق مع البيانات القديمة
+        blank=True
+    )
     
-    request_type = models.CharField(
-        'نوع الطلب',
+    # نوع الطلب القديم (للتوافق المؤقت - سيتم حذفه لاحقاً)
+    request_type_legacy = models.CharField(
+        'نوع الطلب (قديم)',
         max_length=100,
-        choices=REQUEST_TYPE_CHOICES
+        blank=True,
+        null=True
     )
     
     # الحالة

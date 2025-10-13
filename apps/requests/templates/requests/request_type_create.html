@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Page Title -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">
+                    <i class="fas fa-plus-circle me-2 text-primary"></i>
+                    إضافة نوع طلب جديد
+                </h2>
+                <a href="{% url 'requests:request_types_list' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-right me-1"></i>
+                    رجوع للأنواع
+                </a>
+            </div>
+
+            <!-- Create Form -->
+            <form method="post" action="{% url 'requests:request_type_create' %}">
+                {% csrf_token %}
+                
+                <div class="row">
+                    <div class="col-lg-8">
+                        <!-- Basic Information -->
+                        <div class="card shadow-custom mb-4">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    معلومات النوع
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">الاسم (عربي) <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" name="name_arabic" required 
+                                               placeholder="مثال: ربط حساب PayTabs">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">الاسم (إنجليزي)</label>
+                                        <input type="text" class="form-control" name="name_english" 
+                                               placeholder="Example: PayTabs Account Link">
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">الرمز <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" name="code" required 
+                                               placeholder="paytabs_link">
+                                        <div class="form-text">رمز فريد بالإنجليزية (بدون مسافات)</div>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">الفئة <span class="text-danger">*</span></label>
+                                        <select class="form-control" name="category" required>
+                                            <option value="">اختر الفئة</option>
+                                            <option value="paytabs">خدمات PayTabs</option>
+                                            <option value="payment_gateway">بوابات الدفع</option>
+                                            <option value="merchant">حسابات تجارية</option>
+                                            <option value="bank">تكاملات بنكية</option>
+                                            <option value="additional">خدمات إضافية</option>
+                                            <option value="other">أخرى</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">ترتيب العرض</label>
+                                        <input type="number" class="form-control" name="display_order" 
+                                               value="0" min="0">
+                                        <div class="form-text">الترتيب في القائمة (0 = أول)</div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">الوصف</label>
+                                    <textarea class="form-control" name="description" rows="3" 
+                                              placeholder="وصف مختصر للخدمة..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pricing -->
+                        <div class="card shadow-custom mb-4">
+                            <div class="card-header bg-success text-white">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-dollar-sign me-2"></i>
+                                    التسعير
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">السعر الافتراضي (درهم) <span class="text-danger">*</span></label>
+                                        <input type="number" class="form-control" name="default_price" required 
+                                               value="420.00" step="0.01" min="0">
+                                        <div class="form-text">السعر الافتراضي لهذا النوع من الطلبات</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sidebar -->
+                    <div class="col-lg-4">
+                        <!-- Status -->
+                        <div class="card shadow-custom mb-4">
+                            <div class="card-header bg-warning text-dark">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-cog me-2"></i>
+                                    الحالة
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="is_active" id="isActive" checked>
+                                    <label class="form-check-label" for="isActive">
+                                        <strong>نشط</strong>
+                                        <br><small class="text-muted">النوع متاح للاستخدام</small>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="card shadow-custom">
+                            <div class="card-body">
+                                <button type="submit" class="btn btn-primary w-100 mb-2">
+                                    <i class="fas fa-save me-1"></i>
+                                    حفظ النوع
+                                </button>
+                                <a href="{% url 'requests:request_types_list' %}" class="btn btn-outline-danger w-100">
+                                    <i class="fas fa-times me-1"></i>
+                                    إلغاء
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+{% endblock content %}
+

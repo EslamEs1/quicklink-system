@@ -125,14 +125,15 @@ def create(request):
     customers = Customer.objects.filter(is_active=True).order_by('-updated_at')[:50]
     templates = Template.objects.filter(is_active=True, is_published=True)
     
-    # جلب أنواع الطلبات من Model
-    request_types = Request.REQUEST_TYPE_CHOICES
+    # جلب أنواع الطلبات من Database (ديناميكي 100%)
+    from apps.requests.models import RequestType
+    request_types = RequestType.objects.filter(is_active=True).order_by('category', 'display_order')
     
     context = {
         'page_title': 'إنشاء طلب جديد',
         'templates': templates,
         'customers': customers,
-        'request_types': request_types,  # أنواع الطلبات الديناميكية
+        'request_types': request_types,  # أنواع الطلبات من Database
     }
     return render(request, 'requests/create.html', context)
 
@@ -470,3 +471,95 @@ def template_edit(request, pk):
         'template': template,
     }
     return render(request, 'requests/template_edit.html', context)
+
+
+# @login_required
+def request_types_list(request):
+    """قائمة أنواع الطلبات"""
+    from apps.requests.models import RequestType
+    
+    # جلب جميع الأنواع
+    request_types = RequestType.objects.all().order_by('category', 'display_order')
+    
+    # إحصائيات
+    total_types = RequestType.objects.count()
+    active_types = RequestType.objects.filter(is_active=True).count()
+    total_usage = sum(t.usage_count for t in RequestType.objects.all())
+    
+    context = {
+        'page_title': 'إدارة أنواع الطلبات',
+        'request_types': request_types,
+        'total_types': total_types,
+        'active_types': active_types,
+        'total_usage': total_usage,
+    }
+    return render(request, 'requests/request_types_list.html', context)
+
+
+# @login_required
+def request_type_create(request):
+    """إنشاء نوع طلب جديد"""
+    from apps.requests.models import RequestType
+    
+    if request.method == 'POST':
+        name_arabic = request.POST.get('name_arabic')
+        name_english = request.POST.get('name_english', '')
+        code = request.POST.get('code')
+        category = request.POST.get('category')
+        description = request.POST.get('description', '')
+        default_price = request.POST.get('default_price', 420)
+        display_order = request.POST.get('display_order', 0)
+        is_active = request.POST.get('is_active') == 'on'
+        
+        # التحقق من عدم تكرار الرمز
+        if RequestType.objects.filter(code=code).exists():
+            messages.error(request, f'الرمز "{code}" موجود مسبقاً! استخدم رمز آخر.')
+            return redirect('requests:request_type_create')
+        
+        # إنشاء النوع
+        request_type = RequestType.objects.create(
+            name_arabic=name_arabic,
+            name_english=name_english,
+            code=code,
+            category=category,
+            description=description,
+            default_price=default_price,
+            display_order=display_order,
+            is_active=is_active,
+            created_by=request.user if request.user.is_authenticated else None
+        )
+        
+        messages.success(request, f'تم إنشاء نوع الطلب "{request_type.name_arabic}" بنجاح!')
+        return redirect('requests:request_types_list')
+    
+    context = {
+        'page_title': 'إضافة نوع طلب جديد',
+    }
+    return render(request, 'requests/request_type_create.html', context)
+
+
+# @login_required
+def request_type_edit(request, pk):
+    """تعديل نوع طلب"""
+    from apps.requests.models import RequestType
+    request_type = get_object_or_404(RequestType, pk=pk)
+    
+    if request.method == 'POST':
+        request_type.name_arabic = request.POST.get('name_arabic')
+        request_type.name_english = request.POST.get('name_english', '')
+        request_type.category = request.POST.get('category')
+        request_type.description = request.POST.get('description', '')
+        request_type.default_price = request.POST.get('default_price', 420)
+        request_type.display_order = request.POST.get('display_order', 0)
+        request_type.is_active = request.POST.get('is_active') == 'on'
+        
+        request_type.save()
+        
+        messages.success(request, f'تم تحديث نوع الطلب "{request_type.name_arabic}" بنجاح!')
+        return redirect('requests:request_types_list')
+    
+    context = {
+        'page_title': f'تعديل: {request_type.name_arabic}',
+        'request_type': request_type,
+    }
+    return render(request, 'requests/request_type_edit.html', context)
