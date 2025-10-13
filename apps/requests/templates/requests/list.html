@@ -8,10 +8,16 @@
                     <i class="fas fa-list me-2 text-primary"></i>
                     جميع الطلبات
                 </h2>
-                <a href="{% url 'requests:create' %}" class="btn btn-primary">
-                    <i class="fas fa-plus me-1"></i>
-                    طلب جديد
-                </a>
+                <div class="btn-group" role="group">
+                    <a href="{% url 'requests:create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i>
+                        طلب جديد
+                    </a>
+                    <a href="{% url 'requests:request_types_list' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-cog me-1"></i>
+                        إدارة أنواع الطلبات
+                    </a>
+                </div>
             </div>
 
             <!-- Filters and Search -->
