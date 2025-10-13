@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Request, Template, RequestType
+from .models import Request, Template, RequestType, RequestCategory
 
 
 @admin.register(Request)
@@ -78,6 +78,32 @@ class TemplateAdmin(admin.ModelAdmin):
     )
 
 
+@admin.register(RequestCategory)
+class RequestCategoryAdmin(admin.ModelAdmin):
+    """إدارة فئات الطلبات"""
+    
+    list_display = ['name_arabic', 'code', 'icon', 'color', 'display_order', 'is_active']
+    list_filter = ['is_active', 'created_at']
+    search_fields = ['name_arabic', 'name_english', 'code']
+    readonly_fields = ['code', 'created_at', 'updated_at']
+    
+    fieldsets = (
+        ('معلومات أساسية', {
+            'fields': ('name_arabic', 'name_english', 'code')
+        }),
+        ('المظهر', {
+            'fields': ('icon', 'color', 'display_order')
+        }),
+        ('الحالة', {
+            'fields': ('is_active',)
+        }),
+        ('Metadata', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+
 @admin.register(RequestType)
 class RequestTypeAdmin(admin.ModelAdmin):
     """إدارة أنواع الطلبات"""
@@ -85,7 +111,7 @@ class RequestTypeAdmin(admin.ModelAdmin):
     list_display = ['name_arabic', 'code', 'category', 'default_price', 'usage_count', 'display_order', 'is_active']
     list_filter = ['category', 'is_active', 'created_at']
     search_fields = ['name_arabic', 'name_english', 'code']
-    readonly_fields = ['usage_count', 'created_at', 'updated_at']
+    readonly_fields = ['code', 'usage_count', 'created_at', 'updated_at']
     
     fieldsets = (
         ('معلومات أساسية', {

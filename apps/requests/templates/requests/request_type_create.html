@@ -43,25 +43,28 @@
                                 </div>
 
                                 <div class="row">
-                                    <div class="col-md-4 mb-3">
-                                        <label class="form-label">الرمز <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" name="code" required 
-                                               placeholder="paytabs_link">
-                                        <div class="form-text">رمز فريد بالإنجليزية (بدون مسافات)</div>
-                                    </div>
-                                    <div class="col-md-4 mb-3">
+                                    <div class="col-md-6 mb-3">
                                         <label class="form-label">الفئة <span class="text-danger">*</span></label>
-                                        <select class="form-control" name="category" required>
+                                        <select class="form-control" name="category_id" required>
                                             <option value="">اختر الفئة</option>
-                                            <option value="paytabs">خدمات PayTabs</option>
-                                            <option value="payment_gateway">بوابات الدفع</option>
-                                            <option value="merchant">حسابات تجارية</option>
-                                            <option value="bank">تكاملات بنكية</option>
-                                            <option value="additional">خدمات إضافية</option>
-                                            <option value="other">أخرى</option>
+                                            {% if categories %}
+                                                {% for cat in categories %}
+                                                <option value="{{ cat.id }}">{{ cat.name_arabic }}</option>
+                                                {% endfor %}
+                                            {% else %}
+                                                <option value="" disabled>لا توجد فئات - أضف فئة أولاً</option>
+                                            {% endif %}
                                         </select>
+                                        <div class="form-text">
+                                            {% if not categories %}
+                                            <span class="text-danger">
+                                                <i class="fas fa-exclamation-triangle me-1"></i>
+                                                يرجى إضافة فئات من <a href="{% url 'requests:categories_list' %}">صفحة الفئات</a>
+                                            </span>
+                                            {% endif %}
+                                        </div>
                                     </div>
-                                    <div class="col-md-4 mb-3">
+                                    <div class="col-md-6 mb-3">
                                         <label class="form-label">ترتيب العرض</label>
                                         <input type="number" class="form-control" name="display_order" 
                                                value="0" min="0">

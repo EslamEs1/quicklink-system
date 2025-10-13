@@ -499,28 +499,24 @@ def request_types_list(request):
 # @login_required
 def request_type_create(request):
     """إنشاء نوع طلب جديد"""
-    from apps.requests.models import RequestType
+    from apps.requests.models import RequestType, RequestCategory
     
     if request.method == 'POST':
         name_arabic = request.POST.get('name_arabic')
         name_english = request.POST.get('name_english', '')
-        code = request.POST.get('code')
-        category = request.POST.get('category')
+        category_id = request.POST.get('category_id')
         description = request.POST.get('description', '')
         default_price = request.POST.get('default_price', 420)
         display_order = request.POST.get('display_order', 0)
         is_active = request.POST.get('is_active') == 'on'
         
-        # التحقق من عدم تكرار الرمز
-        if RequestType.objects.filter(code=code).exists():
-            messages.error(request, f'الرمز "{code}" موجود مسبقاً! استخدم رمز آخر.')
-            return redirect('requests:request_type_create')
+        # جلب الفئة
+        category = get_object_or_404(RequestCategory, pk=category_id) if category_id else None
         
-        # إنشاء النوع
+        # إنشاء النوع (الرمز سيتم توليده تلقائياً)
         request_type = RequestType.objects.create(
             name_arabic=name_arabic,
             name_english=name_english,
-            code=code,
             category=category,
             description=description,
             default_price=default_price,
@@ -529,11 +525,15 @@ def request_type_create(request):
             created_by=request.user if request.user.is_authenticated else None
         )
         
-        messages.success(request, f'تم إنشاء نوع الطلب "{request_type.name_arabic}" بنجاح!')
+        messages.success(request, f'تم إنشاء نوع الطلب "{request_type.name_arabic}" بنجاح! الرمز: {request_type.code}')
         return redirect('requests:request_types_list')
+    
+    # GET - جلب الفئات
+    categories = RequestCategory.objects.filter(is_active=True).order_by('display_order')
     
     context = {
         'page_title': 'إضافة نوع طلب جديد',
+        'categories': categories,
     }
     return render(request, 'requests/request_type_create.html', context)
 
@@ -563,3 +563,75 @@ def request_type_edit(request, pk):
         'request_type': request_type,
     }
     return render(request, 'requests/request_type_edit.html', context)
+
+
+# @login_required
+def categories_list(request):
+    """قائمة فئات الطلبات"""
+    from apps.requests.models import RequestCategory
+    
+    categories = RequestCategory.objects.all().order_by('display_order', 'name_arabic')
+    
+    context = {
+        'page_title': 'إدارة فئات الطلبات',
+        'categories': categories,
+    }
+    return render(request, 'requests/categories_list.html', context)
+
+
+# @login_required
+def category_create(request):
+    """إنشاء فئة جديدة"""
+    from apps.requests.models import RequestCategory
+    
+    if request.method == 'POST':
+        name_arabic = request.POST.get('name_arabic')
+        name_english = request.POST.get('name_english', '')
+        icon = request.POST.get('icon', 'fa-list')
+        color = request.POST.get('color', 'primary')
+        display_order = request.POST.get('display_order', 0)
+        is_active = request.POST.get('is_active') == 'on'
+        
+        # إنشاء الفئة (الرمز سيتم توليده تلقائياً)
+        category = RequestCategory.objects.create(
+            name_arabic=name_arabic,
+            name_english=name_english,
+            icon=icon,
+            color=color,
+            display_order=display_order,
+            is_active=is_active
+        )
+        
+        messages.success(request, f'تم إنشاء الفئة "{category.name_arabic}" بنجاح!')
+        return redirect('requests:categories_list')
+    
+    context = {
+        'page_title': 'إضافة فئة جديدة',
+    }
+    return render(request, 'requests/category_create.html', context)
+
+
+# @login_required  
+def category_edit(request, pk):
+    """تعديل فئة"""
+    from apps.requests.models import RequestCategory
+    category = get_object_or_404(RequestCategory, pk=pk)
+    
+    if request.method == 'POST':
+        category.name_arabic = request.POST.get('name_arabic')
+        category.name_english = request.POST.get('name_english', '')
+        category.icon = request.POST.get('icon', 'fa-list')
+        category.color = request.POST.get('color', 'primary')
+        category.display_order = request.POST.get('display_order', 0)
+        category.is_active = request.POST.get('is_active') == 'on'
+        
+        category.save()
+        
+        messages.success(request, f'تم تحديث الفئة "{category.name_arabic}" بنجاح!')
+        return redirect('requests:categories_list')
+    
+    context = {
+        'page_title': f'تعديل: {category.name_arabic}',
+        'category': category,
+    }
+    return render(request, 'requests/category_edit.html', context)

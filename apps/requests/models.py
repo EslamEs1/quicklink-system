@@ -17,24 +17,65 @@ class RequestStatus(models.TextChoices):
     ON_HOLD = 'on_hold', 'معلق'
 
 
+class RequestCategory(models.Model):
+    """فئات أنواع الطلبات (ديناميكية)"""
+    
+    name_arabic = models.CharField('الاسم بالعربية', max_length=100)
+    name_english = models.CharField('الاسم بالإنجليزية', max_length=100, blank=True)
+    code = models.CharField('الرمز', max_length=50, unique=True, editable=False)
+    icon = models.CharField('الأيقونة', max_length=50, default='fa-list', 
+                           help_text='مثال: fa-credit-card')
+    color = models.CharField('اللون', max_length=20, default='primary',
+                            choices=[
+                                ('primary', 'أزرق'),
+                                ('success', 'أخضر'),
+                                ('warning', 'أصفر'),
+                                ('info', 'سماوي'),
+                                ('danger', 'أحمر'),
+                                ('secondary', 'رمادي'),
+                            ])
+    display_order = models.IntegerField('ترتيب العرض', default=0)
+    is_active = models.BooleanField('نشط', default=True)
+    
+    created_at = models.DateTimeField('تاريخ الإنشاء', auto_now_add=True)
+    updated_at = models.DateTimeField('آخر تحديث', auto_now=True)
+    
+    class Meta:
+        verbose_name = 'فئة'
+        verbose_name_plural = 'الفئات'
+        ordering = ['display_order', 'name_arabic']
+    
+    def __str__(self):
+        return self.name_arabic
+    
+    def save(self, *args, **kwargs):
+        # توليد الرمز تلقائياً من الاسم العربي
+        if not self.code:
+            import re
+            # تحويل الاسم العربي إلى رمز إنجليزي
+            code = re.sub(r'[^a-zA-Z0-9]', '_', self.name_english.lower() if self.name_english else self.name_arabic)
+            code = re.sub(r'_+', '_', code).strip('_')
+            self.code = code[:50]
+        super().save(*args, **kwargs)
+
+
 class RequestType(models.Model):
     """أنواع الطلبات (ديناميكية)"""
     
     # معلومات النوع
     name_arabic = models.CharField('الاسم بالعربية', max_length=200)
     name_english = models.CharField('الاسم بالإنجليزية', max_length=200, blank=True)
-    code = models.CharField('الرمز', max_length=50, unique=True)
+    code = models.CharField('الرمز', max_length=50, unique=True, editable=False)
     
-    # الفئة
-    CATEGORY_CHOICES = [
-        ('paytabs', 'خدمات PayTabs'),
-        ('payment_gateway', 'بوابات الدفع'),
-        ('merchant', 'حسابات تجارية'),
-        ('bank', 'تكاملات بنكية'),
-        ('additional', 'خدمات إضافية'),
-        ('other', 'أخرى'),
-    ]
-    category = models.CharField('الفئة', max_length=50, choices=CATEGORY_CHOICES)
+    # الفئة (ديناميكية)
+    category = models.ForeignKey(
+        'RequestCategory',
+        on_delete=models.PROTECT,
+        related_name='request_types',
+        verbose_name='الفئة',
+        null=True,  # للتوافق المؤقت
+        blank=True
+    )
     
     # الوصف
     description = models.TextField('الوصف', blank=True)
@@ -57,10 +98,28 @@ class RequestType(models.Model):
     class Meta:
         verbose_name = 'نوع طلب'
         verbose_name_plural = 'أنواع الطلبات'
-        ordering = ['category', 'display_order', 'name_arabic']
+        ordering = ['display_order', 'name_arabic']
     
     def __str__(self):
         return self.name_arabic
+    
+    def save(self, *args, **kwargs):
+        # توليد الرمز تلقائياً من الاسم
+        if not self.code:
+            import re
+            from django.utils.text import slugify
+            # استخدام الاسم الإنجليزي أو العربي
+            base_name = self.name_english if self.name_english else self.name_arabic
+            # تحويل إلى slug
+            code = slugify(base_name).replace('-', '_')
+            # التأكد من عدم التكرار
+            original_code = code
+            counter = 1
+            while RequestType.objects.filter(code=code).exclude(pk=self.pk).exists():
+                code = f"{original_code}_{counter}"
+                counter += 1
+            self.code = code[:50]
+        super().save(*args, **kwargs)
 
 
 class Request(models.Model):

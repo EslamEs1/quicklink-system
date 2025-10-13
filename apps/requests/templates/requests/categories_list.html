@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Page Title -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">
+                    <i class="fas fa-layer-group me-2 text-primary"></i>
+                    إدارة فئات الطلبات
+                </h2>
+                <a href="{% url 'requests:category_create' %}" class="btn btn-primary">
+                    <i class="fas fa-plus me-1"></i>
+                    إضافة فئة جديدة
+                </a>
+            </div>
+
+            <!-- Info Alert -->
+            <div class="alert alert-info mb-4">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>معلومة:</strong> الفئات تُستخدم لتنظيم أنواع الطلبات. كل نوع طلب يجب أن ينتمي لفئة.
+            </div>
+
+            <!-- Categories Cards -->
+            <div class="row">
+                {% if categories %}
+                    {% for category in categories %}
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="card shadow-custom">
+                        <div class="card-header bg-{{ category.color }} text-white">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">
+                                    <i class="fas {{ category.icon }} me-2"></i>
+                                    {{ category.name_arabic }}
+                                </h5>
+                                {% if category.is_active %}
+                                <span class="badge bg-light text-dark">نشط</span>
+                                {% else %}
+                                <span class="badge bg-secondary">معطل</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            {% if category.name_english %}
+                            <p class="text-muted mb-3">
+                                <small><i class="fas fa-language me-1"></i>{{ category.name_english }}</small>
+                            </p>
+                            {% endif %}
+                            
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted">الرمز:</span>
+                                    <code>{{ category.code }}</code>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted">عدد الأنواع:</span>
+                                    <strong>{{ category.request_types.count }} نوع</strong>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted">الترتيب:</span>
+                                    <span class="badge bg-secondary">{{ category.display_order }}</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted">الأيقونة:</span>
+                                    <i class="fas {{ category.icon }} text-{{ category.color }}"></i>
+                                </div>
+                            </div>
+                            
+                            <div class="btn-group w-100" role="group">
+                                <a href="{% url 'requests:category_edit' category.id %}" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-edit"></i>
+                                    تعديل
+                                </a>
+                                {% if category.is_active %}
+                                <button class="btn btn-outline-warning btn-sm" onclick="toggleCategory({{ category.id }}, false)">
+                                    <i class="fas fa-pause"></i>
+                                    تعطيل
+                                </button>
+                                {% else %}
+                                <button class="btn btn-outline-success btn-sm" onclick="toggleCategory({{ category.id }}, true)">
+                                    <i class="fas fa-play"></i>
+                                    تفعيل
+                                </button>
+                                {% endif %}
+                                {% if category.request_types.count == 0 %}
+                                <button class="btn btn-outline-danger btn-sm" onclick="deleteCategory({{ category.id }})">
+                                    <i class="fas fa-trash"></i>
+                                    حذف
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                    {% endfor %}
+                {% else %}
+                <div class="col-12">
+                    <div class="card shadow-custom">
+                        <div class="card-body text-center py-5">
+                            <i class="fas fa-layer-group fa-4x text-muted mb-3"></i>
+                            <h5 class="text-muted">لا توجد فئات</h5>
+                            <p class="text-muted">ابدأ بإضافة فئة لتنظيم أنواع الطلبات</p>
+                            <a href="{% url 'requests:category_create' %}" class="btn btn-primary mt-3">
+                                <i class="fas fa-plus me-1"></i>
+                                إضافة فئة جديدة
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+{% block extra_js %}
+<script>
+    function toggleCategory(id, activate) {
+        const action = activate ? 'تفعيل' : 'تعطيل';
+        if (confirm(`هل أنت متأكد من ${action} هذه الفئة؟`)) {
+            showNotification(`جاري ${action} الفئة...`, 'info');
+        }
+    }
+    
+    function deleteCategory(id) {
+        if (confirm('هل أنت متأكد من حذف هذه الفئة؟ لا يمكن التراجع عن هذا الإجراء.')) {
+            showNotification('جاري الحذف...', 'info');
+        }
+    }
+</script>
+{% endblock %}
+{% endblock content %}
+

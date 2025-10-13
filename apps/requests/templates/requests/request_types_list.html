@@ -8,10 +8,16 @@
                     <i class="fas fa-list-ul me-2 text-primary"></i>
                     إدارة أنواع الطلبات
                 </h2>
-                <a href="{% url 'requests:request_type_create' %}" class="btn btn-primary">
-                    <i class="fas fa-plus me-1"></i>
-                    إضافة نوع جديد
-                </a>
+                <div class="btn-group" role="group">
+                    <a href="{% url 'requests:request_type_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i>
+                        إضافة نوع جديد
+                    </a>
+                    <a href="{% url 'requests:categories_list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-layer-group me-1"></i>
+                        إدارة الفئات
+                    </a>
+                </div>
             </div>
 
             <!-- Important Notice -->
