@@ -336,10 +336,8 @@ def templates_list(request):
     type_filter = request.GET.get('type')
     status_filter = request.GET.get('status')
     
-    # Query
-    templates = Template.objects.annotate(
-        usage_count=Count('requests')
-    )
+    # Query - لا نستخدم annotate لأن usage_count موجود في Model
+    templates = Template.objects.all()
     
     if type_filter and type_filter != 'all':
         templates = templates.filter(template_type=type_filter)
@@ -358,9 +356,9 @@ def templates_list(request):
     total_templates = Template.objects.count()
     active_templates = Template.objects.filter(is_active=True, is_published=True).count()
     draft_templates = Template.objects.filter(is_published=False).count()
-    total_usage = Template.objects.aggregate(
-        total=Count('requests')
-    )['total'] or 0
+    
+    # إجمالي الاستخدامات من جميع القوالب
+    total_usage = sum(t.usage_count for t in Template.objects.all())
     
     context = {
         'page_title': 'القوالب القانونية',
