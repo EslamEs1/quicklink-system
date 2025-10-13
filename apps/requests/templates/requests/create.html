@@ -248,13 +248,64 @@
                                             <!-- Request Type -->
                                             <div class="col-md-6 mb-3">
                                                 <label class="form-label">نوع الطلب <span class="text-danger">*</span></label>
-                                                <select class="form-control" id="requestType" required>
+                                                <select class="form-control" id="requestType" name="requestType" required>
                                                     <option value="">اختر نوع الطلب</option>
-                                                    <option value="paytabs-link">ربط حساب PayTabs</option>
-                                                    <option value="payment-gateway">بوابة دفع إلكترونية</option>
-                                                    <option value="bank-integration">تكامل بنكي</option>
-                                                    <option value="other">أخرى</option>
+                                                    {% if request_types %}
+                                                        {% regroup request_types by 0|slice:":14" as type_groups %}
+                                                        
+                                                        <optgroup label="خدمات PayTabs">
+                                                            {% for value, label in request_types %}
+                                                                {% if 'paytabs' in value %}
+                                                            <option value="{{ value }}">{{ label }}</option>
+                                                                {% endif %}
+                                                            {% endfor %}
+                                                        </optgroup>
+                                                        
+                                                        <optgroup label="بوابات الدفع">
+                                                            {% for value, label in request_types %}
+                                                                {% if 'gateway' in value %}
+                                                            <option value="{{ value }}">{{ label }}</option>
+                                                                {% endif %}
+                                                            {% endfor %}
+                                                        </optgroup>
+                                                        
+                                                        <optgroup label="حسابات تجارية">
+                                                            {% for value, label in request_types %}
+                                                                {% if 'merchant' in value %}
+                                                            <option value="{{ value }}">{{ label }}</option>
+                                                                {% endif %}
+                                                            {% endfor %}
+                                                        </optgroup>
+                                                        
+                                                        <optgroup label="تكاملات بنكية">
+                                                            {% for value, label in request_types %}
+                                                                {% if 'bank' in value %}
+                                                            <option value="{{ value }}">{{ label }}</option>
+                                                                {% endif %}
+                                                            {% endfor %}
+                                                        </optgroup>
+                                                        
+                                                        <optgroup label="خدمات إضافية">
+                                                            {% for value, label in request_types %}
+                                                                {% if value in 'pos_terminal,mobile_payment,subscription_service,refund_service' %}
+                                                            <option value="{{ value }}">{{ label }}</option>
+                                                                {% endif %}
+                                                            {% endfor %}
+                                                        </optgroup>
+                                                        
+                                                        <optgroup label="أخرى">
+                                                            {% for value, label in request_types %}
+                                                                {% if value in 'consultation,support_request,custom_solution,other' %}
+                                                            <option value="{{ value }}">{{ label }}</option>
+                                                                {% endif %}
+                                                            {% endfor %}
+                                                        </optgroup>
+                                                    {% endif %}
                                                 </select>
+                                                <div class="form-text">
+                                                    <i class="fas fa-info-circle me-1"></i>
+                                                    اختر نوع الخدمة المطلوبة
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -531,4 +582,454 @@
                         </div>
                     </div>
                 </form>
+{% block extra_js %}
+    <!-- Form-specific JavaScript -->
+    <script>
+        let currentStep = 1;
+        const totalSteps = 4;
+
+        // Initialize form
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeForm();
+            setupImageUpload();
+            setupPaymentMethods();
+            setupValidation();
+        });
+        
+        // دالة تبديل نموذج العميل (موجود أو جديد)
+        function toggleCustomerForm() {
+            const existingOption = document.getElementById('existingCustomer');
+            const existingSection = document.getElementById('existingCustomerSection');
+            const newSection = document.getElementById('newCustomerSection');
+            
+            if (existingOption.checked) {
+                existingSection.classList.remove('d-none');
+                newSection.classList.add('d-none');
+                // تعطيل حقول العميل الجديد
+                newSection.querySelectorAll('input[required], select[required]').forEach(input => {
+                    input.removeAttribute('required');
+                });
+            } else {
+                existingSection.classList.add('d-none');
+                newSection.classList.remove('d-none');
+                // تفعيل حقول العميل الجديد
+                newSection.querySelectorAll('input[data-required], select[data-required]').forEach(input => {
+                    input.setAttribute('required', 'required');
+                });
+            }
+        }
+        
+        // دالة اختيار عميل موجود
+        function selectExistingCustomer(id, name, emirates_id, phone, email) {
+            document.getElementById('existingCustomerId').value = id;
+            document.getElementById('selectedCustomerName').textContent = name;
+            document.getElementById('selectedCustomerAlert').classList.remove('d-none');
+            
+            // تمييز العميل المختار
+            document.querySelectorAll('#customerSearchResults .list-group-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.target.closest('.list-group-item').classList.add('active');
+        }
+        
+        // دالة البحث عن العملاء (مستقبلاً AJAX)
+        function searchCustomers() {
+            const query = document.getElementById('customerSearch').value;
+            // هنا سيتم إضافة AJAX للبحث لاحقاً
+            console.log('البحث عن:', query);
+        }
+
+        function initializeForm() {
+            // Set today's date
+            document.getElementById('requestDate').value = new Date().toISOString().split('T')[0];
+            
+            // Generate reference number
+            document.getElementById('referenceNumber').value = generateReferenceNumber();
+        }
+
+        function setupImageUpload() {
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('idImage');
+            const previewArea = document.getElementById('previewArea');
+            const imagePreview = document.getElementById('imagePreview');
+
+            uploadArea.addEventListener('click', () => fileInput.click());
+            
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+            
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
+            
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    handleFileSelect(files[0]);
+                }
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    handleFileSelect(e.target.files[0]);
+                }
+            });
+
+            function handleFileSelect(file) {
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        imagePreview.src = e.target.result;
+                        uploadArea.classList.add('d-none');
+                        previewArea.classList.remove('d-none');
+                        updateChecklist();
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    showNotification('يرجى اختيار ملف صورة صالح', 'error');
+                }
+            }
+        }
+
+        function removeImage() {
+            document.getElementById('idImage').value = '';
+            document.getElementById('uploadArea').classList.remove('d-none');
+            document.getElementById('previewArea').classList.add('d-none');
+            updateChecklist();
+        }
+
+        function setupPaymentMethods() {
+            const paymentMethods = document.querySelectorAll('input[name="paymentMethod"]');
+            const cashReceipt = document.getElementById('cashReceipt');
+
+            paymentMethods.forEach(method => {
+                method.addEventListener('change', function() {
+                    if (this.value === 'cash') {
+                        cashReceipt.classList.remove('d-none');
+                        document.getElementById('receiptNumber').required = true;
+                    } else {
+                        cashReceipt.classList.add('d-none');
+                        document.getElementById('receiptNumber').required = false;
+                    }
+                });
+            });
+        }
+
+        function changeStep(direction) {
+            const steps = document.querySelectorAll('.step-content');
+            const stepNumbers = document.querySelectorAll('.step-number');
+            
+            if (direction > 0 && validateCurrentStep()) {
+                if (currentStep < totalSteps) {
+                    currentStep++;
+                }
+            } else if (direction < 0) {
+                if (currentStep > 1) {
+                    currentStep--;
+                }
+            }
+
+            // Update step content
+            steps.forEach((step, index) => {
+                if (index + 1 === currentStep) {
+                    step.classList.remove('d-none');
+                } else {
+                    step.classList.add('d-none');
+                }
+            });
+
+            // Update step numbers
+            stepNumbers.forEach((number, index) => {
+                if (index + 1 <= currentStep) {
+                    number.classList.add('bg-primary', 'text-white');
+                    number.classList.remove('bg-light');
+                } else {
+                    number.classList.remove('bg-primary', 'text-white');
+                    number.classList.add('bg-light');
+                }
+            });
+
+            // Update buttons
+            updateButtons();
+            
+            // Update review data if on step 3
+            if (currentStep === 3) {
+                updateReviewData();
+            }
+        }
+
+        function validateCurrentStep() {
+            switch (currentStep) {
+                case 1:
+                    return validateStep1();
+                case 2:
+                    return validateStep2();
+                case 3:
+                    return true; // Review step
+                case 4:
+                    return validateStep4();
+                default:
+                    return false;
+            }
+        }
+
+        function validateStep1() {
+            const required = ['customerName', 'confirmName', 'emiratesId', 'dateOfBirth', 'nationality', 'mobileNumber', 'requestType'];
+            let isValid = true;
+
+            required.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (!field.value.trim()) {
+                    field.classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    field.classList.remove('is-invalid');
+                }
+            });
+
+            // Check image upload
+            const imageInput = document.getElementById('idImage');
+            if (!imageInput.files.length) {
+                showNotification('يرجى رفع صورة الهوية', 'error');
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
+        function validateStep2() {
+            const authType = document.getElementById('authorizationType');
+            const version = document.getElementById('templateVersion');
+            
+            if (!authType.value || !version.value) {
+                showNotification('يرجى اختيار نوع التفويض والإصدار', 'error');
+                return false;
+            }
+            
+            return true;
+        }
+
+        function validateStep4() {
+            const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked');
+            if (!paymentMethod) {
+                showNotification('يرجى اختيار طريقة الدفع', 'error');
+                return false;
+            }
+
+            if (paymentMethod.value === 'cash') {
+                const receiptNumber = document.getElementById('receiptNumber');
+                if (!receiptNumber.value.trim()) {
+                    showNotification('يرجى إدخال رقم الإيصال', 'error');
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        function updateButtons() {
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const submitBtn = document.getElementById('submitBtn');
+
+            prevBtn.style.display = currentStep > 1 ? 'inline-block' : 'none';
+            
+            if (currentStep === totalSteps) {
+                nextBtn.classList.add('d-none');
+                submitBtn.classList.remove('d-none');
+            } else {
+                nextBtn.classList.remove('d-none');
+                submitBtn.classList.add('d-none');
+            }
+        }
+
+        function updateReviewData() {
+            document.getElementById('reviewName').textContent = document.getElementById('customerName').value;
+            document.getElementById('reviewId').textContent = document.getElementById('emiratesId').value;
+            document.getElementById('reviewBirth').textContent = document.getElementById('dateOfBirth').value;
+            document.getElementById('reviewNationality').textContent = document.getElementById('nationality').options[document.getElementById('nationality').selectedIndex].text;
+            document.getElementById('reviewMobile').textContent = document.getElementById('mobileNumber').value;
+            document.getElementById('reviewEmail').textContent = document.getElementById('email').value || 'غير محدد';
+            document.getElementById('reviewReference').textContent = document.getElementById('referenceNumber').value;
+            document.getElementById('reviewType').textContent = document.getElementById('requestType').options[document.getElementById('requestType').selectedIndex].text;
+            document.getElementById('reviewAuthType').textContent = document.getElementById('authorizationType').options[document.getElementById('authorizationType').selectedIndex].text;
+            document.getElementById('reviewVersion').textContent = document.getElementById('templateVersion').options[document.getElementById('templateVersion').selectedIndex].text;
+            document.getElementById('reviewDate').textContent = document.getElementById('requestDate').value;
+            document.getElementById('reviewImage').textContent = document.getElementById('idImage').files.length ? 'تم الرفع' : 'لم يتم الرفع';
+        }
+
+        function setupValidation() {
+            // التحقق من تطابق الأسماء
+            document.getElementById('customerName').addEventListener('input', checkNameMatch);
+            document.getElementById('confirmName').addEventListener('input', checkNameMatch);
+            
+            // التحقق من رقم الهوية
+            document.getElementById('emiratesId').addEventListener('input', validateEmiratesId);
+            
+            // التحقق من اختيار القالب
+            document.getElementById('authorizationType').addEventListener('change', checkTemplateSelection);
+            document.getElementById('templateVersion').addEventListener('change', checkTemplateSelection);
+        }
+
+        function checkNameMatch() {
+            const name = document.getElementById('customerName').value;
+            const confirmName = document.getElementById('confirmName').value;
+            const errorDiv = document.getElementById('nameMatchError');
+            const successDiv = document.getElementById('nameMatchSuccess');
+            const checkbox = document.getElementById('checkName');
+            
+            if (name && confirmName) {
+                if (name === confirmName) {
+                    errorDiv.style.display = 'none';
+                    successDiv.style.display = 'block';
+                    checkbox.checked = true;
+                    checkbox.disabled = false;
+                } else {
+                    errorDiv.style.display = 'block';
+                    successDiv.style.display = 'none';
+                    checkbox.checked = false;
+                    checkbox.disabled = true;
+                }
+            } else {
+                errorDiv.style.display = 'none';
+                successDiv.style.display = 'none';
+                checkbox.checked = false;
+                checkbox.disabled = true;
+            }
+            updateCreateDraftButton();
+        }
+
+        function validateEmiratesId() {
+            const id = document.getElementById('emiratesId').value;
+            const errorDiv = document.getElementById('idFormatError');
+            const successDiv = document.getElementById('idFormatSuccess');
+            const warningDiv = document.getElementById('idConflictWarning');
+            const checkbox = document.getElementById('checkId');
+            
+            const idPattern = /^784-\d{4}-\d{7}-\d{1}$/;
+            
+            if (id) {
+                if (idPattern.test(id)) {
+                    errorDiv.style.display = 'none';
+                    successDiv.style.display = 'block';
+                    checkbox.checked = true;
+                    checkbox.disabled = false;
+                    
+                    // فحص التعارض في الهوية
+                    checkIdentityConflict(document.getElementById('customerName').value, id);
+                } else {
+                    errorDiv.style.display = 'block';
+                    successDiv.style.display = 'none';
+                    warningDiv.style.display = 'none';
+                    checkbox.checked = false;
+                    checkbox.disabled = true;
+                }
+            } else {
+                errorDiv.style.display = 'none';
+                successDiv.style.display = 'none';
+                warningDiv.style.display = 'none';
+                checkbox.checked = false;
+                checkbox.disabled = true;
+            }
+            updateCreateDraftButton();
+        }
+
+        function checkIdentityConflict(name, id) {
+            // محاكاة فحص التعارض
+            if (name === "أحمد محمد علي" && id !== "784-1234-5678901-2") {
+                document.getElementById('idConflictWarning').style.display = 'block';
+                showNotification('تحذير: اكتشاف اسم مكرر مع هوية مختلفة!', 'danger');
+            } else {
+                document.getElementById('idConflictWarning').style.display = 'none';
+            }
+        }
+
+        function checkTemplateSelection() {
+            const authType = document.getElementById('authorizationType').value;
+            const version = document.getElementById('templateVersion').value;
+            const checkbox = document.getElementById('checkTemplate');
+            
+            if (authType && version) {
+                checkbox.checked = true;
+                checkbox.disabled = false;
+                
+                // تحميل القالب المركزي
+                loadCentralTemplate(authType, version);
+            } else {
+                checkbox.checked = false;
+                checkbox.disabled = true;
+            }
+            updateCreateDraftButton();
+        }
+
+        function loadCentralTemplate(type, version) {
+            const preview = document.getElementById('templatePreview');
+            preview.innerHTML = `
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle me-2"></i>
+                    <strong>قالب مركزي محمل:</strong> ${type} - ${version}
+                    <br>
+                    <small>تم تحميل القالب الرسمي والمحدث من القوالب المركزية</small>
+                </div>
+            `;
+        }
+
+        function updateChecklist() {
+            const nameMatch = document.getElementById('checkName').checked;
+            const idValid = document.getElementById('checkId').checked;
+            const imageUploaded = document.getElementById('idImage').files.length > 0;
+            const templateSelected = document.getElementById('checkTemplate').checked;
+            const dataComplete = validateCurrentStep();
+
+            document.getElementById('checkImage').checked = imageUploaded;
+            document.getElementById('checkImage').disabled = !imageUploaded;
+            document.getElementById('checkData').checked = dataComplete;
+            document.getElementById('checkData').disabled = !dataComplete;
+            
+            updateCreateDraftButton();
+        }
+
+        function updateCreateDraftButton() {
+            const allChecks = document.querySelectorAll('.form-check-input');
+            const allChecked = Array.from(allChecks).every(check => check.checked);
+            const createBtn = document.getElementById('createDraftBtn');
+            
+            if (allChecked) {
+                createBtn.disabled = false;
+                createBtn.innerHTML = '<i class="fas fa-file-alt me-1"></i>إنشاء درافت';
+            } else {
+                createBtn.disabled = true;
+                createBtn.innerHTML = '<i class="fas fa-lock me-1"></i>أكمل التحقق أولاً';
+            }
+        }
+
+        // Form submission
+        document.getElementById('createRequestForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (validateCurrentStep()) {
+                // Process payment
+                const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+                
+                if (paymentMethod === 'paytabs') {
+                    // Redirect to PayTabs
+                    window.open('https://paytabs.com', '_blank');
+                    showNotification('تم إنشاء الطلب بنجاح. سيتم معالجة الدفع قريباً.', 'success');
+                } else {
+                    showNotification('تم إنشاء الطلب بنجاح.', 'success');
+                }
+                
+                // Reset form or redirect
+                setTimeout(() => {
+                    window.location.href = 'requests.html';
+                }, 2000);
+            }
+        });
+    </script>
+{% endblock %}
 {% endblock content %}
+

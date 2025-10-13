@@ -125,10 +125,14 @@ def create(request):
     customers = Customer.objects.filter(is_active=True).order_by('-updated_at')[:50]
     templates = Template.objects.filter(is_active=True, is_published=True)
     
+    # جلب أنواع الطلبات من Model
+    request_types = Request.REQUEST_TYPE_CHOICES
+    
     context = {
         'page_title': 'إنشاء طلب جديد',
         'templates': templates,
         'customers': customers,
+        'request_types': request_types,  # أنواع الطلبات الديناميكية
     }
     return render(request, 'requests/create.html', context)
 

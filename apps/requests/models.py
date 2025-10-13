@@ -37,12 +37,45 @@ class Request(models.Model):
     )
     
     # نوع الطلب
-    request_type = models.CharField('نوع الطلب', max_length=100, choices=[
+    REQUEST_TYPE_CHOICES = [
+        # خدمات PayTabs
         ('paytabs_link', 'ربط حساب PayTabs'),
-        ('payment_gateway', 'بوابة دفع'),
+        ('paytabs_integration', 'تكامل PayTabs API'),
+        ('paytabs_update', 'تحديث حساب PayTabs'),
+        
+        # بوابات الدفع
+        ('payment_gateway', 'بوابة دفع إلكترونية'),
+        ('payment_gateway_setup', 'إعداد بوابة دفع'),
+        ('payment_gateway_migration', 'نقل بوابة دفع'),
+        
+        # حسابات تجارية
         ('merchant_account', 'حساب تاجر'),
+        ('merchant_verification', 'توثيق حساب تاجر'),
+        ('merchant_upgrade', 'ترقية حساب تاجر'),
+        
+        # تكاملات بنكية
+        ('bank_integration', 'تكامل بنكي'),
+        ('bank_account_link', 'ربط حساب بنكي'),
+        ('bank_transfer_setup', 'إعداد تحويل بنكي'),
+        
+        # خدمات إضافية
+        ('pos_terminal', 'جهاز نقاط البيع (POS)'),
+        ('mobile_payment', 'الدفع عبر الجوال'),
+        ('subscription_service', 'خدمة اشتراكات'),
+        ('refund_service', 'خدمة المرتجعات'),
+        
+        # أخرى
+        ('consultation', 'استشارة فنية'),
+        ('support_request', 'طلب دعم فني'),
+        ('custom_solution', 'حل مخصص'),
         ('other', 'أخرى'),
-    ])
+    ]
+    
+    request_type = models.CharField(
+        'نوع الطلب',
+        max_length=100,
+        choices=REQUEST_TYPE_CHOICES
+    )
     
     # الحالة
     status = models.CharField(
