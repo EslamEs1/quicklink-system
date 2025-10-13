@@ -23,8 +23,8 @@ class RequestCategory(models.Model):
     name_arabic = models.CharField('الاسم بالعربية', max_length=100)
     name_english = models.CharField('الاسم بالإنجليزية', max_length=100, blank=True)
     code = models.CharField('الرمز', max_length=50, unique=True, editable=False)
-    icon = models.CharField('الأيقونة', max_length=50, default='fa-list', 
-                           help_text='مثال: fa-credit-card')
+    icon = models.CharField('الأيقونة', max_length=50, blank=True, default='', 
+                           help_text='مثال: fa-file-alt (اختياري)')
     color = models.CharField('اللون', max_length=20, default='primary',
                             choices=[
                                 ('primary', 'أزرق'),

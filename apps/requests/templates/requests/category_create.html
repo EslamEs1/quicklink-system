@@ -59,18 +59,45 @@
                             <div class="card-body">
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
-                                        <label class="form-label">الأيقونة <span class="text-danger">*</span></label>
-                                        <select class="form-control" name="icon" required id="iconSelect">
-                                            <option value="fa-credit-card">💳 بطاقة ائتمان (fa-credit-card)</option>
-                                            <option value="fa-wallet">👛 محفظة (fa-wallet)</option>
-                                            <option value="fa-store">🏪 متجر (fa-store)</option>
-                                            <option value="fa-university">🏦 بنك (fa-university)</option>
-                                            <option value="fa-mobile-alt">📱 جوال (fa-mobile-alt)</option>
-                                            <option value="fa-shopping-cart">🛒 سلة (fa-shopping-cart)</option>
-                                            <option value="fa-handshake">🤝 مصافحة (fa-handshake)</option>
-                                            <option value="fa-cog">⚙️ إعدادات (fa-cog)</option>
-                                            <option value="fa-list">📋 قائمة (fa-list)</option>
+                                        <label class="form-label">الأيقونة</label>
+                                        <select class="form-control" name="icon" id="iconSelect">
+                                            <option value="">بدون أيقونة</option>
+                                            <optgroup label="مستندات وملفات">
+                                                <option value="fa-file-alt">📄 ملف (fa-file-alt)</option>
+                                                <option value="fa-file-contract">📃 عقد (fa-file-contract)</option>
+                                                <option value="fa-file-signature">✍️ توقيع (fa-file-signature)</option>
+                                                <option value="fa-stamp">🔖 ختم (fa-stamp)</option>
+                                                <option value="fa-certificate">📜 شهادة (fa-certificate)</option>
+                                                <option value="fa-scroll">📜 وثيقة (fa-scroll)</option>
+                                            </optgroup>
+                                            <optgroup label="قانونية وعدلية">
+                                                <option value="fa-gavel">⚖️ قانون (fa-gavel)</option>
+                                                <option value="fa-balance-scale">⚖️ ميزان (fa-balance-scale)</option>
+                                                <option value="fa-landmark">🏛️ محكمة (fa-landmark)</option>
+                                                <option value="fa-university">🏛️ مؤسسة (fa-university)</option>
+                                            </optgroup>
+                                            <optgroup label="شركات وأعمال">
+                                                <option value="fa-building">🏢 شركة (fa-building)</option>
+                                                <option value="fa-briefcase">💼 حقيبة (fa-briefcase)</option>
+                                                <option value="fa-handshake">🤝 اتفاقية (fa-handshake)</option>
+                                            </optgroup>
+                                            <optgroup label="ترجمة ولغات">
+                                                <option value="fa-language">🌐 ترجمة (fa-language)</option>
+                                                <option value="fa-globe">🌍 عالمي (fa-globe)</option>
+                                            </optgroup>
+                                            <optgroup label="هوية وإقامة">
+                                                <option value="fa-id-card">🪪 هوية (fa-id-card)</option>
+                                                <option value="fa-passport">🛂 جواز (fa-passport)</option>
+                                                <option value="fa-star">⭐ مميز (fa-star)</option>
+                                            </optgroup>
+                                            <optgroup label="عامة">
+                                                <option value="fa-check-circle">✅ تأكيد (fa-check-circle)</option>
+                                                <option value="fa-exclamation-triangle">⚠️ تحذير (fa-exclamation-triangle)</option>
+                                                <option value="fa-copy">📋 نسخ (fa-copy)</option>
+                                                <option value="fa-list">📋 قائمة (fa-list)</option>
+                                            </optgroup>
                                         </select>
+                                        <div class="form-text">اختر أيقونة مناسبة أو اترك فارغاً</div>
                                     </div>
                                     <div class="col-md-6 mb-3">
                                         <label class="form-label">اللون <span class="text-danger">*</span></label>
@@ -157,7 +184,11 @@
         const color = colorSelect.value;
         
         preview.className = `badge bg-${color}`;
-        preview.innerHTML = `<i class="fas ${icon} me-1"></i>${name}`;
+        if (icon) {
+            preview.innerHTML = `<i class="fas ${icon} me-1"></i>${name}`;
+        } else {
+            preview.innerHTML = name;
+        }
     }
     
     nameInput.addEventListener('input', updatePreview);

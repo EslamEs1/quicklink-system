@@ -29,7 +29,9 @@
                         <div class="card-header bg-{{ category.color }} text-white">
                             <div class="d-flex justify-content-between align-items-center">
                                 <h5 class="mb-0">
+                                    {% if category.icon %}
                                     <i class="fas {{ category.icon }} me-2"></i>
+                                    {% endif %}
                                     {{ category.name_arabic }}
                                 </h5>
                                 {% if category.is_active %}
@@ -61,7 +63,11 @@
                                 </div>
                                 <div class="d-flex justify-content-between">
                                     <span class="text-muted">الأيقونة:</span>
+                                    {% if category.icon %}
                                     <i class="fas {{ category.icon }} text-{{ category.color }}"></i>
+                                    {% else %}
+                                    <span class="text-muted">بدون</span>
+                                    {% endif %}
                                 </div>
                             </div>
                             
