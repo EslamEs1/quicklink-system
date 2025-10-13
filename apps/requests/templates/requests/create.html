@@ -403,32 +403,32 @@
                             </div>
                             <div class="card-body">
                                 <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label class="form-label">نوع التفويض <span class="text-danger">*</span></label>
-                                        <select class="form-control" id="authorizationType" required>
-                                            <option value="">اختر نوع التفويض</option>
-                                            <option value="payment-authorization">تفويض دفع (قالب مركزي)</option>
-                                            <option value="account-management">إدارة الحساب (قالب مركزي)</option>
-                                            <option value="financial-operations">العمليات المالية (قالب مركزي)</option>
-                                            <option value="general-authorization">تفويض عام (قالب مركزي)</option>
+                                    <div class="col-md-12 mb-3">
+                                        <label class="form-label">اختيار القالب القانوني <span class="text-danger">*</span></label>
+                                        <select class="form-control" id="templateSelect" name="template_id" required>
+                                            <option value="">اختر القالب المناسب</option>
+                                            {% if templates %}
+                                                {% for template in templates %}
+                                                <option value="{{ template.id }}" data-type="{{ template.template_type }}" data-version="{{ template.version }}">
+                                                    {{ template.name }} - الإصدار {{ template.version }} 
+                                                    {% if template.is_published %}<span class="text-success">(نشط)</span>{% endif %}
+                                                </option>
+                                                {% endfor %}
+                                            {% else %}
+                                                <option value="" disabled>لا توجد قوالب متاحة</option>
+                                            {% endif %}
                                         </select>
                                         <div class="form-text text-info">
                                             <i class="fas fa-info-circle"></i>
                                             القوالب المركزية فقط - لا يُسمح بإنشاء قوالب خارجية
                                         </div>
-                                    </div>
-                                    
-                                    <div class="col-md-6 mb-3">
-                                        <label class="form-label">إصدار القالب <span class="text-danger">*</span></label>
-                                        <select class="form-control" id="templateVersion" required>
-                                            <option value="">اختر الإصدار</option>
-                                            <option value="v1.0">الإصدار 1.0 (الحالي - محدث)</option>
-                                            <option value="v0.9">الإصدار 0.9 (منتهي الصلاحية)</option>
-                                        </select>
-                                        <div class="form-text text-warning">
-                                            <i class="fas fa-exclamation-triangle"></i>
-                                            يُنصح بالإصدار الحالي دائماً
+                                        {% if not templates %}
+                                        <div class="alert alert-warning mt-2">
+                                            <i class="fas fa-exclamation-triangle me-2"></i>
+                                            لا توجد قوالب متاحة. يرجى إضافة قوالب من 
+                                            <a href="{% url 'requests:templates_list' %}" class="alert-link">صفحة القوالب</a>
                                         </div>
+                                        {% endif %}
                                     </div>
                                 </div>
 
@@ -802,11 +802,10 @@
         }
 
         function validateStep2() {
-            const authType = document.getElementById('authorizationType');
-            const version = document.getElementById('templateVersion');
+            const templateSelect = document.getElementById('templateSelect');
             
-            if (!authType.value || !version.value) {
-                showNotification('يرجى اختيار نوع التفويض والإصدار', 'error');
+            if (!templateSelect || !templateSelect.value) {
+                showNotification('يرجى اختيار القالب القانوني', 'error');
                 return false;
             }
             
@@ -856,8 +855,17 @@
             document.getElementById('reviewEmail').textContent = document.getElementById('email').value || 'غير محدد';
             document.getElementById('reviewReference').textContent = document.getElementById('referenceNumber').value;
             document.getElementById('reviewType').textContent = document.getElementById('requestType').options[document.getElementById('requestType').selectedIndex].text;
-            document.getElementById('reviewAuthType').textContent = document.getElementById('authorizationType').options[document.getElementById('authorizationType').selectedIndex].text;
-            document.getElementById('reviewVersion').textContent = document.getElementById('templateVersion').options[document.getElementById('templateVersion').selectedIndex].text;
+            
+            // القالب المختار
+            const templateSelect = document.getElementById('templateSelect');
+            if (templateSelect && templateSelect.value) {
+                document.getElementById('reviewAuthType').textContent = templateSelect.options[templateSelect.selectedIndex].text;
+                document.getElementById('reviewVersion').textContent = templateSelect.options[templateSelect.selectedIndex].getAttribute('data-version') || '-';
+            } else {
+                document.getElementById('reviewAuthType').textContent = 'لم يتم الاختيار';
+                document.getElementById('reviewVersion').textContent = '-';
+            }
+            
             document.getElementById('reviewDate').textContent = document.getElementById('requestDate').value;
             document.getElementById('reviewImage').textContent = document.getElementById('idImage').files.length ? 'تم الرفع' : 'لم يتم الرفع';
         }
@@ -871,8 +879,10 @@
             document.getElementById('emiratesId').addEventListener('input', validateEmiratesId);
             
             // التحقق من اختيار القالب
-            document.getElementById('authorizationType').addEventListener('change', checkTemplateSelection);
-            document.getElementById('templateVersion').addEventListener('change', checkTemplateSelection);
+            const templateSelect = document.getElementById('templateSelect');
+            if (templateSelect) {
+                templateSelect.addEventListener('change', checkTemplateSelection);
+            }
         }
 
         function checkNameMatch() {
@@ -949,16 +959,17 @@
         }
 
         function checkTemplateSelection() {
-            const authType = document.getElementById('authorizationType').value;
-            const version = document.getElementById('templateVersion').value;
+            const templateSelect = document.getElementById('templateSelect');
             const checkbox = document.getElementById('checkTemplate');
             
-            if (authType && version) {
+            if (templateSelect && templateSelect.value) {
                 checkbox.checked = true;
                 checkbox.disabled = false;
                 
-                // تحميل القالب المركزي
-                loadCentralTemplate(authType, version);
+                // عرض معاينة القالب
+                const selectedOption = templateSelect.options[templateSelect.selectedIndex];
+                const templateName = selectedOption.text;
+                loadCentralTemplate(templateName);
             } else {
                 checkbox.checked = false;
                 checkbox.disabled = true;
@@ -966,12 +977,12 @@
             updateCreateDraftButton();
         }
 
-        function loadCentralTemplate(type, version) {
+        function loadCentralTemplate(templateName) {
             const preview = document.getElementById('templatePreview');
             preview.innerHTML = `
                 <div class="alert alert-success">
                     <i class="fas fa-check-circle me-2"></i>
-                    <strong>قالب مركزي محمل:</strong> ${type} - ${version}
+                    <strong>قالب مركزي محمل:</strong> ${templateName}
                     <br>
                     <small>تم تحميل القالب الرسمي والمحدث من القوالب المركزية</small>
                 </div>

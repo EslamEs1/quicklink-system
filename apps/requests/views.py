@@ -371,3 +371,104 @@ def templates_list(request):
         'total_usage': total_usage,
     }
     return render(request, 'requests/templates_list.html', context)
+
+
+# @login_required
+def template_create(request):
+    """إنشاء قالب قانوني جديد"""
+    if request.method == 'POST':
+        # جلب البيانات
+        name = request.POST.get('name')
+        name_english = request.POST.get('name_english', '')
+        code = request.POST.get('code')
+        version = request.POST.get('version', '1.0')
+        template_type = request.POST.get('template_type')
+        content_arabic = request.POST.get('content_arabic')
+        content_english = request.POST.get('content_english', '')
+        
+        # الحالات
+        is_active = request.POST.get('is_active') == 'on'
+        is_published = request.POST.get('is_published') == 'on'
+        requires_admin_approval = request.POST.get('requires_admin_approval') == 'on'
+        save_as_draft = request.POST.get('save_as_draft')
+        
+        # التحقق من عدم تكرار الرمز
+        if Template.objects.filter(code=code).exists():
+            messages.error(request, f'رمز القالب "{code}" موجود مسبقاً! استخدم رمز آخر.')
+            return redirect('requests:template_create')
+        
+        # إنشاء القالب
+        template = Template.objects.create(
+            name=name,
+            name_english=name_english,
+            code=code,
+            version=version,
+            template_type=template_type,
+            content_arabic=content_arabic,
+            content_english=content_english,
+            is_active=is_active if not save_as_draft else False,
+            is_published=is_published if not save_as_draft else False,
+            requires_admin_approval=requires_admin_approval,
+            created_by=request.user if request.user.is_authenticated else None
+        )
+        
+        # رفع الملف (إذا وجد)
+        if request.FILES.get('file'):
+            template.file = request.FILES['file']
+            template.save()
+        
+        # رسالة نجاح
+        if save_as_draft:
+            messages.success(request, f'تم حفظ القالب "{template.name}" كمسودة بنجاح!')
+        else:
+            messages.success(request, f'تم إنشاء القالب "{template.name}" بنجاح!')
+        
+        return redirect('requests:templates_list')
+    
+    # GET request
+    context = {
+        'page_title': 'إضافة قالب جديد',
+    }
+    return render(request, 'requests/template_create.html', context)
+
+
+# @login_required
+def template_edit(request, pk):
+    """تعديل قالب قانوني"""
+    template = get_object_or_404(Template, pk=pk)
+    
+    if request.method == 'POST':
+        # تحديث البيانات
+        template.name = request.POST.get('name')
+        template.name_english = request.POST.get('name_english', '')
+        template.version = request.POST.get('version')
+        template.template_type = request.POST.get('template_type')
+        template.content_arabic = request.POST.get('content_arabic')
+        template.content_english = request.POST.get('content_english', '')
+        
+        # الحالات
+        template.is_active = request.POST.get('is_active') == 'on'
+        template.is_published = request.POST.get('is_published') == 'on'
+        template.requires_admin_approval = request.POST.get('requires_admin_approval') == 'on'
+        
+        # نشر مباشرة
+        if request.POST.get('publish'):
+            template.is_published = True
+            template.is_active = True
+        
+        # رفع ملف جديد (إذا وجد)
+        if request.FILES.get('file'):
+            template.file = request.FILES['file']
+        
+        template.save()
+        
+        # رسالة نجاح
+        messages.success(request, f'تم تحديث القالب "{template.name}" بنجاح!')
+        return redirect('requests:templates_list')
+    
+    # GET request
+    context = {
+        'page_title': f'تعديل القالب: {template.name}',
+        'template': template,
+    }
+    return render(request, 'requests/template_edit.html', context)

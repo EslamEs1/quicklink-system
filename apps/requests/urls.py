@@ -11,4 +11,6 @@ urlpatterns = [
     path('<int:pk>/edit/', views.edit, name='edit'),
     path('pending/', views.pending, name='pending'),
     path('templates/', views.templates_list, name='templates_list'),
+    path('templates/create/', views.template_create, name='template_create'),
+    path('templates/<int:pk>/edit/', views.template_edit, name='template_edit'),
 ]

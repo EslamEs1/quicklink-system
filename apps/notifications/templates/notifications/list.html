@@ -157,13 +157,13 @@
                                             <div class="btn-group btn-group-sm">
                                                 {% if notification.action_url %}
                                                     <a href="{{ notification.action_url }}" class="btn btn-outline-primary">
-                                                        <i class="fas fa-eye"></i>
+                                                    <i class="fas fa-eye"></i>
                                                     </a>
                                                 {% endif %}
                                                 {% if not notification.is_read %}
                                                     <button class="btn btn-outline-success" onclick="markAsRead({{ notification.id }})">
-                                                        <i class="fas fa-check"></i>
-                                                    </button>
+                                                    <i class="fas fa-check"></i>
+                                                </button>
                                                 {% endif %}
                                                 <button class="btn btn-outline-danger" onclick="deleteNotification({{ notification.id }})">
                                                     <i class="fas fa-trash"></i>
@@ -250,8 +250,8 @@
                         </div>
                         <div class="card-body">
                             {% for type_key, percentage in type_percentages.items %}
-                                <div class="stat-item mb-3">
-                                    <div class="d-flex justify-content-between mb-1">
+                            <div class="stat-item mb-3">
+                                <div class="d-flex justify-content-between mb-1">
                                         <span>
                                             {% if 'request' in type_key %}طلبات
                                             {% elif 'payment' in type_key %}مدفوعات
@@ -261,15 +261,15 @@
                                             {% else %}عام{% endif %}
                                         </span>
                                         <strong>{{ percentage }}%</strong>
-                                    </div>
-                                    <div class="progress">
+                                </div>
+                                <div class="progress">
                                         <div class="progress-bar 
                                             {% if 'request' in type_key %}bg-primary
                                             {% elif 'payment' in type_key %}bg-success
                                             {% elif 'system' in type_key %}bg-info
                                             {% else %}bg-warning{% endif %}" 
                                             style="width: {{ percentage }}%"></div>
-                                    </div>
+                            </div>
                                 </div>
                             {% endfor %}
                             

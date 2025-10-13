@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Page Title -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">
+                    <i class="fas fa-file-plus me-2 text-primary"></i>
+                    إضافة قالب قانوني جديد
+                </h2>
+                <a href="{% url 'requests:templates_list' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-right me-1"></i>
+                    رجوع للقوالب
+                </a>
+            </div>
+
+            <!-- Important Notice -->
+            <div class="alert alert-danger mb-4">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>تحذير:</strong> هذه الصفحة للمشرف الأعلى فقط. القوالب القانونية تتطلب مراجعة قانونية دقيقة قبل النشر.
+            </div>
+
+            <!-- Create Template Form -->
+            <form method="post" action="{% url 'requests:template_create' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <div class="row">
+                    <div class="col-lg-8">
+                        <!-- Basic Information -->
+                        <div class="card shadow-custom mb-4">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    معلومات القالب الأساسية
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">اسم القالب (عربي) <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" name="name" required 
+                                               placeholder="مثال: تفويض ربط حساب PayTabs">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">الاسم (إنجليزي)</label>
+                                        <input type="text" class="form-control" name="name_english" 
+                                               placeholder="Example: PayTabs Account Authorization">
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">رمز القالب <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" name="code" required 
+                                               placeholder="مثال: PT-AUTH-001">
+                                        <div class="form-text">رمز فريد للقالب</div>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">الإصدار <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" name="version" required 
+                                               value="1.0" placeholder="1.0">
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">نوع القالب <span class="text-danger">*</span></label>
+                                        <select class="form-control" name="template_type" required>
+                                            <option value="">اختر النوع</option>
+                                            <option value="authorization">تفويض ربط حساب</option>
+                                            <option value="service_agreement">اتفاقية الخدمة</option>
+                                            <option value="financial_contract">عقد الخدمات المالية</option>
+                                            <option value="customer_declaration">إقرار العميل</option>
+                                            <option value="privacy_policy">سياسة الخصوصية</option>
+                                            <option value="disclaimer">إخلاء المسؤولية</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Template Content -->
+                        <div class="card shadow-custom mb-4">
+                            <div class="card-header bg-success text-white">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-file-alt me-2"></i>
+                                    محتوى القالب
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label">المحتوى (عربي) <span class="text-danger">*</span></label>
+                                    <textarea class="form-control" name="content_arabic" rows="10" required 
+                                              placeholder="أدخل نص القالب القانوني بالعربية..."></textarea>
+                                    <div class="form-text">يمكنك استخدام متغيرات مثل: {customer_name}, {emirates_id}, {date}</div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">المحتوى (إنجليزي)</label>
+                                    <textarea class="form-control" name="content_english" rows="10" 
+                                              placeholder="Enter template content in English..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- File Upload -->
+                        <div class="card shadow-custom mb-4">
+                            <div class="card-header bg-info text-white">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-file-upload me-2"></i>
+                                    ملف القالب (اختياري)
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label">رفع ملف PDF أو Word</label>
+                                    <input type="file" class="form-control" name="file" accept=".pdf,.doc,.docx">
+                                    <div class="form-text">يمكنك رفع نسخة PDF أو Word من القالب</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sidebar Settings -->
+                    <div class="col-lg-4">
+                        <!-- Status Settings -->
+                        <div class="card shadow-custom mb-4">
+                            <div class="card-header bg-warning text-dark">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-cog me-2"></i>
+                                    إعدادات الحالة
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" name="is_active" id="isActive" checked>
+                                    <label class="form-check-label" for="isActive">
+                                        <strong>نشط</strong>
+                                        <br><small class="text-muted">القالب متاح للاستخدام</small>
+                                    </label>
+                                </div>
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" name="is_published" id="isPublished">
+                                    <label class="form-check-label" for="isPublished">
+                                        <strong>منشور</strong>
+                                        <br><small class="text-muted">ظاهر في قائمة القوالب</small>
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="requires_admin_approval" id="requiresApproval" checked>
+                                    <label class="form-check-label" for="requiresApproval">
+                                        <strong>يحتاج موافقة المشرف</strong>
+                                        <br><small class="text-muted">لا يمكن استخدامه بدون موافقة</small>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Preview -->
+                        <div class="card shadow-custom mb-4">
+                            <div class="card-header">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-eye me-2"></i>
+                                    معاينة سريعة
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div id="templatePreview" class="border rounded p-3 bg-light" style="min-height: 200px;">
+                                    <p class="text-muted text-center">
+                                        <i class="fas fa-file-alt fa-3x mb-3 d-block"></i>
+                                        ابدأ بكتابة المحتوى لرؤية المعاينة
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="card shadow-custom">
+                            <div class="card-body">
+                                <button type="submit" class="btn btn-primary w-100 mb-2">
+                                    <i class="fas fa-save me-1"></i>
+                                    حفظ القالب
+                                </button>
+                                <button type="submit" name="save_as_draft" value="1" class="btn btn-secondary w-100 mb-2">
+                                    <i class="fas fa-file-alt me-1"></i>
+                                    حفظ كمسودة
+                                </button>
+                                <a href="{% url 'requests:templates_list' %}" class="btn btn-outline-danger w-100">
+                                    <i class="fas fa-times me-1"></i>
+                                    إلغاء
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+{% block extra_js %}
+<script>
+    // Live preview
+    document.querySelector('textarea[name="content_arabic"]').addEventListener('input', function() {
+        const preview = document.getElementById('templatePreview');
+        if (this.value.trim()) {
+            preview.innerHTML = '<div class="text-end">' + this.value.replace(/\n/g, '<br>') + '</div>';
+        } else {
+            preview.innerHTML = '<p class="text-muted text-center"><i class="fas fa-file-alt fa-3x mb-3 d-block"></i>ابدأ بكتابة المحتوى لرؤية المعاينة</p>';
+        }
+    });
+</script>
+{% endblock %}
+{% endblock content %}
+
