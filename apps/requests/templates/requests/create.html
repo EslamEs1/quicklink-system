@@ -285,7 +285,7 @@
 
                             <!-- ID Upload Section -->
                             <div class="col-lg-4">
-                                <div class="card shadow-custom">
+                                <div class="card shadow-custom" id="imageUploadCard">
                                     <div class="card-header">
                                         <h5 class="mb-0">
                                             <i class="fas fa-camera me-2"></i>
@@ -308,54 +308,74 @@
                                     </div>
                                 </div>
 
-                                <!-- Validation Checklist -->
-                                <div class="card shadow-custom mt-3">
-                                    <div class="card-header">
+                                <!-- Validation Checklist - ثابت في جميع الخطوات -->
+                                <div class="card shadow-custom mt-3" id="checklistCard">
+                                    <div class="card-header bg-success text-white">
                                         <h6 class="mb-0">
-                                            <i class="fas fa-check-circle me-2"></i>
-                                            قائمة التحقق
+                                            <i class="fas fa-tasks me-2"></i>
+                                            قائمة التحقق - الخطوة <span id="currentStepNum">1</span>
                                         </h6>
                                     </div>
                                     <div class="card-body">
-                                        <div class="form-check mb-2">
-                                            <input class="form-check-input" type="checkbox" id="checkName" disabled>
-                                            <label class="form-check-label" for="checkName">
-                                                تطابق الأسماء
-                                            </label>
+                                        <!-- Step 1 Checks -->
+                                        <div id="step1Checks">
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" type="checkbox" id="checkName" disabled>
+                                                <label class="form-check-label" for="checkName">
+                                                    <small>✓ تطابق الأسماء</small>
+                                                </label>
+                                            </div>
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" type="checkbox" id="checkId" disabled>
+                                                <label class="form-check-label" for="checkId">
+                                                    <small>✓ صحة رقم الهوية</small>
+                                                </label>
+                                            </div>
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" type="checkbox" id="checkImage" disabled>
+                                                <label class="form-check-label" for="checkImage">
+                                                    <small>✓ رفع صورة الهوية</small>
+                                                </label>
+                                            </div>
                                         </div>
-                                        <div class="form-check mb-2">
-                                            <input class="form-check-input" type="checkbox" id="checkId" disabled>
-                                            <label class="form-check-label" for="checkId">
-                                                صحة رقم الهوية (784-XXXX-XXXXXXX-X)
-                                            </label>
+
+                                        <!-- Step 2 Checks -->
+                                        <div id="step2Checks" class="d-none">
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" type="checkbox" id="checkTemplate" disabled>
+                                                <label class="form-check-label" for="checkTemplate">
+                                                    <small>✓ اختيار القالب القانوني</small>
+                                                </label>
+                                            </div>
                                         </div>
-                                        <div class="form-check mb-2">
-                                            <input class="form-check-input" type="checkbox" id="checkImage" disabled>
-                                            <label class="form-check-label" for="checkImage">
-                                                رفع صورة الهوية (إجباري)
-                                            </label>
+
+                                        <!-- Step 3 Checks -->
+                                        <div id="step3Checks" class="d-none">
+                                            <div class="alert alert-info mb-0">
+                                                <i class="fas fa-eye me-2"></i>
+                                                <small>راجع جميع البيانات قبل المتابعة</small>
+                                            </div>
                                         </div>
-                                        <div class="form-check mb-2">
-                                            <input class="form-check-input" type="checkbox" id="checkTemplate" disabled>
-                                            <label class="form-check-label" for="checkTemplate">
-                                                اختيار القالب القانوني
-                                            </label>
+
+                                        <!-- Step 4 Checks -->
+                                        <div id="step4Checks" class="d-none">
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" type="checkbox" id="checkPayment" disabled>
+                                                <label class="form-check-label" for="checkPayment">
+                                                    <small>✓ اختيار طريقة الدفع</small>
+                                                </label>
+                                            </div>
                                         </div>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" id="checkData" disabled>
-                                            <label class="form-check-label" for="checkData">
-                                                اكتمال جميع البيانات
-                                            </label>
-                                        </div>
+
                                         <hr>
+                                        
+                                        <!-- Progress Summary -->
                                         <div class="text-center">
-                                            <button type="button" class="btn btn-success w-100" id="createDraftBtn" disabled>
-                                                <i class="fas fa-file-alt me-1"></i>
-                                                إنشاء درافت
-                                            </button>
-                                            <small class="text-muted d-block mt-2">
-                                                يجب إكمال جميع عناصر التحقق أولاً
-                                            </small>
+                                            <div class="progress mb-2" style="height: 25px;">
+                                                <div class="progress-bar bg-success" id="progressBar" role="progressbar" 
+                                                     style="width: 0%">0%</div>
+                                            </div>
+                                            <small class="text-muted">التقدم الكلي</small>
                                         </div>
                                     </div>
                                 </div>
@@ -686,6 +706,14 @@
                         cashReceipt.classList.add('d-none');
                         document.getElementById('receiptNumber').required = false;
                     }
+                    
+                    // Update payment checkbox
+                    const checkPayment = document.getElementById('checkPayment');
+                    if (checkPayment) {
+                        checkPayment.checked = true;
+                        checkPayment.disabled = false;
+                        updateProgressBar();
+                    }
                 });
             });
         }
@@ -724,12 +752,72 @@
                 }
             });
 
+            // Update checklist for current step
+            updateChecklistDisplay();
+            
             // Update buttons
             updateButtons();
             
             // Update review data if on step 3
             if (currentStep === 3) {
                 updateReviewData();
+            }
+            
+            // Update progress bar
+            updateProgressBar();
+        }
+        
+        function updateChecklistDisplay() {
+            // Update step number in header
+            document.getElementById('currentStepNum').textContent = currentStep;
+            
+            // Hide all step checks
+            document.getElementById('step1Checks').classList.add('d-none');
+            document.getElementById('step2Checks').classList.add('d-none');
+            document.getElementById('step3Checks').classList.add('d-none');
+            document.getElementById('step4Checks').classList.add('d-none');
+            
+            // Show current step checks
+            document.getElementById(`step${currentStep}Checks`).classList.remove('d-none');
+            
+            // Hide image upload card in steps 2, 3, 4
+            const imageCard = document.getElementById('imageUploadCard');
+            if (currentStep === 1) {
+                imageCard.classList.remove('d-none');
+            } else {
+                imageCard.classList.add('d-none');
+            }
+        }
+        
+        function updateProgressBar() {
+            let totalChecks = 0;
+            let completedChecks = 0;
+            
+            // Count all checkboxes
+            const allCheckboxes = document.querySelectorAll('#checklistCard input[type="checkbox"]');
+            allCheckboxes.forEach(checkbox => {
+                totalChecks++;
+                if (checkbox.checked) {
+                    completedChecks++;
+                }
+            });
+            
+            // Calculate percentage
+            const percentage = totalChecks > 0 ? Math.round((completedChecks / totalChecks) * 100) : 0;
+            
+            // Update progress bar
+            const progressBar = document.getElementById('progressBar');
+            progressBar.style.width = percentage + '%';
+            progressBar.textContent = percentage + '%';
+            
+            // Change color based on progress
+            progressBar.className = 'progress-bar';
+            if (percentage < 33) {
+                progressBar.classList.add('bg-danger');
+            } else if (percentage < 66) {
+                progressBar.classList.add('bg-warning');
+            } else {
+                progressBar.classList.add('bg-success');
             }
         }
 
@@ -881,7 +969,7 @@
                 checkbox.checked = false;
                 checkbox.disabled = true;
             }
-            updateCreateDraftButton();
+            updateProgressBar();
         }
 
         function validateEmiratesId() {
@@ -916,7 +1004,7 @@
                 checkbox.checked = false;
                 checkbox.disabled = true;
             }
-            updateCreateDraftButton();
+            updateProgressBar();
         }
 
         function checkIdentityConflict(name, id) {
@@ -941,11 +1029,13 @@
                 const selectedOption = templateSelect.options[templateSelect.selectedIndex];
                 const templateName = selectedOption.text;
                 loadCentralTemplate(templateName);
+                
+                // Update progress bar
+                updateProgressBar();
             } else {
                 checkbox.checked = false;
                 checkbox.disabled = true;
             }
-            updateCreateDraftButton();
         }
 
         function loadCentralTemplate(templateName) {
@@ -961,32 +1051,12 @@
         }
 
         function updateChecklist() {
-            const nameMatch = document.getElementById('checkName').checked;
-            const idValid = document.getElementById('checkId').checked;
             const imageUploaded = document.getElementById('idImage').files.length > 0;
-            const templateSelected = document.getElementById('checkTemplate').checked;
-            const dataComplete = validateCurrentStep();
 
             document.getElementById('checkImage').checked = imageUploaded;
             document.getElementById('checkImage').disabled = !imageUploaded;
-            document.getElementById('checkData').checked = dataComplete;
-            document.getElementById('checkData').disabled = !dataComplete;
             
-            updateCreateDraftButton();
-        }
-
-        function updateCreateDraftButton() {
-            const allChecks = document.querySelectorAll('.form-check-input');
-            const allChecked = Array.from(allChecks).every(check => check.checked);
-            const createBtn = document.getElementById('createDraftBtn');
-            
-            if (allChecked) {
-                createBtn.disabled = false;
-                createBtn.innerHTML = '<i class="fas fa-file-alt me-1"></i>إنشاء درافت';
-            } else {
-                createBtn.disabled = true;
-                createBtn.innerHTML = '<i class="fas fa-lock me-1"></i>أكمل التحقق أولاً';
-            }
+            updateProgressBar();
         }
 
         // Form submission
