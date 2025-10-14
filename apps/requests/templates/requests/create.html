@@ -623,17 +623,12 @@
 {% block extra_js %}
     <!-- Form-specific JavaScript -->
     <script>
-        let currentStep = 1;
-        const totalSteps = 4;
-
         // Initialize form
         document.addEventListener('DOMContentLoaded', function() {
             initializeForm();
-            setupImageUpload();
-            setupPaymentMethods();
             setupValidation();
-            loadSavedData(); // تحميل البيانات المحفوظة
-            setupAutoSave(); // تفعيل الحفظ التلقائي
+            loadSavedData();
+            setupAutoSave();
         });
         
         // دالة تبديل نموذج العميل (موجود أو جديد)
@@ -718,317 +713,26 @@
             dobInput.setAttribute('min', minDate.toISOString().split('T')[0]);
         }
 
-        function setupImageUpload() {
-            const uploadArea = document.getElementById('uploadArea');
-            const fileInput = document.getElementById('idImage');
-            const previewArea = document.getElementById('previewArea');
-            const imagePreview = document.getElementById('imagePreview');
-
-            uploadArea.addEventListener('click', () => fileInput.click());
-            
-            uploadArea.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                uploadArea.classList.add('dragover');
-            });
-            
-            uploadArea.addEventListener('dragleave', () => {
-                uploadArea.classList.remove('dragover');
-            });
-            
-            uploadArea.addEventListener('drop', (e) => {
-                e.preventDefault();
-                uploadArea.classList.remove('dragover');
-                const files = e.dataTransfer.files;
-                if (files.length > 0) {
-                    handleFileSelect(files[0]);
-                }
-            });
-
-            fileInput.addEventListener('change', (e) => {
-                if (e.target.files.length > 0) {
-                    handleFileSelect(e.target.files[0]);
-                }
-            });
-
-            function handleFileSelect(file) {
-                if (file.type.startsWith('image/')) {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        imagePreview.src = e.target.result;
-                        uploadArea.classList.add('d-none');
-                        previewArea.classList.remove('d-none');
-                        updateChecklist();
-                    };
-                    reader.readAsDataURL(file);
-                } else {
-                    showNotification('يرجى اختيار ملف صورة صالح', 'error');
-                }
-            }
-        }
-
-        function removeImage() {
-            document.getElementById('idImage').value = '';
-            document.getElementById('uploadArea').classList.remove('d-none');
-            document.getElementById('previewArea').classList.add('d-none');
-            updateChecklist();
-        }
-
-        function setupPaymentMethods() {
-            const paymentMethods = document.querySelectorAll('input[name="paymentMethod"]');
-            const cashReceipt = document.getElementById('cashReceipt');
-
-            paymentMethods.forEach(method => {
-                method.addEventListener('change', function() {
-                    if (this.value === 'cash') {
-                        cashReceipt.classList.remove('d-none');
-                        document.getElementById('receiptNumber').required = true;
-                    } else {
-                        cashReceipt.classList.add('d-none');
-                        document.getElementById('receiptNumber').required = false;
-                    }
-                    
-                    // Update payment checkbox
-                    const checkPayment = document.getElementById('checkPayment');
-                    if (checkPayment) {
-                        checkPayment.checked = true;
-                        checkPayment.disabled = false;
-                        updateProgressBar();
-                    }
-                });
-            });
-        }
-
-        function changeStep(direction) {
-            const steps = document.querySelectorAll('.step-content');
-            const stepNumbers = document.querySelectorAll('.step-number');
-            
-            if (direction > 0 && validateCurrentStep()) {
-                if (currentStep < totalSteps) {
-                    currentStep++;
-                }
-            } else if (direction < 0) {
-                if (currentStep > 1) {
-                    currentStep--;
-                }
-            }
-
-            // Update step content
-            steps.forEach((step, index) => {
-                if (index + 1 === currentStep) {
-                    step.classList.remove('d-none');
-                } else {
-                    step.classList.add('d-none');
-                }
-            });
-
-            // Update step numbers
-            stepNumbers.forEach((number, index) => {
-                if (index + 1 <= currentStep) {
-                    number.classList.add('bg-primary', 'text-white');
-                    number.classList.remove('bg-light');
-                } else {
-                    number.classList.remove('bg-primary', 'text-white');
-                    number.classList.add('bg-light');
-                }
-            });
-
-            // Update checklist for current step
-            updateChecklistDisplay();
-            
-            // Update buttons
-            updateButtons();
-            
-            // Update review data if on step 3
-            if (currentStep === 3) {
-                updateReviewData();
-            }
-            
-            // Update payment details if on step 4
-            if (currentStep === 4) {
-                updatePaymentDetails();
-            }
-            
-            // Update progress bar
-            updateProgressBar();
-        }
-        
-        function updateChecklistDisplay() {
-            // Update step number in header
-            document.getElementById('currentStepNum').textContent = currentStep;
-            
-            // Hide all step checks
-            document.getElementById('step1Checks').classList.add('d-none');
-            document.getElementById('step2Checks').classList.add('d-none');
-            document.getElementById('step3Checks').classList.add('d-none');
-            document.getElementById('step4Checks').classList.add('d-none');
-            
-            // Show current step checks
-            document.getElementById(`step${currentStep}Checks`).classList.remove('d-none');
-            
-            // Hide image upload card in steps 2, 3, 4
-            const imageCard = document.getElementById('imageUploadCard');
-            if (currentStep === 1) {
-                imageCard.classList.remove('d-none');
-            } else {
-                imageCard.classList.add('d-none');
-            }
-        }
-        
-        function updateProgressBar() {
-            let totalChecks = 0;
-            let completedChecks = 0;
-            
-            // Count all checkboxes
-            const allCheckboxes = document.querySelectorAll('#checklistCard input[type="checkbox"]');
-            allCheckboxes.forEach(checkbox => {
-                totalChecks++;
-                if (checkbox.checked) {
-                    completedChecks++;
-                }
-            });
-            
-            // Calculate percentage
-            const percentage = totalChecks > 0 ? Math.round((completedChecks / totalChecks) * 100) : 0;
-            
-            // Update progress bar
-            const progressBar = document.getElementById('progressBar');
-            progressBar.style.width = percentage + '%';
-            progressBar.textContent = percentage + '%';
-            
-            // Change color based on progress
-            progressBar.className = 'progress-bar';
-            if (percentage < 33) {
-                progressBar.classList.add('bg-danger');
-            } else if (percentage < 66) {
-                progressBar.classList.add('bg-warning');
-            } else {
-                progressBar.classList.add('bg-success');
-            }
-        }
-
-        function validateCurrentStep() {
-            switch (currentStep) {
-                case 1:
-                    return validateStep1();
-                case 2:
-                    return validateStep2();
-                case 3:
-                    return true; // Review step
-                case 4:
-                    return validateStep4();
-                default:
-                    return false;
-            }
-        }
-
-        function validateStep1() {
-            const required = ['customerName', 'confirmName', 'emiratesId', 'dateOfBirth', 'nationality', 'mobileNumber', 'requestType'];
-            let isValid = true;
-
-            required.forEach(fieldId => {
-                const field = document.getElementById(fieldId);
-                if (!field.value.trim()) {
-                    field.classList.add('is-invalid');
-                    isValid = false;
-                } else {
-                    field.classList.remove('is-invalid');
-                }
-            });
-
-            // Check image upload
-            const imageInput = document.getElementById('idImage');
-            if (!imageInput.files.length) {
-                showNotification('يرجى رفع صورة الهوية', 'error');
-                isValid = false;
-            }
-
-            return isValid;
-        }
-
-        function validateStep2() {
-            const templateSelect = document.getElementById('templateSelect');
-            
-            if (!templateSelect || !templateSelect.value) {
-                showNotification('يرجى اختيار القالب القانوني', 'error');
-                return false;
-            }
-            
-            return true;
-        }
-
-        function validateStep4() {
-            const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked');
-            if (!paymentMethod) {
-                showNotification('يرجى اختيار طريقة الدفع', 'error');
-                return false;
-            }
-
-            if (paymentMethod.value === 'cash') {
-                const receiptNumber = document.getElementById('receiptNumber');
-                if (!receiptNumber.value.trim()) {
-                    showNotification('يرجى إدخال رقم الإيصال', 'error');
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        function updateButtons() {
-            const prevBtn = document.getElementById('prevBtn');
-            const nextBtn = document.getElementById('nextBtn');
-            const submitBtn = document.getElementById('submitBtn');
-
-            prevBtn.style.display = currentStep > 1 ? 'inline-block' : 'none';
-            
-            if (currentStep === totalSteps) {
-                nextBtn.classList.add('d-none');
-                submitBtn.classList.remove('d-none');
-            } else {
-                nextBtn.classList.remove('d-none');
-                submitBtn.classList.add('d-none');
-            }
-        }
-
-        function updateReviewData() {
-            document.getElementById('reviewName').textContent = document.getElementById('customerName').value;
-            document.getElementById('reviewId').textContent = document.getElementById('emiratesId').value;
-            document.getElementById('reviewBirth').textContent = document.getElementById('dateOfBirth').value;
-            document.getElementById('reviewNationality').textContent = document.getElementById('nationality').options[document.getElementById('nationality').selectedIndex].text;
-            document.getElementById('reviewMobile').textContent = document.getElementById('mobileNumber').value;
-            document.getElementById('reviewEmail').textContent = document.getElementById('email').value || 'غير محدد';
-            document.getElementById('reviewReference').textContent = document.getElementById('referenceNumber').value;
-            document.getElementById('reviewType').textContent = document.getElementById('requestType').options[document.getElementById('requestType').selectedIndex].text;
-            
-            // القالب المختار
-            const templateSelect = document.getElementById('templateSelect');
-            if (templateSelect && templateSelect.value) {
-                document.getElementById('reviewAuthType').textContent = templateSelect.options[templateSelect.selectedIndex].text;
-                document.getElementById('reviewVersion').textContent = templateSelect.options[templateSelect.selectedIndex].getAttribute('data-version') || '-';
-            } else {
-                document.getElementById('reviewAuthType').textContent = 'لم يتم الاختيار';
-                document.getElementById('reviewVersion').textContent = '-';
-            }
-            
-            document.getElementById('reviewDate').textContent = document.getElementById('requestDate').value;
-            document.getElementById('reviewImage').textContent = document.getElementById('idImage').files.length ? 'تم الرفع' : 'لم يتم الرفع';
-        }
 
         function setupValidation() {
             // التحقق من تطابق الأسماء
-            document.getElementById('customerName').addEventListener('input', checkNameMatch);
-            document.getElementById('confirmName').addEventListener('input', checkNameMatch);
+            const customerName = document.getElementById('customerName');
+            const confirmName = document.getElementById('confirmName');
+            if (customerName && confirmName) {
+                customerName.addEventListener('input', checkNameMatch);
+                confirmName.addEventListener('input', checkNameMatch);
+            }
             
             // التحقق من رقم الهوية
-            document.getElementById('emiratesId').addEventListener('input', validateEmiratesId);
+            const emiratesId = document.getElementById('emiratesId');
+            if (emiratesId) {
+                emiratesId.addEventListener('input', validateEmiratesId);
+            }
             
             // التحقق من تاريخ الميلاد
-            document.getElementById('dateOfBirth').addEventListener('change', validateDateOfBirth);
-            
-            // التحقق من اختيار القالب
-            const templateSelect = document.getElementById('templateSelect');
-            if (templateSelect) {
-                templateSelect.addEventListener('change', checkTemplateSelection);
+            const dateOfBirth = document.getElementById('dateOfBirth');
+            if (dateOfBirth) {
+                dateOfBirth.addEventListener('change', validateDateOfBirth);
             }
         }
 
@@ -1197,84 +901,10 @@
             }
         }
 
-        function checkTemplateSelection() {
-            const templateSelect = document.getElementById('templateSelect');
-            const checkbox = document.getElementById('checkTemplate');
-            
-            if (templateSelect && templateSelect.value) {
-                checkbox.checked = true;
-                checkbox.disabled = false;
-                
-                // عرض معاينة القالب
-                const selectedOption = templateSelect.options[templateSelect.selectedIndex];
-                const templateName = selectedOption.text;
-                loadCentralTemplate(templateName);
-                
-                // Update progress bar
-                updateProgressBar();
-            } else {
-                checkbox.checked = false;
-                checkbox.disabled = true;
-            }
-        }
-
-        function loadCentralTemplate(templateName) {
-            const preview = document.getElementById('templatePreview');
-            preview.innerHTML = `
-                <div class="alert alert-success">
-                    <i class="fas fa-check-circle me-2"></i>
-                    <strong>قالب مركزي محمل:</strong> ${templateName}
-                    <br>
-                    <small>تم تحميل القالب الرسمي والمحدث من القوالب المركزية</small>
-                </div>
-            `;
-        }
-
-        function updateChecklist() {
-            const imageUploaded = document.getElementById('idImage').files.length > 0;
-
-            document.getElementById('checkImage').checked = imageUploaded;
-            document.getElementById('checkImage').disabled = !imageUploaded;
-            
-            updateProgressBar();
-        }
-        
-        function updatePaymentDetails() {
-            const requestTypeSelect = document.getElementById('requestType');
-            
-            if (!requestTypeSelect || !requestTypeSelect.value) {
-                // لا يوجد نوع طلب مختار
-                document.getElementById('serviceName').textContent = 'لم يتم اختيار نوع الخدمة';
-                document.getElementById('servicePrice').textContent = '0 درهم';
-                document.getElementById('taxAmount').textContent = '0 درهم';
-                document.getElementById('totalAmount').textContent = '0 درهم';
-                return;
-            }
-            
-            // الحصول على السعر من data-price attribute
-            const selectedOption = requestTypeSelect.options[requestTypeSelect.selectedIndex];
-            const serviceName = selectedOption.text.split(' - ')[0]; // قبل " - "
-            const basePrice = parseFloat(selectedOption.getAttribute('data-price')) || 0;
-            
-            // حساب الضريبة (5%)
-            const taxRate = 0.05;
-            const taxAmount = basePrice * taxRate;
-            
-            // المجموع الكلي
-            const totalAmount = basePrice + taxAmount;
-            
-            // تحديث العرض
-            document.getElementById('serviceName').textContent = serviceName;
-            document.getElementById('servicePrice').textContent = basePrice.toFixed(2) + ' درهم';
-            document.getElementById('taxAmount').textContent = taxAmount.toFixed(2) + ' درهم';
-            document.getElementById('totalAmount').textContent = totalAmount.toFixed(2) + ' درهم';
-        }
-        
         // ============ نظام الحفظ التلقائي ============
         
         function saveFormData() {
             const formData = {
-                currentStep: currentStep,
                 customerName: document.getElementById('customerName')?.value || '',
                 confirmName: document.getElementById('confirmName')?.value || '',
                 emiratesId: document.getElementById('emiratesId')?.value || '',
@@ -1285,13 +915,10 @@
                 requestType: document.getElementById('requestType')?.value || '',
                 priority: document.getElementById('priority')?.value || '',
                 dueDate: document.getElementById('dueDate')?.value || '',
-                templateSelect: document.getElementById('templateSelect')?.value || '',
-                paymentMethod: document.querySelector('input[name="paymentMethod"]:checked')?.value || '',
                 timestamp: new Date().toISOString()
             };
             
             localStorage.setItem('createRequestFormData', JSON.stringify(formData));
-            console.log('✅ تم حفظ البيانات تلقائياً');
         }
         
         function loadSavedData() {
@@ -1353,26 +980,11 @@
                     if (formData.requestType) document.getElementById('requestType').value = formData.requestType;
                     if (formData.priority) document.getElementById('priority').value = formData.priority;
                     if (formData.dueDate) document.getElementById('dueDate').value = formData.dueDate;
-                    if (formData.templateSelect) document.getElementById('templateSelect').value = formData.templateSelect;
-                    
-                    // استعادة طريقة الدفع
-                    if (formData.paymentMethod) {
-                        const paymentRadio = document.getElementById(formData.paymentMethod);
-                        if (paymentRadio) paymentRadio.checked = true;
-                    }
-                    
-                    // استعادة الخطوة الحالية
-                    if (formData.currentStep && formData.currentStep > 1) {
-                        currentStep = formData.currentStep;
-                        changeStep(0); // تحديث العرض
-                    }
                     
                     // تشغيل التحقق
                     checkNameMatch();
                     validateEmiratesId();
                     validateDateOfBirth();
-                    
-                    showNotification('تم استعادة البيانات المحفوظة بنجاح!', 'success');
                 } else {
                     // حذف البيانات المحفوظة
                     localStorage.removeItem('createRequestFormData');
@@ -1412,36 +1024,15 @@
             console.log('🗑️ تم حذف البيانات المحفوظة');
         }
 
-        // Form submission
+        // Form submission - بسيط وواضح
         document.getElementById('createRequestForm').addEventListener('submit', function(e) {
-            console.log('📝 تم الضغط على إرسال النموذج');
-            console.log('الخطوة الحالية:', currentStep);
+            console.log('📝 محاولة إرسال النموذج');
             
-            // التحقق فقط إذا لم نكن في الخطوة الأخيرة
-            if (currentStep < totalSteps) {
-                console.log('⚠️ لست في الخطوة الأخيرة - منع الإرسال');
-                e.preventDefault();
-                changeStep(1); // الانتقال للخطوة التالية
-                return false;
-            }
-            
-            // التحقق من الخطوة الأخيرة فقط
-            if (!validateStep4()) {
-                console.log('❌ فشل التحقق من الخطوة الأخيرة');
-                e.preventDefault();
-                return false;
-            }
-            
-            console.log('✅ التحقق نجح - إرسال النموذج');
-            
-            // حذف البيانات المحفوظة قبل الإرسال
+            // حذف البيانات المحفوظة
             clearSavedData();
             
-            // عرض رسالة تحميل
-            showNotification('جاري إنشاء الطلب...', 'info');
-            
-            // السماح للنموذج بالإرسال بشكل طبيعي
-            // Django سيتولى redirect و messages
+            // السماح بالإرسال - Django سيتحقق من كل شيء
+            console.log('✅ إرسال النموذج إلى Django');
         });
     </script>
 {% endblock %}
