@@ -336,7 +336,8 @@ def edit(request, pk):
         pass
     
     # خيارات الحالة
-    status_choices = Request.RequestStatus.choices
+    from apps.requests.models import RequestStatus
+    status_choices = RequestStatus.choices
     
     context = {
         'page_title': f'تعديل الطلب {req.reference_number}',
