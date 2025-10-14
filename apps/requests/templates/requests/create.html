@@ -1414,13 +1414,25 @@
 
         // Form submission
         document.getElementById('createRequestForm').addEventListener('submit', function(e) {
-            // لا نمنع الإرسال - نترك Django يتعامل معه
-            // e.preventDefault();
+            console.log('📝 تم الضغط على إرسال النموذج');
+            console.log('الخطوة الحالية:', currentStep);
             
-            if (!validateCurrentStep()) {
+            // التحقق فقط إذا لم نكن في الخطوة الأخيرة
+            if (currentStep < totalSteps) {
+                console.log('⚠️ لست في الخطوة الأخيرة - منع الإرسال');
+                e.preventDefault();
+                changeStep(1); // الانتقال للخطوة التالية
+                return false;
+            }
+            
+            // التحقق من الخطوة الأخيرة فقط
+            if (!validateStep4()) {
+                console.log('❌ فشل التحقق من الخطوة الأخيرة');
                 e.preventDefault();
                 return false;
             }
+            
+            console.log('✅ التحقق نجح - إرسال النموذج');
             
             // حذف البيانات المحفوظة قبل الإرسال
             clearSavedData();
