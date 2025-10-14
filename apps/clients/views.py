@@ -197,3 +197,49 @@ def edit(request, pk):
         'customer': customer,
     }
     return render(request, 'clients/edit.html', context)
+
+
+# @login_required
+def export_customer(request, pk):
+    """تصدير بيانات العميل"""
+    customer = get_object_or_404(Customer, pk=pk)
+    # TODO: تنفيذ تصدير البيانات لاحقاً
+    messages.info(request, 'جاري تصدير بيانات العميل...')
+    return redirect('clients:detail', pk=pk)
+
+
+# @login_required
+def export_conflicts(request):
+    """تصدير تقرير التعارضات"""
+    # TODO: تنفيذ تصدير التقرير لاحقاً
+    messages.info(request, 'جاري تصدير تقرير التعارضات...')
+    return redirect('clients:identity_check')
+
+
+# @login_required
+def resolve_conflict(request, pk):
+    """حل تعارض"""
+    conflict = get_object_or_404(IdentityConflict, pk=pk)
+    
+    if request.method == 'POST':
+        conflict.status = 'resolved'
+        conflict.resolved_at = date.today()
+        conflict.resolved_by = request.user if request.user.is_authenticated else None
+        conflict.save()
+        
+        messages.success(request, 'تم حل التعارض بنجاح!')
+        return redirect('clients:identity_check')
+    
+    return redirect('clients:identity_check')
+
+
+# @login_required
+def conflict_detail(request, pk):
+    """تفاصيل التعارض"""
+    conflict = get_object_or_404(IdentityConflict, pk=pk)
+    
+    context = {
+        'page_title': 'تفاصيل التعارض',
+        'conflict': conflict,
+    }
+    return render(request, 'clients/conflict_detail.html', context)

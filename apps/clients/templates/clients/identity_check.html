@@ -94,10 +94,10 @@
                         </div>
                     </div>
                     <div class="text-end">
-                        <button class="btn btn-outline-secondary" onclick="clearFilters()">
+                        <a href="{% url 'clients:identity_check' %}" class="btn btn-outline-secondary">
                             <i class="fas fa-times me-1"></i>
                             مسح الفلاتر
-                        </button>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -109,10 +109,10 @@
                         <i class="fas fa-table text-primary me-2"></i>
                         قائمة التعارضات المكتشفة
                     </h5>
-                    <button class="btn btn-sm btn-primary" onclick="exportConflicts()">
+                    <a href="{% url 'clients:export_conflicts' %}" class="btn btn-sm btn-primary">
                         <i class="fas fa-file-export me-1"></i>
                         تصدير التقرير
-                    </button>
+                    </a>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -174,19 +174,22 @@
                                     <td>
                                         <div class="btn-group" role="group">
                                             {% if conflict.status != 'resolved' %}
-                                                <button class="btn btn-sm btn-outline-primary" onclick="viewCustomer({{ conflict.customer1.id }})" title="مراجعة العميل الأول">
+                                                <a href="{% url 'clients:detail' conflict.customer1.id %}" class="btn btn-sm btn-outline-primary" title="مراجعة العميل الأول">
                                                     <i class="fas fa-user"></i> 1
-                                                </button>
-                                                <button class="btn btn-sm btn-outline-primary" onclick="viewCustomer({{ conflict.customer2.id }})" title="مراجعة العميل الثاني">
+                                                </a>
+                                                <a href="{% url 'clients:detail' conflict.customer2.id %}" class="btn btn-sm btn-outline-primary" title="مراجعة العميل الثاني">
                                                     <i class="fas fa-user"></i> 2
-                                                </button>
-                                                <button class="btn btn-sm btn-outline-success" onclick="resolveConflict({{ conflict.id }})" title="حل التعارض">
-                                                    <i class="fas fa-check"></i>
-                                                </button>
+                                                </a>
+                                                <form method="post" action="{% url 'clients:resolve_conflict' conflict.id %}" style="display: inline;" onsubmit="return confirm('هل أنت متأكد من حل هذا التعارض؟');">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-sm btn-outline-success" title="حل التعارض">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                </form>
                                             {% else %}
-                                                <button class="btn btn-sm btn-outline-info" onclick="viewResolution({{ conflict.id }})" title="عرض الحل">
+                                                <a href="{% url 'clients:conflict_detail' conflict.id %}" class="btn btn-sm btn-outline-info" title="عرض الحل">
                                                     <i class="fas fa-eye"></i>
-                                                </button>
+                                                </a>
                                             {% endif %}
                                         </div>
                                     </td>

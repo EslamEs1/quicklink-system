@@ -59,10 +59,10 @@
                                         رقم الجوال
                                     </label>
                                     <p class="mb-0">
-                                        <button class="btn btn-sm btn-primary" onclick="callCustomer({{ customer.id }})">
+                                        <a href="{% url 'chat:room' %}?customer_id={{ customer.id }}" class="btn btn-sm btn-primary">
                                             <i class="fab fa-whatsapp me-1"></i>
                                             مراسلة عبر WhatsApp Business
-                                        </button>
+                                        </a>
                                     </p>
                                     <small class="text-muted">{{ customer.masked_phone }} - الرقم مخفي للأمان</small>
                                 </div>
@@ -121,10 +121,10 @@
                         <i class="fas fa-birthday-cake me-2"></i>
                         <strong>عيد ميلاد قريب!</strong>
                         <p class="mb-0 mt-2">عيد ميلاد العميل بعد <strong>{{ days_until_birthday }} {% if days_until_birthday == 0 %}اليوم{% elif days_until_birthday == 1 %}يوم واحد{% else %}أيام{% endif %}</strong></p>
-                        <button class="btn btn-sm btn-outline-warning mt-2 w-100" onclick="sendBirthdayGreeting()">
+                        <a href="{% url 'chat:room' %}?customer_id={{ customer.id }}&message=عيد_ميلاد_سعيد" class="btn btn-sm btn-outline-warning mt-2 w-100">
                             <i class="fas fa-gift me-1"></i>
                             إرسال تهنئة
-                        </button>
+                        </a>
                     </div>
                     {% endif %}
 
@@ -188,22 +188,22 @@
                             </h5>
                         </div>
                         <div class="card-body">
-                            <button class="btn btn-primary w-100 mb-2" onclick="createNewRequest()">
+                            <a href="{% url 'requests:create' %}?customer_id={{ customer.id }}" class="btn btn-primary w-100 mb-2">
                                 <i class="fas fa-plus-circle me-1"></i>
                                 طلب جديد للعميل
-                            </button>
-                            <button class="btn btn-success w-100 mb-2" onclick="callCustomer()">
+                            </a>
+                            <a href="{% url 'chat:room' %}?customer_id={{ customer.id }}" class="btn btn-success w-100 mb-2">
                                 <i class="fab fa-whatsapp me-1"></i>
                                 مراسلة WhatsApp
-                            </button>
-                            <button class="btn btn-info w-100 mb-2" onclick="viewAuditTrail()">
+                            </a>
+                            <a href="{% url 'audit:trail' %}?customer_id={{ customer.id }}" class="btn btn-info w-100 mb-2">
                                 <i class="fas fa-history me-1"></i>
                                 سجل التدقيق
-                            </button>
-                            <button class="btn btn-secondary w-100" onclick="exportCustomerData()">
+                            </a>
+                            <a href="{% url 'clients:export' customer.id %}" class="btn btn-secondary w-100">
                                 <i class="fas fa-file-export me-1"></i>
                                 تصدير البيانات
-                            </button>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -236,27 +236,40 @@
                                     {% for req in requests %}
                                     <tr>
                                         <td><strong>{{ req.reference_number }}</strong></td>
-                                        <td>{{ req.get_request_type_display }}</td>
+                                        <td>
+                                            {% if req.request_type %}
+                                                {{ req.request_type.name_arabic }}
+                                            {% else %}
+                                                غير محدد
+                                            {% endif %}
+                                        </td>
                                         <td>
                                             <span class="badge 
-                                                {% if req.status == 'completed' %}bg-success
-                                                {% elif req.status == 'cancelled' %}bg-danger
-                                                {% elif req.status == 'pending' %}bg-warning
+                                                {% if req.status == 'completed' or req.status == 'paid' %}bg-success
+                                                {% elif req.status == 'cancelled' or req.status == 'rejected' %}bg-danger
+                                                {% elif req.status == 'in_review' or req.status == 'pending_payment' %}bg-warning
+                                                {% elif req.status == 'new' %}bg-primary
                                                 {% else %}bg-secondary{% endif %}">
                                                 {{ req.get_status_display }}
                                             </span>
                                         </td>
-                                        <td>{{ req.created_at|date:"Y-m-d" }}</td>
+                                        <td>{{ req.created_at|date:"d يناير Y" }}</td>
                                         <td>
                                             <strong class="{% if req.status != 'cancelled' %}text-success{% else %}text-muted{% endif %}">
-                                                {{ req.amount|default:"0" }} درهم
+                                                {{ req.total_amount|default:"0" }} درهم
                                             </strong>
                                         </td>
-                                        <td>{{ req.created_by.get_full_name|default:"النظام" }}</td>
                                         <td>
-                                            <button class="btn btn-sm btn-outline-primary" onclick="viewRequest({{ req.id }})">
+                                            {% if req.created_by %}
+                                                {{ req.created_by.get_full_name|default:req.created_by.username }}
+                                            {% else %}
+                                                النظام
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'requests:detail' req.id %}" class="btn btn-sm btn-outline-primary">
                                                 <i class="fas fa-eye"></i>
-                                            </button>
+                                            </a>
                                         </td>
                                     </tr>
                                     {% endfor %}
@@ -274,89 +287,30 @@
                 </div>
             </div>
 
-            <!-- ملاحظات وتعليقات -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-comments text-primary me-2"></i>
-                        ملاحظات وتعليقات داخلية
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <textarea class="form-control" id="newNote" rows="3" placeholder="أضف ملاحظة جديدة عن العميل..."></textarea>
-                        <button class="btn btn-primary mt-2" onclick="addNote()">
-                            <i class="fas fa-plus me-1"></i>
-                            إضافة ملاحظة
-                        </button>
-                    </div>
-                    <hr>
-                    <div id="notesList">
-                        <!-- ملاحظة 1 -->
-                        <div class="card mb-2 bg-light">
-                            <div class="card-body p-3">
-                                <div class="d-flex justify-content-between">
-                                    <strong class="text-primary">محمد أحمد</strong>
-                                    <small class="text-muted">2025-01-15 10:30</small>
-                                </div>
-                                <p class="mb-0 mt-2">عميل ممتاز، دائماً يقدم المستندات كاملة.</p>
-                            </div>
-                        </div>
-                        <!-- ملاحظة 2 -->
-                        <div class="card mb-2 bg-light">
-                            <div class="card-body p-3">
-                                <div class="d-flex justify-content-between">
-                                    <strong class="text-primary">فاطمة علي</strong>
-                                    <small class="text-muted">2024-12-28 14:20</small>
-                                </div>
-                                <p class="mb-0 mt-2">يفضل التواصل عبر WhatsApp في المساء.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- سجل التواصل -->
+            <!-- ملاحظات العميل -->
             <div class="card">
                 <div class="card-header">
                     <h5 class="mb-0">
-                        <i class="fas fa-phone text-primary me-2"></i>
-                        سجل التواصل مع العميل
+                        <i class="fas fa-sticky-note text-primary me-2"></i>
+                        ملاحظات العميل
                     </h5>
                 </div>
                 <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-sm">
-                            <thead>
-                                <tr>
-                                    <th>التاريخ</th>
-                                    <th>نوع التواصل</th>
-                                    <th>الموظف</th>
-                                    <th>الموضوع</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>2025-01-15 10:00</td>
-                                    <td><i class="fab fa-whatsapp text-success me-1"></i> WhatsApp</td>
-                                    <td>محمد أحمد</td>
-                                    <td>متابعة الطلب الجديد</td>
-                                </tr>
-                                <tr>
-                                    <td>2025-01-10 15:30</td>
-                                    <td><i class="fas fa-envelope text-primary me-1"></i> بريد إلكتروني</td>
-                                    <td>فاطمة علي</td>
-                                    <td>إشعار بإكمال الطلب</td>
-                                </tr>
-                                <tr>
-                                    <td>2024-12-28 11:00</td>
-                                    <td><i class="fas fa-phone text-info me-1"></i> مكالمة هاتفية</td>
-                                    <td>أحمد سالم</td>
-                                    <td>استفسار عن المستندات</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                    {% if customer.notes %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            {{ customer.notes }}
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center py-3">
+                            <i class="fas fa-sticky-note fa-2x mb-2 d-block"></i>
+                            لا توجد ملاحظات لهذا العميل
+                        </p>
+                    {% endif %}
+                    <a href="{% url 'clients:edit' customer.id %}" class="btn btn-outline-primary">
+                        <i class="fas fa-edit me-1"></i>
+                        تعديل الملاحظات
+                    </a>
                 </div>
             </div>
 {% endblock content %}
