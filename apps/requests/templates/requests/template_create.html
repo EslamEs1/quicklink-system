@@ -49,18 +49,16 @@
                                 </div>
 
                                 <div class="row">
-                                    <div class="col-md-4 mb-3">
-                                        <label class="form-label">رمز القالب <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" name="code" required 
-                                               placeholder="مثال: PT-AUTH-001">
-                                        <div class="form-text">رمز فريد للقالب</div>
-                                    </div>
-                                    <div class="col-md-4 mb-3">
+                                    <div class="col-md-6 mb-3">
                                         <label class="form-label">الإصدار <span class="text-danger">*</span></label>
                                         <input type="text" class="form-control" name="version" required 
                                                value="1.0" placeholder="1.0">
+                                        <div class="form-text">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            رقم الإصدار (مثال: 1.0, 2.0)
+                                        </div>
                                     </div>
-                                    <div class="col-md-4 mb-3">
+                                    <div class="col-md-6 mb-3">
                                         <label class="form-label">نوع القالب <span class="text-danger">*</span></label>
                                         <select class="form-control" name="template_type" required>
                                             <option value="">اختر النوع</option>
@@ -72,6 +70,11 @@
                                             <option value="disclaimer">إخلاء المسؤولية</option>
                                         </select>
                                     </div>
+                                </div>
+                                
+                                <div class="alert alert-info">
+                                    <i class="fas fa-magic me-2"></i>
+                                    <strong>ملاحظة:</strong> سيتم توليد رمز القالب تلقائياً من الاسم الإنجليزي (أو العربي إذا لم يُدخل الإنجليزي)
                                 </div>
                             </div>
                         </div>

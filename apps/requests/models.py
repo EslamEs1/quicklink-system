@@ -316,8 +316,8 @@ class Template(models.Model):
     
     # معلومات القالب
     name = models.CharField('اسم القالب', max_length=200)
-    name_english = models.CharField('الاسم بالإنجليزية', max_length=200)
-    code = models.CharField('الرمز', max_length=50, unique=True)
+    name_english = models.CharField('الاسم بالإنجليزية', max_length=200, blank=True)
+    code = models.CharField('الرمز', max_length=50, unique=True, editable=False)
     
     # المحتوى
     content_arabic = models.TextField('المحتوى بالعربية')
@@ -358,6 +358,25 @@ class Template(models.Model):
         verbose_name = 'قالب'
         verbose_name_plural = 'القوالب'
         ordering = ['-created_at']
+    
+    def save(self, *args, **kwargs):
+        """توليد الرمز تلقائياً من الاسم"""
+        if not self.code:
+            from django.utils.text import slugify
+            # استخدام الاسم الإنجليزي أو العربي
+            base_name = self.name_english or self.name
+            base_code = slugify(base_name).replace('-', '_').upper()
+            
+            # التحقق من عدم التكرار
+            counter = 1
+            unique_code = base_code
+            while Template.objects.filter(code=unique_code).exists():
+                unique_code = f"{base_code}_{counter}"
+                counter += 1
+            
+            self.code = unique_code
+        
+        super().save(*args, **kwargs)
     
     def __str__(self):
         return f"{self.name} (v{self.version})"

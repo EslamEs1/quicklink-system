@@ -123,11 +123,11 @@ def create(request):
     
     # GET request - جلب قائمة العملاء للاختيار
     customers = Customer.objects.filter(is_active=True).order_by('-updated_at')[:50]
-    templates = Template.objects.filter(is_active=True, is_published=True)
+    templates = Template.objects.filter(is_active=True, is_published=True).order_by('template_type', 'name')
     
     # جلب أنواع الطلبات من Database (ديناميكي 100%)
     from apps.requests.models import RequestType
-    request_types = RequestType.objects.filter(is_active=True).order_by('category', 'display_order')
+    request_types = RequestType.objects.filter(is_active=True).select_related('category').order_by('category__display_order', 'display_order')
     
     context = {
         'page_title': 'إنشاء طلب جديد',
@@ -379,7 +379,6 @@ def template_create(request):
         # جلب البيانات
         name = request.POST.get('name')
         name_english = request.POST.get('name_english', '')
-        code = request.POST.get('code')
         version = request.POST.get('version', '1.0')
         template_type = request.POST.get('template_type')
         content_arabic = request.POST.get('content_arabic')
@@ -391,16 +390,11 @@ def template_create(request):
         requires_admin_approval = request.POST.get('requires_admin_approval') == 'on'
         save_as_draft = request.POST.get('save_as_draft')
         
-        # التحقق من عدم تكرار الرمز
-        if Template.objects.filter(code=code).exists():
-            messages.error(request, f'رمز القالب "{code}" موجود مسبقاً! استخدم رمز آخر.')
-            return redirect('requests:template_create')
-        
-        # إنشاء القالب
+        # إنشاء القالب (الرمز سيُنشأ تلقائياً في save())
         template = Template.objects.create(
             name=name,
             name_english=name_english,
-            code=code,
+            # code will be auto-generated in save()
             version=version,
             template_type=template_type,
             content_arabic=content_arabic,
@@ -416,11 +410,11 @@ def template_create(request):
             template.file = request.FILES['file']
             template.save()
         
-        # رسالة نجاح
+        # رسالة نجاح مع عرض الرمز المُنشأ تلقائياً
         if save_as_draft:
-            messages.success(request, f'تم حفظ القالب "{template.name}" كمسودة بنجاح!')
+            messages.success(request, f'تم حفظ القالب "{template.name}" كمسودة بنجاح! الرمز: {template.code}')
         else:
-            messages.success(request, f'تم إنشاء القالب "{template.name}" بنجاح!')
+            messages.success(request, f'تم إنشاء القالب "{template.name}" بنجاح! الرمز: {template.code}')
         
         return redirect('requests:templates_list')
     
