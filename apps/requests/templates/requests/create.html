@@ -191,11 +191,15 @@
                                             <div class="col-md-6 mb-3">
                                                 <label class="form-label">رقم الهوية الإماراتية <span class="text-danger">*</span></label>
                                                 <input type="text" class="form-control" id="emiratesId" 
-                                                       placeholder="784-XXXX-XXXXXXX-X" maxlength="18" required>
-                                                <div class="form-text">يجب أن يبدأ بـ 784 ويتكون من 15 رقم</div>
+                                                       placeholder="784-1990-1234567-8" maxlength="18" required>
+                                                <div class="form-text">
+                                                    <i class="fas fa-info-circle me-1"></i>
+                                                    التنسيق: 784-YYYY-NNNNNNN-D (15 رقم + شرطات)
+                                                </div>
                                                 <div class="form-text text-danger" id="idFormatError" style="display: none;">
                                                     <i class="fas fa-exclamation-triangle"></i>
-                                                    تنسيق خاطئ! يجب أن يكون: 784-XXXX-XXXXXXX-X
+                                                    <strong>خطأ!</strong> يجب أن يكون: 784-YYYY-NNNNNNN-D
+                                                    <br><small>مثال: 784-1990-1234567-8</small>
                                                 </div>
                                                 <div class="form-text text-success" id="idFormatSuccess" style="display: none;">
                                                     <i class="fas fa-check-circle"></i>
@@ -973,29 +977,40 @@
         }
 
         function validateEmiratesId() {
-            const id = document.getElementById('emiratesId').value;
+            const idInput = document.getElementById('emiratesId');
+            const id = idInput.value.trim();
             const errorDiv = document.getElementById('idFormatError');
             const successDiv = document.getElementById('idFormatSuccess');
             const warningDiv = document.getElementById('idConflictWarning');
             const checkbox = document.getElementById('checkId');
             
+            // Pattern: 784-YYYY-NNNNNNN-D
             const idPattern = /^784-\d{4}-\d{7}-\d{1}$/;
             
             if (id) {
                 if (idPattern.test(id)) {
+                    // ✅ التنسيق صحيح
                     errorDiv.style.display = 'none';
                     successDiv.style.display = 'block';
                     checkbox.checked = true;
                     checkbox.disabled = false;
+                    idInput.classList.remove('is-invalid');
+                    idInput.classList.add('is-valid');
                     
                     // فحص التعارض في الهوية
                     checkIdentityConflict(document.getElementById('customerName').value, id);
                 } else {
+                    // ❌ التنسيق خاطئ
                     errorDiv.style.display = 'block';
                     successDiv.style.display = 'none';
                     warningDiv.style.display = 'none';
                     checkbox.checked = false;
                     checkbox.disabled = true;
+                    idInput.classList.remove('is-valid');
+                    idInput.classList.add('is-invalid');
+                    
+                    // تحليل الخطأ للمستخدم
+                    analyzeIdError(id, errorDiv);
                 }
             } else {
                 errorDiv.style.display = 'none';
@@ -1003,8 +1018,34 @@
                 warningDiv.style.display = 'none';
                 checkbox.checked = false;
                 checkbox.disabled = true;
+                idInput.classList.remove('is-valid', 'is-invalid');
             }
             updateProgressBar();
+        }
+        
+        function analyzeIdError(id, errorDiv) {
+            const parts = id.split('-');
+            let errorMsg = '<i class="fas fa-exclamation-triangle"></i> <strong>خطأ!</strong> ';
+            
+            if (parts.length !== 4) {
+                errorMsg += `يجب أن يحتوي على 4 أجزاء مفصولة بـ (-)<br><small>مثال: 784-1990-1234567-8</small>`;
+            } else {
+                if (parts[0] !== '784') {
+                    errorMsg += `يجب أن يبدأ بـ 784<br>`;
+                }
+                if (parts[1].length !== 4 || !/^\d+$/.test(parts[1])) {
+                    errorMsg += `الجزء الثاني يجب أن يكون 4 أرقام (أنت كتبت: ${parts[1].length} أرقام)<br>`;
+                }
+                if (parts[2].length !== 7 || !/^\d+$/.test(parts[2])) {
+                    errorMsg += `الجزء الثالث يجب أن يكون 7 أرقام (أنت كتبت: ${parts[2].length} أرقام)<br>`;
+                }
+                if (parts[3].length !== 1 || !/^\d+$/.test(parts[3])) {
+                    errorMsg += `الجزء الأخير يجب أن يكون رقم واحد<br>`;
+                }
+                errorMsg += '<small>مثال صحيح: 784-1990-1234567-8</small>';
+            }
+            
+            errorDiv.innerHTML = errorMsg;
         }
 
         function checkIdentityConflict(name, id) {
