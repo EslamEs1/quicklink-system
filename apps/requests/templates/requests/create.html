@@ -652,6 +652,25 @@
             console.log('البحث عن:', query);
         }
 
+        function generateReferenceNumber() {
+            // تنسيق: QL-YYYY-NNN (Quick Link - السنة - رقم تسلسلي)
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            const hours = String(today.getHours()).padStart(2, '0');
+            const minutes = String(today.getMinutes()).padStart(2, '0');
+            const seconds = String(today.getSeconds()).padStart(2, '0');
+            
+            // رقم عشوائي لضمان التفرد
+            const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+            
+            // التنسيق النهائي: QL-YYYY-MMDD-HHMMSS-RRR
+            const referenceNumber = `QL-${year}-${month}${day}-${hours}${minutes}${seconds}-${random}`;
+            
+            return referenceNumber;
+        }
+
         function initializeForm() {
             // Set today's date
             const today = new Date();
