@@ -194,6 +194,12 @@
                                                 <a href="{% url 'requests:create' %}?customer_id={{ customer.id }}" class="btn btn-action btn-success" title="طلب جديد">
                                                     <i class="fas fa-plus"></i>
                                                 </a>
+                                                <form method="post" action="{% url 'clients:delete' customer.id %}" style="display: inline;" onsubmit="return confirm('⚠️ تحذير!\n\nهل أنت متأكد من حذف العميل: {{ customer.full_name }}?\n\nسيتم:\n- حذف ملف العميل\n- حذف جميع طلباته ({{ customer.requests_count }} طلب)\n- لا يمكن التراجع عن هذا الإجراء!\n\nهل تريد المتابعة؟');">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-action btn-danger" title="حذف العميل">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
                                             </div>
                                         </td>
                                     </tr>

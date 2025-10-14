@@ -200,6 +200,26 @@ def edit(request, pk):
 
 
 # @login_required
+def delete(request, pk):
+    """حذف عميل (soft delete)"""
+    customer = get_object_or_404(Customer, pk=pk, is_active=True)
+    
+    if request.method == 'POST':
+        # Soft delete - تعطيل العميل بدلاً من الحذف الفعلي
+        customer.is_active = False
+        customer.save()
+        
+        # يمكن إضافة حذف فعلي إذا أردت:
+        # customer.delete()
+        
+        messages.success(request, f'✅ تم حذف العميل "{customer.full_name}" بنجاح')
+        return redirect('clients:list')
+    
+    # GET request - عرض صفحة تأكيد الحذف (اختياري)
+    return redirect('clients:detail', pk=pk)
+
+
+# @login_required
 def export_customer(request, pk):
     """تصدير بيانات العميل"""
     customer = get_object_or_404(Customer, pk=pk)
