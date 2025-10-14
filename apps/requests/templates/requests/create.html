@@ -605,6 +605,8 @@
             setupImageUpload();
             setupPaymentMethods();
             setupValidation();
+            loadSavedData(); // تحميل البيانات المحفوظة
+            setupAutoSave(); // تفعيل الحفظ التلقائي
         });
         
         // دالة تبديل نموذج العميل (موجود أو جديد)
@@ -1221,6 +1223,120 @@
             document.getElementById('taxAmount').textContent = taxAmount.toFixed(2) + ' درهم';
             document.getElementById('totalAmount').textContent = totalAmount.toFixed(2) + ' درهم';
         }
+        
+        // ============ نظام الحفظ التلقائي ============
+        
+        function saveFormData() {
+            const formData = {
+                currentStep: currentStep,
+                customerName: document.getElementById('customerName')?.value || '',
+                confirmName: document.getElementById('confirmName')?.value || '',
+                emiratesId: document.getElementById('emiratesId')?.value || '',
+                dateOfBirth: document.getElementById('dateOfBirth')?.value || '',
+                nationality: document.getElementById('nationality')?.value || '',
+                mobileNumber: document.getElementById('mobileNumber')?.value || '',
+                email: document.getElementById('email')?.value || '',
+                requestType: document.getElementById('requestType')?.value || '',
+                templateSelect: document.getElementById('templateSelect')?.value || '',
+                paymentMethod: document.querySelector('input[name="paymentMethod"]:checked')?.value || '',
+                timestamp: new Date().toISOString()
+            };
+            
+            localStorage.setItem('createRequestFormData', JSON.stringify(formData));
+            console.log('✅ تم حفظ البيانات تلقائياً');
+        }
+        
+        function loadSavedData() {
+            const savedData = localStorage.getItem('createRequestFormData');
+            
+            if (!savedData) {
+                console.log('ℹ️ لا توجد بيانات محفوظة');
+                return;
+            }
+            
+            try {
+                const formData = JSON.parse(savedData);
+                
+                // التحقق من عمر البيانات (24 ساعة)
+                const savedTime = new Date(formData.timestamp);
+                const now = new Date();
+                const hoursDiff = (now - savedTime) / (1000 * 60 * 60);
+                
+                if (hoursDiff > 24) {
+                    console.log('⏰ البيانات المحفوظة قديمة (أكثر من 24 ساعة)');
+                    localStorage.removeItem('createRequestFormData');
+                    return;
+                }
+                
+                // عرض رسالة للمستخدم
+                if (confirm('تم العثور على بيانات محفوظة. هل تريد استعادتها؟')) {
+                    // استعادة البيانات
+                    if (formData.customerName) document.getElementById('customerName').value = formData.customerName;
+                    if (formData.confirmName) document.getElementById('confirmName').value = formData.confirmName;
+                    if (formData.emiratesId) document.getElementById('emiratesId').value = formData.emiratesId;
+                    if (formData.dateOfBirth) document.getElementById('dateOfBirth').value = formData.dateOfBirth;
+                    if (formData.nationality) document.getElementById('nationality').value = formData.nationality;
+                    if (formData.mobileNumber) document.getElementById('mobileNumber').value = formData.mobileNumber;
+                    if (formData.email) document.getElementById('email').value = formData.email;
+                    if (formData.requestType) document.getElementById('requestType').value = formData.requestType;
+                    if (formData.templateSelect) document.getElementById('templateSelect').value = formData.templateSelect;
+                    
+                    // استعادة طريقة الدفع
+                    if (formData.paymentMethod) {
+                        const paymentRadio = document.getElementById(formData.paymentMethod);
+                        if (paymentRadio) paymentRadio.checked = true;
+                    }
+                    
+                    // استعادة الخطوة الحالية
+                    if (formData.currentStep && formData.currentStep > 1) {
+                        currentStep = formData.currentStep;
+                        changeStep(0); // تحديث العرض
+                    }
+                    
+                    // تشغيل التحقق
+                    checkNameMatch();
+                    validateEmiratesId();
+                    validateDateOfBirth();
+                    
+                    showNotification('تم استعادة البيانات المحفوظة بنجاح!', 'success');
+                } else {
+                    // حذف البيانات المحفوظة
+                    localStorage.removeItem('createRequestFormData');
+                }
+            } catch (error) {
+                console.error('❌ خطأ في تحميل البيانات:', error);
+                localStorage.removeItem('createRequestFormData');
+            }
+        }
+        
+        function setupAutoSave() {
+            // حفظ عند كل تغيير في الحقول
+            const inputs = document.querySelectorAll('#createRequestForm input, #createRequestForm select');
+            inputs.forEach(input => {
+                input.addEventListener('change', saveFormData);
+                input.addEventListener('input', debounce(saveFormData, 1000)); // حفظ بعد ثانية من التوقف عن الكتابة
+            });
+            
+            // حفظ عند تغيير الخطوة
+            window.addEventListener('beforeunload', saveFormData);
+        }
+        
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+        
+        function clearSavedData() {
+            localStorage.removeItem('createRequestFormData');
+            console.log('🗑️ تم حذف البيانات المحفوظة');
+        }
 
         // Form submission
         document.getElementById('createRequestForm').addEventListener('submit', function(e) {
@@ -1238,9 +1354,12 @@
                     showNotification('تم إنشاء الطلب بنجاح.', 'success');
                 }
                 
+                // حذف البيانات المحفوظة بعد الإرسال الناجح
+                clearSavedData();
+                
                 // Reset form or redirect
                 setTimeout(() => {
-                    window.location.href = 'requests.html';
+                    window.location.href = '/list/';
                 }, 2000);
             }
         });
