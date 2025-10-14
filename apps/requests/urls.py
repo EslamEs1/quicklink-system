@@ -5,12 +5,12 @@ app_name = 'requests'
 
 urlpatterns = [
     path('', views.dashboard, name='dashboard'),
-    path('create/', views.create, name='create'),
-    path('list/', views.list, name='list'),
-    path('<int:pk>/', views.detail, name='detail'),
-    path('<int:pk>/edit/', views.edit, name='edit'),
-    path('<int:pk>/delete/', views.delete, name='delete'),
-    path('pending/', views.pending, name='pending'),
+    path('requests/create/', views.create, name='create'),
+    path('requests/list/', views.list, name='list'),
+    path('requests/<int:pk>/', views.detail, name='detail'),
+    path('requests/<int:pk>/edit/', views.edit, name='edit'),
+    path('requests/<int:pk>/delete/', views.delete, name='delete'),
+    path('requests/pending/', views.pending, name='pending'),
     
     # إدارة القوالب
     path('templates/', views.templates_list, name='templates_list'),
@@ -23,7 +23,7 @@ urlpatterns = [
     path('request-types/<int:pk>/edit/', views.request_type_edit, name='request_type_edit'),
     
     # إدارة فئات الطلبات
-    path('categories/', views.categories_list, name='categories_list'),
-    path('categories/create/', views.category_create, name='category_create'),
-    path('categories/<int:pk>/edit/', views.category_edit, name='category_edit'),
+    path('requests/categories/', views.categories_list, name='categories_list'),
+    path('requests/categories/create/', views.category_create, name='category_create'),
+    path('requests/categories/<int:pk>/edit/', views.category_edit, name='category_edit'),
 ]

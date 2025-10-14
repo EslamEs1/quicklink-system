@@ -233,17 +233,17 @@ function initializeReferenceNumbers() {
 
 // وظائف إدارة الطلبات
 function createNewRequest() {
-    window.location.href = '/create/';
+    window.location.href = '/requests/create/';
 }
 
 // عرض الطلب
 function viewRequest(id) {
-    window.location.href = `/${id}/`;
+    window.location.href = `/requests/${id}/`;
 }
 
 // تعديل الطلب
 function editRequest(id) {
-    window.location.href = `/${id}/edit/`;
+    window.location.href = `/requests/${id}/edit/`;
 }
 
 // حذف الطلب
@@ -252,7 +252,7 @@ function deleteRequest(id, referenceNumber) {
         // إنشاء form وإرساله
         const form = document.createElement('form');
         form.method = 'POST';
-        form.action = `/${id}/delete/`;
+        form.action = `/requests/${id}/delete/`;
         
         // إضافة CSRF token
         const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
