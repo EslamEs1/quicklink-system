@@ -126,10 +126,10 @@
                                     <th>الرقم المرجعي</th>
                                     <th>اسم العميل</th>
                                     <th>نوع الطلب</th>
+                                    <th>الأولوية</th>
                                     <th>الحالة</th>
                                     <th>المبلغ</th>
                                     <th>تاريخ الإنشاء</th>
-                                    <th>آخر تحديث</th>
                                     <th>الإجراءات</th>
                                 </tr>
                             </thead>
@@ -139,7 +139,22 @@
                                 <tr>
                                     <td><strong>{{ req.reference_number }}</strong></td>
                                     <td>{{ req.customer.full_name }}</td>
-                                    <td>{{ req.get_request_type_display }}</td>
+                                    <td>
+                                        {% if req.request_type %}
+                                            {{ req.request_type.name_arabic }}
+                                        {% else %}
+                                            غير محدد
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if req.priority == 'urgent' %}bg-danger
+                                            {% elif req.priority == 'high' %}bg-warning
+                                            {% elif req.priority == 'medium' %}bg-info
+                                            {% else %}bg-secondary{% endif %}">
+                                            {{ req.get_priority_display }}
+                                        </span>
+                                    </td>
                                     <td>
                                         <span class="status-badge 
                                             {% if req.status == 'new' %}status-new
@@ -150,9 +165,8 @@
                                             {{ req.get_status_display }}
                                         </span>
                                     </td>
-                                    <td>{{ req.total_amount|default:"420" }} درهم</td>
+                                    <td>{{ req.total_amount|default:"0" }} درهم</td>
                                     <td>{{ req.created_at|date:"d يناير Y" }}</td>
-                                    <td>{{ req.updated_at|date:"d يناير Y" }}</td>
                                     <td>
                                         <div class="btn-group" role="group">
                                             <a href="{% url 'requests:detail' req.id %}" class="btn btn-action btn-view" title="عرض التفاصيل">
@@ -185,7 +199,7 @@
                                     {% endfor %}
                                 {% else %}
                                 <tr>
-                                    <td colspan="8" class="text-center text-muted py-5">
+                                    <td colspan="9" class="text-center text-muted py-5">
                                         <i class="fas fa-inbox fa-3x mb-3 d-block"></i>
                                         <p>لا توجد طلبات</p>
                                     </td>

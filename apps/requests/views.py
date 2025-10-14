@@ -283,6 +283,7 @@ def edit(request, pk):
         # تحديث البيانات الأساسية
         req.description = request.POST.get('description', req.description)
         req.notes = request.POST.get('notes', req.notes)
+        req.internal_notes = request.POST.get('internal_notes', req.internal_notes)
         req.priority = request.POST.get('priority', req.priority)
         req.status = request.POST.get('status', req.status)
         
@@ -290,6 +291,19 @@ def edit(request, pk):
         total_amount = request.POST.get('total_amount')
         if total_amount:
             req.total_amount = total_amount
+        
+        # تحديث تاريخ الاستحقاق
+        due_date = request.POST.get('due_date')
+        if due_date:
+            req.due_date = due_date
+        
+        # تحديث المسند إلى
+        assigned_to_id = request.POST.get('assigned_to')
+        if assigned_to_id:
+            from django.contrib.auth.models import User
+            req.assigned_to = get_object_or_404(User, pk=assigned_to_id)
+        else:
+            req.assigned_to = None
         
         # تحديث نوع الطلب
         request_type_id = request.POST.get('request_type_id')
@@ -339,6 +353,10 @@ def edit(request, pk):
     from apps.requests.models import RequestStatus
     status_choices = RequestStatus.choices
     
+    # جلب المستخدمين للتخصيص
+    from django.contrib.auth.models import User
+    users = User.objects.filter(is_active=True).order_by('first_name', 'username')
+    
     context = {
         'page_title': f'تعديل الطلب {req.reference_number}',
         'request': req,
@@ -347,6 +365,7 @@ def edit(request, pk):
         'attachments': attachments,
         'payment': payment,
         'status_choices': status_choices,
+        'users': users,
     }
     return render(request, 'requests/edit.html', context)
 
