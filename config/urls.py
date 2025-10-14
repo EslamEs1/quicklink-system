@@ -9,8 +9,8 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     
-    # Apps URLs
-    path('requests/', include('apps.requests.urls')),
+    # Home & Apps URLs
+    path('', include('apps.requests.urls')),  # الصفحة الرئيسية ومسارات الطلبات
     path('clients/', include('apps.clients.urls')),
     path('payments/', include('apps.payments.urls')),
     path('reports/', include('apps.reports.urls')),
