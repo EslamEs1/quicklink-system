@@ -1276,19 +1276,36 @@
             try {
                 const formData = JSON.parse(savedData);
                 
-                // التحقق من عمر البيانات (24 ساعة)
+                // التحقق من عمر البيانات
                 const savedTime = new Date(formData.timestamp);
                 const now = new Date();
-                const hoursDiff = (now - savedTime) / (1000 * 60 * 60);
+                const minutesDiff = (now - savedTime) / (1000 * 60); // الفرق بالدقائق
+                const hoursDiff = minutesDiff / 60; // الفرق بالساعات
                 
+                // حذف البيانات إذا كانت أقدم من 24 ساعة
                 if (hoursDiff > 24) {
                     console.log('⏰ البيانات المحفوظة قديمة (أكثر من 24 ساعة)');
                     localStorage.removeItem('createRequestFormData');
                     return;
                 }
                 
-                // عرض رسالة للمستخدم
-                if (confirm('تم العثور على بيانات محفوظة. هل تريد استعادتها؟')) {
+                // إخفاء الرسالة إذا كانت البيانات أقدم من 5 دقائق
+                if (minutesDiff > 5) {
+                    console.log('⏰ البيانات المحفوظة قديمة (أكثر من 5 دقائق) - تم إخفاء الرسالة');
+                    localStorage.removeItem('createRequestFormData');
+                    return;
+                }
+                
+                // التحقق من وجود بيانات فعلية (ليست فارغة)
+                const hasData = formData.customerName || formData.emiratesId || formData.email || formData.mobileNumber;
+                if (!hasData) {
+                    console.log('ℹ️ لا توجد بيانات مهمة محفوظة');
+                    localStorage.removeItem('createRequestFormData');
+                    return;
+                }
+                
+                // عرض رسالة للمستخدم فقط إذا البيانات حديثة (أقل من 5 دقائق)
+                if (confirm('تم العثور على بيانات محفوظة منذ ' + Math.round(minutesDiff) + ' دقيقة. هل تريد استعادتها؟')) {
                     // استعادة البيانات
                     if (formData.customerName) document.getElementById('customerName').value = formData.customerName;
                     if (formData.confirmName) document.getElementById('confirmName').value = formData.confirmName;
