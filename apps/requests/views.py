@@ -251,9 +251,10 @@ def detail(request, pk):
     # المرفقات
     attachments = req.attachments.all()
     
-    # سجل التدقيق للطلب
+    # سجل التدقيق للطلب (استخدام object_id بدلاً من request_id)
     audit_logs = AuditLog.objects.filter(
-        request_id=req.id
+        object_id=str(req.id),
+        model_name='request'
     ).select_related('user').order_by('-timestamp')[:20]
     
     # معلومات الدفع
@@ -312,8 +313,10 @@ def delete(request, pk):
         AuditLog.objects.create(
             user=request.user if request.user.is_authenticated else None,
             action='delete',
-            request_id=req.id,
-            details=f'تم حذف الطلب {req.reference_number}',
+            model_name='request',
+            object_id=str(req.id),
+            object_repr=req.reference_number,
+            description=f'تم حذف الطلب {req.reference_number}',
         )
         
         messages.success(request, f'✅ تم حذف الطلب {req.reference_number} بنجاح')
