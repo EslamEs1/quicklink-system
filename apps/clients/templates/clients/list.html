@@ -60,10 +60,10 @@
                         <div class="col-md-2 mb-3">
                             <label class="form-label">&nbsp;</label>
                             <div class="d-grid">
-                                <button class="btn btn-outline-primary" onclick="clearCustomerFilters()">
+                                <a href="{% url 'clients:list' %}" class="btn btn-outline-primary">
                                     <i class="fas fa-times me-1"></i>
                                     مسح الفلاتر
-                                </button>
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -170,9 +170,9 @@
                                         <td>{{ customer.nationality }}</td>
                                         <td>{{ customer.date_of_birth|date:"d F Y" }}</td>
                                         <td>
-                                            <button class="btn btn-sm btn-outline-primary" onclick="callCustomer({{ customer.id }})" title="اتصال عبر WhatsApp Business">
+                                            <a href="{% url 'chat:room' %}?customer_id={{ customer.id }}" class="btn btn-sm btn-outline-primary" title="اتصال عبر WhatsApp Business">
                                                 <i class="fas fa-phone"></i>
-                                            </button>
+                                            </a>
                                         </td>
                                         <td>
                                             <span class="badge {% if customer.requests_count > 5 %}bg-danger{% elif customer.requests_count > 2 %}bg-warning{% else %}bg-success{% endif %}">
@@ -182,18 +182,18 @@
                                         <td>{{ customer.updated_at|date:"d يناير Y" }}</td>
                                         <td>
                                             <div class="btn-group" role="group">
-                                                <button class="btn btn-action btn-view" onclick="viewCustomerProfile({{ customer.id }})" title="عرض الملف">
+                                                <a href="{% url 'clients:detail' customer.id %}" class="btn btn-action btn-view" title="عرض الملف">
                                                     <i class="fas fa-eye"></i>
-                                                </button>
-                                                <button class="btn btn-action btn-edit" onclick="editCustomer({{ customer.id }})" title="تعديل">
+                                                </a>
+                                                <a href="{% url 'clients:edit' customer.id %}" class="btn btn-action btn-edit" title="تعديل">
                                                     <i class="fas fa-edit"></i>
-                                                </button>
-                                                <button class="btn btn-action btn-info" onclick="viewCustomerRequests({{ customer.id }})" title="طلبات العميل">
+                                                </a>
+                                                <a href="{% url 'clients:detail' customer.id %}#requests" class="btn btn-action btn-info" title="طلبات العميل">
                                                     <i class="fas fa-list"></i>
-                                                </button>
-                                                <button class="btn btn-action btn-success" onclick="createRequestForCustomer({{ customer.id }})" title="طلب جديد">
+                                                </a>
+                                                <a href="{% url 'requests:create' %}?customer_id={{ customer.id }}" class="btn btn-action btn-success" title="طلب جديد">
                                                     <i class="fas fa-plus"></i>
-                                                </button>
+                                                </a>
                                             </div>
                                         </td>
                                     </tr>
