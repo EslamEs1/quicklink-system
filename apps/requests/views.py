@@ -280,20 +280,114 @@ def edit(request, pk):
     req = get_object_or_404(Request, pk=pk, is_deleted=False)
     
     if request.method == 'POST':
-        # تحديث البيانات
+        # تحديث البيانات الأساسية
         req.description = request.POST.get('description', req.description)
         req.notes = request.POST.get('notes', req.notes)
         req.priority = request.POST.get('priority', req.priority)
+        req.status = request.POST.get('status', req.status)
+        
+        # تحديث المبلغ
+        total_amount = request.POST.get('total_amount')
+        if total_amount:
+            req.total_amount = total_amount
+        
+        # تحديث نوع الطلب
+        request_type_id = request.POST.get('request_type_id')
+        if request_type_id:
+            from apps.requests.models import RequestType
+            req.request_type = get_object_or_404(RequestType, pk=request_type_id)
+        
+        # تحديث القالب
+        template_id = request.POST.get('template_id')
+        if template_id:
+            req.template = get_object_or_404(Template, pk=template_id)
+        
         req.save()
         
-        messages.success(request, 'تم تحديث الطلب بنجاح')
+        # رفع مستند جديد (إذا وجد)
+        if request.FILES.get('attachment'):
+            from apps.core_utils.models import Attachment
+            attachment = Attachment.objects.create(
+                request=req,
+                file=request.FILES['attachment'],
+                description=request.POST.get('attachment_description', 'مستند مرفق'),
+                uploaded_by=request.user if request.user.is_authenticated else None
+            )
+        
+        messages.success(request, f'✅ تم تحديث الطلب {req.reference_number} بنجاح')
         return redirect('requests:detail', pk=req.pk)
+    
+    # GET request - عرض نموذج التعديل
+    # جلب أنواع الطلبات
+    from apps.requests.models import RequestType
+    request_types = RequestType.objects.filter(is_active=True).select_related('category').order_by('category__display_order', 'display_order')
+    
+    # جلب القوالب
+    templates = Template.objects.filter(is_active=True, is_published=True).order_by('template_type', 'name')
+    
+    # جلب المرفقات
+    attachments = req.attachments.all()
+    
+    # جلب معلومات الدفع
+    payment = None
+    try:
+        payment = req.payment
+    except:
+        pass
+    
+    # خيارات الحالة
+    status_choices = Request.RequestStatus.choices
     
     context = {
         'page_title': f'تعديل الطلب {req.reference_number}',
         'request': req,
+        'request_types': request_types,
+        'templates': templates,
+        'attachments': attachments,
+        'payment': payment,
+        'status_choices': status_choices,
     }
     return render(request, 'requests/edit.html', context)
+
+
+# @login_required
+def approve(request, pk):
+    """الموافقة على طلب"""
+    req = get_object_or_404(Request, pk=pk, is_deleted=False)
+    
+    if request.method == 'POST':
+        req.status = 'approved'
+        req.save()
+        
+        messages.success(request, f'✅ تمت الموافقة على الطلب {req.reference_number}')
+        return redirect('requests:detail', pk=req.pk)
+    
+    return redirect('requests:detail', pk=req.pk)
+
+
+# @login_required
+def reject(request, pk):
+    """رفض طلب"""
+    req = get_object_or_404(Request, pk=pk, is_deleted=False)
+    
+    if request.method == 'POST':
+        req.status = 'rejected'
+        req.save()
+        
+        messages.warning(request, f'❌ تم رفض الطلب {req.reference_number}')
+        return redirect('requests:detail', pk=req.pk)
+    
+    return redirect('requests:detail', pk=req.pk)
+
+
+# @login_required
+def export_pdf(request, pk):
+    """تصدير الطلب كـ PDF"""
+    req = get_object_or_404(Request, pk=pk, is_deleted=False)
+    
+    # TODO: تنفيذ تصدير PDF لاحقاً
+    messages.info(request, 'جاري تصدير PDF...')
+    return redirect('requests:detail', pk=req.pk)
 
 
 # @login_required

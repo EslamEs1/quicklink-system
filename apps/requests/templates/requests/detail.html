@@ -26,17 +26,28 @@
                         <div class="col-md-6">
                             <h4 class="mb-2">
                                 <i class="fas fa-hashtag text-primary me-2"></i>
-                                رقم الطلب: <strong id="requestNumber">QL-2025-001</strong>
+                                رقم الطلب: <strong>{{ request.reference_number }}</strong>
                             </h4>
                             <p class="text-muted mb-0">
                                 <i class="fas fa-calendar me-2"></i>
-                                تاريخ الإنشاء: <span id="requestDate">2025-01-15 10:30 ص</span>
+                                تاريخ الإنشاء: <span>{{ request.created_at|date:"d يناير Y - h:i A" }}</span>
                             </p>
                         </div>
                         <div class="col-md-6 text-md-end">
-                            <span class="badge bg-warning p-2 fs-6" id="requestStatus">
-                                <i class="fas fa-clock me-1"></i>
-                                قيد المراجعة
+                            <span class="badge 
+                                {% if request.status == 'new' %}bg-primary
+                                {% elif request.status == 'in_review' %}bg-warning
+                                {% elif request.status == 'approved' %}bg-success
+                                {% elif request.status == 'completed' or request.status == 'paid' %}bg-info
+                                {% elif request.status == 'rejected' or request.status == 'cancelled' %}bg-danger
+                                {% else %}bg-secondary{% endif %} p-2 fs-6">
+                                <i class="fas fa-
+                                    {% if request.status == 'new' %}file
+                                    {% elif request.status == 'in_review' %}clock
+                                    {% elif request.status == 'approved' or request.status == 'completed' %}check-circle
+                                    {% elif request.status == 'paid' %}money-bill
+                                    {% else %}times-circle{% endif %} me-1"></i>
+                                {{ request.get_status_display }}
                             </span>
                         </div>
                     </div>
@@ -55,28 +66,32 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="text-muted mb-1">الاسم الكامل</label>
-                            <p class="fw-bold mb-0" id="customerName">أحمد محمد علي السعيد</p>
+                            <p class="fw-bold mb-0">{{ request.customer.full_name }}</p>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="text-muted mb-1">رقم الهوية الإماراتية</label>
-                            <p class="fw-bold mb-0" id="customerID">784-XXXX-XXXXXXX-X</p>
+                            <p class="fw-bold mb-0">{{ request.customer.masked_emirates_id|default:"غير محدد" }}</p>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="text-muted mb-1">رقم الجوال</label>
                             <p class="mb-0">
-                                <button class="btn btn-sm btn-outline-primary" onclick="callCustomer()">
+                                <a href="{% url 'chat:room' %}?customer_id={{ request.customer.id }}" class="btn btn-sm btn-outline-primary">
                                     <i class="fas fa-phone me-1"></i>
-                                    اتصال عبر WhatsApp Business
-                                </button>
+                                    {{ request.customer.masked_phone }}
+                                </a>
                             </p>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="text-muted mb-1">البريد الإلكتروني</label>
-                            <p class="fw-bold mb-0" id="customerEmail">ahmed.alsaeed@email.com</p>
+                            <p class="fw-bold mb-0">{{ request.customer.email|default:"غير محدد" }}</p>
                         </div>
-                        <div class="col-md-12 mb-3">
-                            <label class="text-muted mb-1">العنوان</label>
-                            <p class="fw-bold mb-0" id="customerAddress">دبي - الخليج التجاري - برج الأعمال - الطابق 15</p>
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted mb-1">تاريخ الميلاد</label>
+                            <p class="fw-bold mb-0">{{ request.customer.date_of_birth|date:"d يناير Y"|default:"غير محدد" }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted mb-1">الجنسية</label>
+                            <p class="fw-bold mb-0">{{ request.customer.nationality|default:"غير محدد" }}</p>
                         </div>
                     </div>
                 </div>
@@ -94,39 +109,73 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="text-muted mb-1">نوع الخدمة</label>
-                            <p class="fw-bold mb-0" id="serviceType">ربط حساب PayTabs</p>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="text-muted mb-1">نوع التفويض</label>
-                            <p class="fw-bold mb-0" id="authorizationType">تفويض دفع إلكتروني</p>
+                            <p class="fw-bold mb-0">
+                                {% if request.request_type %}
+                                    {{ request.request_type.name_arabic }}
+                                {% else %}
+                                    غير محدد
+                                {% endif %}
+                            </p>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="text-muted mb-1">القالب المستخدم</label>
-                            <p class="fw-bold mb-0" id="templateUsed">قالب تفويض دفع - الإصدار 2.1</p>
+                            <p class="fw-bold mb-0">
+                                {% if request.template %}
+                                    {{ request.template.name }} - الإصدار {{ request.template.version }}
+                                {% else %}
+                                    غير محدد
+                                {% endif %}
+                            </p>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="text-muted mb-1">المستخدم المنشئ</label>
-                            <p class="fw-bold mb-0" id="createdBy">
+                            <p class="fw-bold mb-0">
                                 <i class="fas fa-user-circle me-1"></i>
-                                محمد أحمد (جامع بيانات)
+                                {% if request.created_by %}
+                                    {{ request.created_by.get_full_name|default:request.created_by.username }}
+                                {% else %}
+                                    النظام
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted mb-1">الأولوية</label>
+                            <p class="mb-0">
+                                <span class="badge 
+                                    {% if request.priority == 'urgent' %}bg-danger
+                                    {% elif request.priority == 'high' %}bg-warning
+                                    {% else %}bg-secondary{% endif %}">
+                                    {{ request.get_priority_display }}
+                                </span>
                             </p>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="text-muted mb-1">حالة الدفع</label>
                             <p class="mb-0">
-                                <span class="badge bg-danger" id="paymentStatus">
-                                    <i class="fas fa-times-circle me-1"></i>
-                                    لم يتم الدفع
-                                </span>
+                                {% if payment %}
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-check-circle me-1"></i>
+                                        {{ payment.get_status_display }}
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-danger">
+                                        <i class="fas fa-times-circle me-1"></i>
+                                        لم يتم الدفع
+                                    </span>
+                                {% endif %}
                             </p>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="text-muted mb-1">المبلغ المطلوب</label>
-                            <p class="fw-bold mb-0 text-success" id="amount">420 درهم</p>
+                            <p class="fw-bold mb-0 text-success">{{ request.total_amount|default:"0" }} درهم</p>
                         </div>
                         <div class="col-md-12 mb-3">
                             <label class="text-muted mb-1">ملاحظات</label>
-                            <p class="mb-0" id="notes">الطلب عاجل - يحتاج معالجة سريعة</p>
+                            <p class="mb-0">{{ request.notes|default:"لا توجد ملاحظات" }}</p>
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label class="text-muted mb-1">الوصف</label>
+                            <p class="mb-0">{{ request.description|default:"لا يوجد وصف" }}</p>
                         </div>
                     </div>
                 </div>
@@ -145,67 +194,51 @@
                         <i class="fas fa-shield-alt me-2"></i>
                         <strong>حماية البيانات:</strong> المستندات مشفّرة ومحمية. يُمنع النسخ أو التحميل غير المصرح.
                     </div>
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>نوع المستند</th>
-                                    <th>اسم الملف</th>
-                                    <th>الحجم</th>
-                                    <th>تاريخ الرفع</th>
-                                    <th>الإجراءات</th>
-                                </tr>
-                            </thead>
-                            <tbody id="documentsTable">
-                                <tr>
-                                    <td>1</td>
-                                    <td>
-                                        <i class="fas fa-id-card text-primary me-1"></i>
-                                        صورة الهوية (الوجه الأمامي)
-                                    </td>
-                                    <td>emirates_id_front.jpg</td>
-                                    <td>1.2 MB</td>
-                                    <td>2025-01-15 10:30 ص</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-outline-primary" onclick="viewDocument(1)">
-                                            <i class="fas fa-eye"></i> عرض
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>2</td>
-                                    <td>
-                                        <i class="fas fa-id-card text-primary me-1"></i>
-                                        صورة الهوية (الوجه الخلفي)
-                                    </td>
-                                    <td>emirates_id_back.jpg</td>
-                                    <td>1.1 MB</td>
-                                    <td>2025-01-15 10:30 ص</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-outline-primary" onclick="viewDocument(2)">
-                                            <i class="fas fa-eye"></i> عرض
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>3</td>
-                                    <td>
-                                        <i class="fas fa-file-signature text-primary me-1"></i>
-                                        التفويض القانوني الموقّع
-                                    </td>
-                                    <td>authorization_signed.pdf</td>
-                                    <td>856 KB</td>
-                                    <td>2025-01-15 10:32 ص</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-outline-primary" onclick="viewDocument(3)">
-                                            <i class="fas fa-eye"></i> عرض
-                                        </button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                    
+                    {% if attachments %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>نوع المستند</th>
+                                        <th>اسم الملف</th>
+                                        <th>تاريخ الرفع</th>
+                                        <th>الإجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for attachment in attachments %}
+                                    <tr>
+                                        <td>{{ forloop.counter }}</td>
+                                        <td>
+                                            <i class="fas fa-
+                                                {% if 'id' in attachment.file_type or 'هوية' in attachment.description %}id-card
+                                                {% elif 'pdf' in attachment.file_type %}file-pdf
+                                                {% elif 'image' in attachment.file_type %}image
+                                                {% else %}file{% endif %} text-primary me-1"></i>
+                                            {{ attachment.description|default:"مستند" }}
+                                        </td>
+                                        <td>{{ attachment.file.name|default:"ملف" }}</td>
+                                        <td>{{ attachment.uploaded_at|date:"d يناير Y - h:i A" }}</td>
+                                        <td>
+                                            {% if attachment.file %}
+                                                <a href="{{ attachment.file.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-eye"></i> عرض
+                                                </a>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-inbox fa-3x mb-3 d-block"></i>
+                            <p>لا توجد مستندات مرفقة</p>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
 
@@ -222,64 +255,51 @@
                         <i class="fas fa-exclamation-triangle me-2"></i>
                         <strong>مهم:</strong> جميع التعديلات تُسجَّل تلقائيًا ولا يمكن حذفها.
                     </div>
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>التاريخ والوقت</th>
-                                    <th>المستخدم</th>
-                                    <th>الإجراء</th>
-                                    <th>التفاصيل</th>
-                                </tr>
-                            </thead>
-                            <tbody id="auditTable">
-                                <tr>
-                                    <td>2025-01-15 10:30 ص</td>
-                                    <td>
-                                        <i class="fas fa-user-circle text-primary me-1"></i>
-                                        محمد أحمد
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-success">إنشاء طلب</span>
-                                    </td>
-                                    <td>تم إنشاء الطلب رقم QL-2025-001</td>
-                                </tr>
-                                <tr>
-                                    <td>2025-01-15 10:35 ص</td>
-                                    <td>
-                                        <i class="fas fa-user-circle text-info me-1"></i>
-                                        فاطمة علي
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-info">مراجعة</span>
-                                    </td>
-                                    <td>تمت مراجعة البيانات والمستندات</td>
-                                </tr>
-                                <tr>
-                                    <td>2025-01-15 11:00 ص</td>
-                                    <td>
-                                        <i class="fas fa-user-circle text-warning me-1"></i>
-                                        أحمد سالم
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-warning">تعديل</span>
-                                    </td>
-                                    <td>تم تعديل رقم الجوال</td>
-                                </tr>
-                                <tr>
-                                    <td>2025-01-15 11:15 ص</td>
-                                    <td>
-                                        <i class="fas fa-robot text-secondary me-1"></i>
-                                        النظام
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-secondary">تنبيه</span>
-                                    </td>
-                                    <td>تحذير: لم يتم الدفع بعد</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                    
+                    {% if audit_logs %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>التاريخ والوقت</th>
+                                        <th>المستخدم</th>
+                                        <th>الإجراء</th>
+                                        <th>التفاصيل</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for log in audit_logs %}
+                                    <tr>
+                                        <td>{{ log.timestamp|date:"d يناير Y - h:i A" }}</td>
+                                        <td>
+                                            <i class="fas fa-{% if log.user %}user-circle{% else %}robot{% endif %} text-primary me-1"></i>
+                                            {% if log.user %}
+                                                {{ log.user.get_full_name|default:log.user.username }}
+                                            {% else %}
+                                                النظام
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge 
+                                                {% if log.action == 'create' %}bg-success
+                                                {% elif log.action == 'update' or log.action == 'edit' %}bg-warning
+                                                {% elif log.action == 'delete' %}bg-danger
+                                                {% else %}bg-info{% endif %}">
+                                                {{ log.action|title }}
+                                            </span>
+                                        </td>
+                                        <td>{{ log.description|default:"لا توجد تفاصيل" }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-history fa-3x mb-3 d-block"></i>
+                            <p>لا يوجد سجل تدقيق حتى الآن</p>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
 
@@ -293,54 +313,75 @@
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
+                        {% if request.status == 'new' or request.status == 'in_review' %}
                         <div class="col-md-3 col-6">
-                            <button class="btn btn-primary w-100" onclick="editRequest()">
+                            <a href="{% url 'requests:edit' request.id %}" class="btn btn-primary w-100">
                                 <i class="fas fa-edit me-1"></i>
                                 تعديل الطلب
-                            </button>
+                            </a>
+                        </div>
+                        {% endif %}
+                        
+                        {% if request.status == 'in_review' %}
+                        <div class="col-md-3 col-6">
+                            <form method="post" action="{% url 'requests:approve' request.id %}" style="display: inline;" class="w-100">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-success w-100">
+                                    <i class="fas fa-check-circle me-1"></i>
+                                    موافقة
+                                </button>
+                            </form>
                         </div>
                         <div class="col-md-3 col-6">
-                            <button class="btn btn-success w-100" onclick="approveRequest()">
-                                <i class="fas fa-check-circle me-1"></i>
-                                موافقة
-                            </button>
+                            <form method="post" action="{% url 'requests:reject' request.id %}" style="display: inline;" class="w-100" onsubmit="return confirm('هل أنت متأكد من رفض هذا الطلب؟');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger w-100">
+                                    <i class="fas fa-times-circle me-1"></i>
+                                    رفض
+                                </button>
+                            </form>
                         </div>
+                        {% endif %}
+                        
+                        {% if request.status == 'approved' or request.status == 'pending_payment' %}
                         <div class="col-md-3 col-6">
-                            <button class="btn btn-danger w-100" onclick="rejectRequest()">
-                                <i class="fas fa-times-circle me-1"></i>
-                                رفض
-                            </button>
-                        </div>
-                        <div class="col-md-3 col-6">
-                            <button class="btn btn-warning w-100" onclick="processPayment()">
+                            <a href="{% url 'payments:process' %}?request_id={{ request.id }}" class="btn btn-warning w-100">
                                 <i class="fas fa-credit-card me-1"></i>
                                 معالجة الدفع
-                            </button>
+                            </a>
                         </div>
+                        {% endif %}
+                        
                         <div class="col-md-3 col-6">
-                            <button class="btn btn-info w-100" onclick="printRequest()">
+                            <button class="btn btn-info w-100" onclick="window.print()">
                                 <i class="fas fa-print me-1"></i>
                                 طباعة
                             </button>
                         </div>
                         <div class="col-md-3 col-6">
-                            <button class="btn btn-secondary w-100" onclick="exportRequest()">
+                            <a href="{% url 'requests:export_pdf' request.id %}" class="btn btn-secondary w-100">
                                 <i class="fas fa-download me-1"></i>
                                 تصدير PDF
-                            </button>
+                            </a>
                         </div>
                         <div class="col-md-3 col-6">
-                            <button class="btn btn-outline-primary w-100" onclick="callCustomer()">
+                            <a href="{% url 'chat:room' %}?customer_id={{ request.customer.id }}" class="btn btn-outline-primary w-100">
                                 <i class="fas fa-phone me-1"></i>
                                 اتصال بالعميل
-                            </button>
+                            </a>
                         </div>
+                        
+                        {% if request.status == 'new' or request.status == 'in_review' or request.status == 'cancelled' %}
                         <div class="col-md-3 col-6">
-                            <button class="btn btn-outline-danger w-100" onclick="deleteRequest()">
-                                <i class="fas fa-trash me-1"></i>
-                                حذف
-                            </button>
+                            <form method="post" action="{% url 'requests:delete' request.id %}" style="display: inline;" class="w-100" onsubmit="return confirm('هل أنت متأكد من حذف الطلب {{ request.reference_number }}؟\n\nهذا الإجراء لا يمكن التراجع عنه!');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-outline-danger w-100">
+                                    <i class="fas fa-trash me-1"></i>
+                                    حذف
+                                </button>
+                            </form>
                         </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>

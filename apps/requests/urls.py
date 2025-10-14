@@ -10,6 +10,9 @@ urlpatterns = [
     path('requests/<int:pk>/', views.detail, name='detail'),
     path('requests/<int:pk>/edit/', views.edit, name='edit'),
     path('requests/<int:pk>/delete/', views.delete, name='delete'),
+    path('requests/<int:pk>/approve/', views.approve, name='approve'),
+    path('requests/<int:pk>/reject/', views.reject, name='reject'),
+    path('requests/<int:pk>/export-pdf/', views.export_pdf, name='export_pdf'),
     path('requests/pending/', views.pending, name='pending'),
     
     # إدارة القوالب
