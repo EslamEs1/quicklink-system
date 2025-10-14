@@ -119,11 +119,16 @@ def create(request):
                 tax = base_price * 0.05  # 5% ضريبة
                 total_amount = base_price + tax
             
+            # الحصول على الأولوية وتاريخ الاستحقاق
+            priority = request.POST.get('priority', 'medium')
+            due_date = request.POST.get('due_date', None)
+            
             # إنشاء الطلب
             new_request = Request.objects.create(
                 customer=customer,
                 request_type=request_type_instance,  # ForeignKey للنوع
-                priority='medium',
+                priority=priority,
+                due_date=due_date if due_date else None,
                 total_amount=total_amount,
                 description=request.POST.get('description', ''),
                 created_by=request.user if request.user.is_authenticated else None,

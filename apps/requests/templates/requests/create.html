@@ -295,6 +295,33 @@
                                                 </div>
                                             </div>
                                         </div>
+                                        
+                                        <div class="row">
+                                            <!-- Priority -->
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">الأولوية</label>
+                                                <select class="form-control" id="priority" name="priority">
+                                                    <option value="medium">متوسطة</option>
+                                                    <option value="low">منخفضة</option>
+                                                    <option value="high">عالية</option>
+                                                    <option value="urgent">عاجلة</option>
+                                                </select>
+                                                <div class="form-text">
+                                                    <i class="fas fa-info-circle me-1"></i>
+                                                    الأولوية الافتراضية: متوسطة
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Due Date -->
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">تاريخ الاستحقاق</label>
+                                                <input type="date" class="form-control" id="dueDate" name="due_date">
+                                                <div class="form-text">
+                                                    <i class="fas fa-calendar me-1"></i>
+                                                    الموعد النهائي لإنجاز الطلب (اختياري)
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -1256,6 +1283,8 @@
                 mobileNumber: document.getElementById('mobileNumber')?.value || '',
                 email: document.getElementById('email')?.value || '',
                 requestType: document.getElementById('requestType')?.value || '',
+                priority: document.getElementById('priority')?.value || '',
+                dueDate: document.getElementById('dueDate')?.value || '',
                 templateSelect: document.getElementById('templateSelect')?.value || '',
                 paymentMethod: document.querySelector('input[name="paymentMethod"]:checked')?.value || '',
                 timestamp: new Date().toISOString()
@@ -1322,6 +1351,8 @@
                     if (formData.mobileNumber) document.getElementById('mobileNumber').value = formData.mobileNumber;
                     if (formData.email) document.getElementById('email').value = formData.email;
                     if (formData.requestType) document.getElementById('requestType').value = formData.requestType;
+                    if (formData.priority) document.getElementById('priority').value = formData.priority;
+                    if (formData.dueDate) document.getElementById('dueDate').value = formData.dueDate;
                     if (formData.templateSelect) document.getElementById('templateSelect').value = formData.templateSelect;
                     
                     // استعادة طريقة الدفع
