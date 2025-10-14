@@ -173,7 +173,7 @@
                                             <!-- Confirm Name -->
                                             <div class="col-md-6 mb-3">
                                                 <label class="form-label">تأكيد الاسم <span class="text-danger">*</span></label>
-                                                <input type="text" class="form-control" id="confirmName" 
+                                                <input type="text" class="form-control" id="confirmName" name="confirmName"
                                                        placeholder="أعد كتابة الاسم للتأكيد" required>
                                                 <div class="form-text text-danger" id="nameMatchError" style="display: none;">
                                                     <i class="fas fa-exclamation-triangle"></i>
@@ -190,7 +190,7 @@
                                             <!-- Emirates ID -->
                                             <div class="col-md-6 mb-3">
                                                 <label class="form-label">رقم الهوية الإماراتية <span class="text-danger">*</span></label>
-                                                <input type="text" class="form-control" id="emiratesId" 
+                                                <input type="text" class="form-control" id="emiratesId" name="emiratesId"
                                                        placeholder="784-1990-1234567-8" maxlength="18" required>
                                                 <div class="form-text">
                                                     <i class="fas fa-info-circle me-1"></i>
@@ -234,7 +234,7 @@
                                             <!-- Nationality -->
                                             <div class="col-md-6 mb-3">
                                                 <label class="form-label">الجنسية <span class="text-danger">*</span></label>
-                                                <select class="form-control" id="nationality" required>
+                                                <select class="form-control" id="nationality" name="nationality" required>
                                                     <option value="">اختر الجنسية</option>
                                                     <option value="emirati">إماراتي</option>
                                                     <option value="saudi">سعودي</option>
@@ -248,7 +248,7 @@
                                             <!-- Mobile Number -->
                                             <div class="col-md-6 mb-3">
                                                 <label class="form-label">رقم الجوال <span class="text-danger">*</span></label>
-                                                <input type="tel" class="form-control" id="mobileNumber" 
+                                                <input type="tel" class="form-control" id="mobileNumber" name="mobileNumber"
                                                        placeholder="+971-XX-XXX-XXXX" required>
                                             </div>
                                         </div>
@@ -257,7 +257,7 @@
                                             <!-- Email -->
                                             <div class="col-md-6 mb-3">
                                                 <label class="form-label">البريد الإلكتروني</label>
-                                                <input type="email" class="form-control" id="email" 
+                                                <input type="email" class="form-control" id="email" name="email"
                                                        placeholder="example@email.com">
                                             </div>
                                             
@@ -560,7 +560,7 @@
                                         
                                         <div class="cash-receipt d-none" id="cashReceipt">
                                             <label class="form-label">رقم الإيصال:</label>
-                                            <input type="text" class="form-control" id="receiptNumber" 
+                                            <input type="text" class="form-control" id="receiptNumber" name="receiptNumber"
                                                    placeholder="أدخل رقم الإيصال">
                                         </div>
                                     </div>
@@ -1340,28 +1340,22 @@
 
         // Form submission
         document.getElementById('createRequestForm').addEventListener('submit', function(e) {
-            e.preventDefault();
+            // لا نمنع الإرسال - نترك Django يتعامل معه
+            // e.preventDefault();
             
-            if (validateCurrentStep()) {
-                // Process payment
-                const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
-                
-                if (paymentMethod === 'paytabs') {
-                    // Redirect to PayTabs
-                    window.open('https://paytabs.com', '_blank');
-                    showNotification('تم إنشاء الطلب بنجاح. سيتم معالجة الدفع قريباً.', 'success');
-                } else {
-                    showNotification('تم إنشاء الطلب بنجاح.', 'success');
-                }
-                
-                // حذف البيانات المحفوظة بعد الإرسال الناجح
-                clearSavedData();
-                
-                // Reset form or redirect
-                setTimeout(() => {
-                    window.location.href = '/list/';
-                }, 2000);
+            if (!validateCurrentStep()) {
+                e.preventDefault();
+                return false;
             }
+            
+            // حذف البيانات المحفوظة قبل الإرسال
+            clearSavedData();
+            
+            // عرض رسالة تحميل
+            showNotification('جاري إنشاء الطلب...', 'info');
+            
+            // السماح للنموذج بالإرسال بشكل طبيعي
+            // Django سيتولى redirect و messages
         });
     </script>
 {% endblock %}

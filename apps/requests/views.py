@@ -67,59 +67,98 @@ def dashboard(request):
 def create(request):
     """إنشاء طلب جديد"""
     if request.method == 'POST':
-        # التحقق من خيار العميل
-        existing_customer_id = request.POST.get('existing_customer_id')
-        
-        if existing_customer_id:
-            # استخدام عميل موجود
-            customer = get_object_or_404(Customer, pk=existing_customer_id)
-            customer_created = False
-        else:
-            # إنشاء عميل جديد
-            full_name = request.POST.get('customerName')
-            emirates_id = request.POST.get('emiratesId')
-            phone = request.POST.get('phone')
-            email = request.POST.get('email', '')
-            date_of_birth = request.POST.get('dateOfBirth')
-            gender = request.POST.get('gender', 'male')
-            nationality = request.POST.get('nationality', 'الإمارات')
+        try:
+            # التحقق من خيار العميل
+            existing_customer_id = request.POST.get('existing_customer_id')
             
-            # التحقق من عدم وجود نفس رقم الهوية
-            if Customer.objects.filter(emirates_id=emirates_id).exists():
-                messages.error(request, 'رقم الهوية موجود مسبقاً! استخدم "اختيار عميل موجود"')
-                return redirect('requests:create')
+            if existing_customer_id:
+                # استخدام عميل موجود
+                customer = get_object_or_404(Customer, pk=existing_customer_id)
+                customer_created = False
+            else:
+                # إنشاء عميل جديد
+                full_name = request.POST.get('customerName')
+                emirates_id = request.POST.get('emiratesId')
+                phone = request.POST.get('mobileNumber')  # تم تصحيح اسم الحقل
+                email = request.POST.get('email', '')
+                date_of_birth = request.POST.get('date_of_birth')  # تم تصحيح اسم الحقل
+                gender = request.POST.get('gender', 'male')
+                nationality = request.POST.get('nationality', 'الإمارات')
+                
+                # التحقق من عدم وجود نفس رقم الهوية
+                if Customer.objects.filter(emirates_id=emirates_id).exists():
+                    messages.error(request, 'رقم الهوية موجود مسبقاً! استخدم "اختيار عميل موجود"')
+                    return redirect('requests:create')
+                
+                # إنشاء العميل
+                customer = Customer.objects.create(
+                    full_name=full_name,
+                    emirates_id=emirates_id,
+                    phone=phone,
+                    email=email,
+                    date_of_birth=date_of_birth,
+                    gender=gender,
+                    nationality=nationality,
+                    created_by=request.user if request.user.is_authenticated else None,
+                )
+                customer_created = True
             
-            # إنشاء العميل
-            customer = Customer.objects.create(
-                full_name=full_name,
-                emirates_id=emirates_id,
-                phone=phone,
-                email=email,
-                date_of_birth=date_of_birth,
-                gender=gender,
-                nationality=nationality,
+            # الحصول على نوع الطلب
+            request_type_id = request.POST.get('request_type_id')
+            template_id = request.POST.get('template_id')
+            payment_method = request.POST.get('paymentMethod', 'paytabs')
+            
+            # حساب المبلغ من نوع الطلب
+            from apps.requests.models import RequestType
+            request_type_instance = None
+            total_amount = 0
+            
+            if request_type_id:
+                request_type_instance = get_object_or_404(RequestType, pk=request_type_id)
+                base_price = float(request_type_instance.default_price)
+                tax = base_price * 0.05  # 5% ضريبة
+                total_amount = base_price + tax
+            
+            # إنشاء الطلب
+            new_request = Request.objects.create(
+                customer=customer,
+                request_type=request_type_instance,  # ForeignKey للنوع
+                priority='medium',
+                total_amount=total_amount,
+                description=request.POST.get('description', ''),
                 created_by=request.user if request.user.is_authenticated else None,
             )
-            customer_created = True
-        
-        # إنشاء الطلب
-        new_request = Request.objects.create(
-            customer=customer,
-            request_type=request.POST.get('requestType', 'paytabs_link'),
-            priority='medium',
-            total_amount=request.POST.get('amount', 420),
-            description=request.POST.get('description', ''),
-            created_by=request.user if request.user.is_authenticated else None,
-        )
-        
-        # رسالة نجاح
-        if customer_created:
-            messages.success(request, f'تم إنشاء ملف العميل "{customer.full_name}" والطلب بنجاح! الرقم المرجعي: {new_request.reference_number}')
-        else:
-            messages.success(request, f'تم إنشاء الطلب بنجاح للعميل "{customer.full_name}"! الرقم المرجعي: {new_request.reference_number}')
-        
-        # إعادة التوجيه
-        return redirect('requests:detail', pk=new_request.pk)
+            
+            # ربط القالب إذا تم اختياره
+            if template_id:
+                template = get_object_or_404(Template, pk=template_id)
+                new_request.template = template
+                new_request.save()
+            
+            # معالجة الدفع
+            if payment_method == 'cash':
+                receipt_number = request.POST.get('receiptNumber', '')
+                # يمكن إنشاء سجل دفع هنا
+                Payment.objects.create(
+                    request=new_request,
+                    amount=total_amount,
+                    payment_method='cash',
+                    receipt_number=receipt_number,
+                    status='pending'
+                )
+            
+            # رسالة نجاح
+            if customer_created:
+                messages.success(request, f'✅ تم إنشاء ملف العميل "{customer.full_name}" والطلب بنجاح! الرقم المرجعي: {new_request.reference_number}')
+            else:
+                messages.success(request, f'✅ تم إنشاء الطلب بنجاح للعميل "{customer.full_name}"! الرقم المرجعي: {new_request.reference_number}')
+            
+            # إعادة التوجيه إلى قائمة الطلبات
+            return redirect('requests:list')
+            
+        except Exception as e:
+            messages.error(request, f'❌ حدث خطأ: {str(e)}')
+            return redirect('requests:create')
     
     # GET request - جلب قائمة العملاء للاختيار
     customers = Customer.objects.filter(is_active=True).order_by('-updated_at')[:50]
