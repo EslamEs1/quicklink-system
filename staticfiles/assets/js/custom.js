@@ -247,10 +247,25 @@ function editRequest(id) {
 }
 
 // حذف الطلب
-function deleteRequest(id) {
-    if (confirm('هل أنت متأكد من حذف هذا الطلب؟')) {
-        // سيتم تنفيذها عبر POST request
-        showNotification('جاري حذف الطلب...', 'info');
+function deleteRequest(id, referenceNumber) {
+    if (confirm(`هل أنت متأكد من حذف الطلب ${referenceNumber}؟\n\nهذا الإجراء لا يمكن التراجع عنه!`)) {
+        // إنشاء form وإرساله
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/${id}/delete/`;
+        
+        // إضافة CSRF token
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (csrfToken) {
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrfmiddlewaretoken';
+            csrfInput.value = csrfToken.value;
+            form.appendChild(csrfInput);
+        }
+        
+        document.body.appendChild(form);
+        form.submit();
     }
 }
 

@@ -171,6 +171,11 @@
                                             <button class="btn btn-action btn-warning" onclick="callCustomer({{ req.customer.id }})" title="اتصال WhatsApp">
                                                 <i class="fas fa-phone"></i>
                                             </button>
+                                            {% if req.status == 'new' or req.status == 'in_review' or req.status == 'cancelled' %}
+                                                <button class="btn btn-action btn-danger" onclick="deleteRequest({{ req.id }}, '{{ req.reference_number }}')" title="حذف">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            {% endif %}
                                         </div>
                                     </td>
                                 </tr>

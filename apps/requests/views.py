@@ -296,6 +296,38 @@ def edit(request, pk):
 
 
 # @login_required
+def delete(request, pk):
+    """حذف طلب (soft delete)"""
+    req = get_object_or_404(Request, pk=pk, is_deleted=False)
+    
+    if request.method == 'POST':
+        # Soft delete
+        req.is_deleted = True
+        req.deleted_at = datetime.now()
+        req.deleted_by = request.user if request.user.is_authenticated else None
+        req.save()
+        
+        # تسجيل في سجل التدقيق
+        from apps.audit.models import AuditLog
+        AuditLog.objects.create(
+            user=request.user if request.user.is_authenticated else None,
+            action='delete',
+            request_id=req.id,
+            details=f'تم حذف الطلب {req.reference_number}',
+        )
+        
+        messages.success(request, f'✅ تم حذف الطلب {req.reference_number} بنجاح')
+        return redirect('requests:list')
+    
+    # GET request - عرض صفحة تأكيد الحذف
+    context = {
+        'page_title': f'حذف الطلب {req.reference_number}',
+        'request': req,
+    }
+    return render(request, 'requests/delete_confirm.html', context)
+
+
+# @login_required
 def pending(request):
     """الطلبات المعلقة"""
     from django.utils import timezone
