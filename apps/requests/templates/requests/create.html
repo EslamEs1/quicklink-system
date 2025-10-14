@@ -503,22 +503,26 @@
                                         <h6>تفاصيل الرسوم:</h6>
                                         <table class="table">
                                             <tr>
-                                                <td>رسوم المعالجة:</td>
-                                                <td class="text-end"><strong>250 درهم</strong></td>
+                                                <td>نوع الخدمة:</td>
+                                                <td class="text-end"><strong id="serviceName">-</strong></td>
                                             </tr>
                                             <tr>
-                                                <td>رسوم القالب القانوني:</td>
-                                                <td class="text-end"><strong>150 درهم</strong></td>
+                                                <td>رسوم الخدمة:</td>
+                                                <td class="text-end"><strong id="servicePrice">0 درهم</strong></td>
                                             </tr>
                                             <tr>
                                                 <td>الضريبة (5%):</td>
-                                                <td class="text-end"><strong>20 درهم</strong></td>
+                                                <td class="text-end"><strong id="taxAmount">0 درهم</strong></td>
                                             </tr>
                                             <tr class="table-active">
-                                                <td><strong>المجموع:</strong></td>
-                                                <td class="text-end"><strong class="text-primary">420 درهم</strong></td>
+                                                <td><strong>المجموع الكلي:</strong></td>
+                                                <td class="text-end"><strong class="text-primary fs-5" id="totalAmount">0 درهم</strong></td>
                                             </tr>
                                         </table>
+                                        <div class="alert alert-info mt-3">
+                                            <i class="fas fa-info-circle me-2"></i>
+                                            <small>الأسعار شاملة ضريبة القيمة المضافة (5%)</small>
+                                        </div>
                                     </div>
                                     <div class="col-md-6">
                                         <h6>طرق الدفع (إجباري):</h6>
@@ -789,6 +793,11 @@
             // Update review data if on step 3
             if (currentStep === 3) {
                 updateReviewData();
+            }
+            
+            // Update payment details if on step 4
+            if (currentStep === 4) {
+                updatePaymentDetails();
             }
             
             // Update progress bar
@@ -1180,6 +1189,37 @@
             document.getElementById('checkImage').disabled = !imageUploaded;
             
             updateProgressBar();
+        }
+        
+        function updatePaymentDetails() {
+            const requestTypeSelect = document.getElementById('requestType');
+            
+            if (!requestTypeSelect || !requestTypeSelect.value) {
+                // لا يوجد نوع طلب مختار
+                document.getElementById('serviceName').textContent = 'لم يتم اختيار نوع الخدمة';
+                document.getElementById('servicePrice').textContent = '0 درهم';
+                document.getElementById('taxAmount').textContent = '0 درهم';
+                document.getElementById('totalAmount').textContent = '0 درهم';
+                return;
+            }
+            
+            // الحصول على السعر من data-price attribute
+            const selectedOption = requestTypeSelect.options[requestTypeSelect.selectedIndex];
+            const serviceName = selectedOption.text.split(' - ')[0]; // قبل " - "
+            const basePrice = parseFloat(selectedOption.getAttribute('data-price')) || 0;
+            
+            // حساب الضريبة (5%)
+            const taxRate = 0.05;
+            const taxAmount = basePrice * taxRate;
+            
+            // المجموع الكلي
+            const totalAmount = basePrice + taxAmount;
+            
+            // تحديث العرض
+            document.getElementById('serviceName').textContent = serviceName;
+            document.getElementById('servicePrice').textContent = basePrice.toFixed(2) + ' درهم';
+            document.getElementById('taxAmount').textContent = taxAmount.toFixed(2) + ' درهم';
+            document.getElementById('totalAmount').textContent = totalAmount.toFixed(2) + ' درهم';
         }
 
         // Form submission
