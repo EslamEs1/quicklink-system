@@ -1289,6 +1289,13 @@
                     return;
                 }
                 
+                // حذف البيانات إذا كانت حديثة جداً (أقل من دقيقة) - غالباً تم إرسالها للتو
+                if (minutesDiff < 1) {
+                    console.log('⏰ البيانات حديثة جداً (أقل من دقيقة) - غالباً تم إرسالها - تم الحذف');
+                    localStorage.removeItem('createRequestFormData');
+                    return;
+                }
+                
                 // إخفاء الرسالة إذا كانت البيانات أقدم من 5 دقائق
                 if (minutesDiff > 5) {
                     console.log('⏰ البيانات المحفوظة قديمة (أكثر من 5 دقائق) - تم إخفاء الرسالة');
@@ -1304,7 +1311,7 @@
                     return;
                 }
                 
-                // عرض رسالة للمستخدم فقط إذا البيانات حديثة (أقل من 5 دقائق)
+                // عرض رسالة للمستخدم فقط إذا البيانات بين 1-5 دقائق
                 if (confirm('تم العثور على بيانات محفوظة منذ ' + Math.round(minutesDiff) + ' دقيقة. هل تريد استعادتها؟')) {
                     // استعادة البيانات
                     if (formData.customerName) document.getElementById('customerName').value = formData.customerName;
