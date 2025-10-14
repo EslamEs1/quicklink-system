@@ -158,10 +158,13 @@ def create(request):
             else:
                 messages.success(request, f'✅ تم إنشاء الطلب بنجاح للعميل "{customer.full_name}"! الرقم المرجعي: {new_request.reference_number}')
             
-            # إعادة التوجيه إلى قائمة الطلبات
-            return redirect('requests:list')
+            # إعادة التوجيه إلى صفحة تفاصيل الطلب
+            return redirect('requests:detail', pk=new_request.pk)
             
         except Exception as e:
+            import traceback
+            error_details = traceback.format_exc()
+            print(f"❌ خطأ في إنشاء الطلب: {error_details}")  # للتشخيص في Console
             messages.error(request, f'❌ حدث خطأ: {str(e)}')
             return redirect('requests:create')
     
