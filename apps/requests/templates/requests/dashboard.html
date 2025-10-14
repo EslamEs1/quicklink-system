@@ -161,21 +161,24 @@
                                         <td>{{ req.created_at|date:"d يناير Y" }}</td>
                                         <td>
                                             <div class="btn-group" role="group">
-                                                <button class="btn btn-action btn-view" onclick="viewRequest({{ req.id }})" title="عرض التفاصيل">
+                                                <a href="{% url 'requests:detail' req.id %}" class="btn btn-action btn-view" title="عرض التفاصيل">
                                                     <i class="fas fa-eye"></i>
-                                                </button>
+                                                </a>
                                                 {% if req.status == 'new' or req.status == 'in_review' %}
-                                                    <button class="btn btn-action btn-edit" onclick="editRequest({{ req.id }})" title="تعديل">
+                                                    <a href="{% url 'requests:edit' req.id %}" class="btn btn-action btn-edit" title="تعديل">
                                                         <i class="fas fa-edit"></i>
-                                                    </button>
+                                                    </a>
                                                 {% endif %}
                                                 <a href="{% url 'chat:room' %}?customer_id={{ req.customer.id }}" class="btn btn-action btn-warning" title="اتصال عبر WhatsApp">
                                                     <i class="fas fa-phone"></i>
                                                 </a>
                                                 {% if req.status == 'new' or req.status == 'in_review' or req.status == 'cancelled' %}
-                                                    <button class="btn btn-action btn-danger" onclick="deleteRequest({{ req.id }}, '{{ req.reference_number }}')" title="حذف">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
+                                                    <form method="post" action="{% url 'requests:delete' req.id %}" style="display: inline;" onsubmit="return confirm('هل أنت متأكد من حذف الطلب {{ req.reference_number }}؟\n\nهذا الإجراء لا يمكن التراجع عنه!');">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn btn-action btn-danger" title="حذف">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </form>
                                                 {% endif %}
                                             </div>
                                         </td>

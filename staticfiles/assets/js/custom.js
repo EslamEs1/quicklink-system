@@ -1,13 +1,19 @@
 /* Quick Link System - Custom JavaScript */
+/* UI & Design Only - No Backend Logic */
 
-// تهيئة النظام عند تحميل الصفحة
+// ============================================
+// 1. تهيئة النظام عند تحميل الصفحة
+// ============================================
 document.addEventListener('DOMContentLoaded', function() {
-    // تحميل سريع للعناصر الأساسية أولاً
-    initializeSystem();
+    initializeUI();
     setupSidebarToggle();
+    setupAlertAutoDismiss();
+    initializeDatePicker();
 });
 
-// إعداد تبديل الشريط الجانبي
+// ============================================
+// 2. إعداد تبديل الشريط الجانبي (UI فقط)
+// ============================================
 function setupSidebarToggle() {
     // إخفاء الشريط الجانبي على الشاشات الصغيرة
     if (window.innerWidth <= 768) {
@@ -44,39 +50,55 @@ document.addEventListener('click', function(e) {
     }
 });
 
-// وظائف التهيئة
-function initializeSystem() {
-    // تهيئة النماذج
-    initializeForms();
+// ============================================
+// 3. تهيئة واجهة المستخدم (UI فقط)
+// ============================================
+function initializeUI() {
+    // تفعيل الروابط النشطة في القائمة
+    highlightActiveMenu();
     
-    // تهيئة التنبيهات
-    initializeNotifications();
-    
-    // تهيئة الجداول
-    initializeTables();
-    
-    // تهيئة القوائم
-    initializeSidebar();
-    
-    // تهيئة التحقق من صحة البيانات
-    initializeValidation();
-    
-    // تهيئة الأرقام المرجعية
-    initializeReferenceNumbers();
+    // تهيئة النماذج (UI فقط)
+    setupFormUI();
 }
 
-// تهيئة النماذج
-function initializeForms() {
-    // لا توجد تأثيرات مطلوبة
+// تمييز الرابط النشط في القائمة
+function highlightActiveMenu() {
+    const currentPath = window.location.pathname;
+    const navLinks = document.querySelectorAll('.sidebar .nav-link');
+    
+    navLinks.forEach(link => {
+        const href = link.getAttribute('href');
+        if (href && currentPath.includes(href) && href !== '/') {
+            link.classList.add('active');
+        }
+    });
 }
 
-// تهيئة التنبيهات
-function initializeNotifications() {
+// إعداد واجهة النماذج
+function setupFormUI() {
+    // إضافة تأثيرات بصرية للحقول عند التركيز
+    const inputs = document.querySelectorAll('input, select, textarea');
+    inputs.forEach(input => {
+        input.addEventListener('focus', function() {
+            this.parentElement?.classList.add('focused');
+        });
+        
+        input.addEventListener('blur', function() {
+            this.parentElement?.classList.remove('focused');
+        });
+    });
+}
+
+// ============================================
+// 4. إدارة التنبيهات (UI فقط)
+// ============================================
+function setupAlertAutoDismiss() {
     // إخفاء التنبيهات تلقائياً بعد 5 ثوان
-    const alerts = document.querySelectorAll('.alert');
+    const alerts = document.querySelectorAll('.alert:not(.alert-permanent)');
     alerts.forEach(alert => {
         setTimeout(() => {
             alert.style.opacity = '0';
+            alert.style.transition = 'opacity 0.3s ease';
             setTimeout(() => {
                 alert.remove();
             }, 300);
@@ -84,197 +106,13 @@ function initializeNotifications() {
     });
 }
 
-// تهيئة الجداول
-function initializeTables() {
-    // لا توجد تأثيرات مطلوبة
-}
-
-// تهيئة الشريط الجانبي
-function initializeSidebar() {
-    const navLinks = document.querySelectorAll('.sidebar .nav-link');
-    navLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
-            // إزالة الفئة النشطة من جميع الروابط
-            navLinks.forEach(l => l.classList.remove('active'));
-            
-            // إضافة الفئة النشطة للرابط المحدد
-            this.classList.add('active');
-        });
-    });
-}
-
-// تهيئة التحقق من صحة البيانات
-function initializeValidation() {
-    // التحقق من رقم الهوية الإماراتية
-    const idInput = document.getElementById('emiratesId');
-    if (idInput) {
-        idInput.addEventListener('input', function() {
-            validateEmiratesID(this);
-        });
-    }
-    
-    // التحقق من تطابق الأسماء
-    const nameInput = document.getElementById('customerName');
-    const confirmNameInput = document.getElementById('confirmName');
-    
-    if (nameInput && confirmNameInput) {
-        confirmNameInput.addEventListener('input', function() {
-            validateNameMatch(nameInput.value, this.value);
-        });
-    }
-}
-
-// التحقق من صحة رقم الهوية الإماراتية
-function validateEmiratesID(input) {
-    const id = input.value.replace(/\D/g, ''); // إزالة جميع الأرقام غير الرقمية
-    const pattern = /^784\d{12}$/;
-    
-    if (id.length > 0) {
-        if (pattern.test(id)) {
-            // تنسيق الرقم
-            const formatted = id.replace(/(\d{3})(\d{4})(\d{7})(\d{1})/, '$1-$2-$3-$4');
-            input.value = formatted;
-            showValidationMessage(input, 'رقم الهوية صحيح', 'success');
-            enableCreateDraftButton();
-        } else {
-            showValidationMessage(input, 'رقم الهوية غير صحيح. يجب أن يبدأ بـ 784 ويتكون من 15 رقم', 'error');
-            disableCreateDraftButton();
-        }
-    } else {
-        clearValidationMessage(input);
-        disableCreateDraftButton();
-    }
-}
-
-// التحقق من تطابق الأسماء
-function validateNameMatch(name, confirmName) {
-    const createButton = document.getElementById('createDraftBtn');
-    
-    if (name && confirmName) {
-        if (name.trim() === confirmName.trim()) {
-            showValidationMessage(document.getElementById('confirmName'), 'الأسماء متطابقة', 'success');
-            if (document.getElementById('emiratesId').value) {
-                enableCreateDraftButton();
-            }
-        } else {
-            showValidationMessage(document.getElementById('confirmName'), 'الأسماء غير متطابقة', 'error');
-            disableCreateDraftButton();
-        }
-    } else {
-        clearValidationMessage(document.getElementById('confirmName'));
-        disableCreateDraftButton();
-    }
-}
-
-// إظهار رسالة التحقق
-function showValidationMessage(input, message, type) {
-    let messageElement = input.parentElement.querySelector('.validation-message');
-    
-    if (!messageElement) {
-        messageElement = document.createElement('div');
-        messageElement.className = 'validation-message mt-1';
-        input.parentElement.appendChild(messageElement);
-    }
-    
-    messageElement.textContent = message;
-    messageElement.className = `validation-message mt-1 text-${type === 'success' ? 'success' : 'danger'}`;
-}
-
-// مسح رسالة التحقق
-function clearValidationMessage(input) {
-    const messageElement = input.parentElement.querySelector('.validation-message');
-    if (messageElement) {
-        messageElement.remove();
-    }
-}
-
-// تفعيل زر إنشاء المسودة
-function enableCreateDraftButton() {
-    const button = document.getElementById('createDraftBtn');
-    if (button) {
-        button.disabled = false;
-        button.classList.remove('btn-secondary');
-        button.classList.add('btn-primary');
-    }
-}
-
-// تعطيل زر إنشاء المسودة
-function disableCreateDraftButton() {
-    const button = document.getElementById('createDraftBtn');
-    if (button) {
-        button.disabled = true;
-        button.classList.remove('btn-primary');
-        button.classList.add('btn-secondary');
-    }
-}
-
-// توليد رقم مرجعي للطلب
-function generateReferenceNumber() {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    
-    // توليد رقم عشوائي
-    const randomNum = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-    
-    return `QL-${year}-${month}${day}-${randomNum}`;
-}
-
-// تهيئة الأرقام المرجعية
-function initializeReferenceNumbers() {
-    const referenceInputs = document.querySelectorAll('[data-auto-reference]');
-    referenceInputs.forEach(input => {
-        if (!input.value) {
-            input.value = generateReferenceNumber();
-        }
-    });
-}
-
-// وظائف إدارة الطلبات
-function createNewRequest() {
-    window.location.href = '/requests/create/';
-}
-
-// عرض الطلب
-function viewRequest(id) {
-    window.location.href = `/requests/${id}/`;
-}
-
-// تعديل الطلب
-function editRequest(id) {
-    window.location.href = `/requests/${id}/edit/`;
-}
-
-// حذف الطلب
-function deleteRequest(id, referenceNumber) {
-    if (confirm(`هل أنت متأكد من حذف الطلب ${referenceNumber}؟\n\nهذا الإجراء لا يمكن التراجع عنه!`)) {
-        // إنشاء form وإرساله
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = `/requests/${id}/delete/`;
-        
-        // إضافة CSRF token
-        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
-        if (csrfToken) {
-            const csrfInput = document.createElement('input');
-            csrfInput.type = 'hidden';
-            csrfInput.name = 'csrfmiddlewaretoken';
-            csrfInput.value = csrfToken.value;
-            form.appendChild(csrfInput);
-        }
-        
-        document.body.appendChild(form);
-        form.submit();
-    }
-}
-
-// إظهار التنبيهات
+// إظهار تنبيه مخصص (UI فقط)
 function showNotification(message, type = 'info') {
     const alertDiv = document.createElement('div');
     alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
-    alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    alertDiv.style.cssText = 'top: 20px; left: 20px; z-index: 9999; min-width: 300px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);';
     alertDiv.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-circle' : 'info-circle'} me-2"></i>
         ${message}
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     `;
@@ -284,17 +122,32 @@ function showNotification(message, type = 'info') {
     // إزالة التنبيه تلقائياً بعد 5 ثوان
     setTimeout(() => {
         if (alertDiv.parentNode) {
-            alertDiv.remove();
+            alertDiv.style.opacity = '0';
+            alertDiv.style.transition = 'opacity 0.3s ease';
+            setTimeout(() => alertDiv.remove(), 300);
         }
     }, 5000);
 }
 
-// وظائف الدفع
-function processPayment(requestId) {
-    window.location.href = `/payments/?request_id=${requestId}`;
+// ============================================
+// 5. تهيئة حقول التاريخ (UI فقط)
+// ============================================
+function initializeDatePicker() {
+    const dateInputs = document.querySelectorAll('input[type="date"]');
+    dateInputs.forEach(input => {
+        // إضافة تحسينات بصرية للتقويم
+        input.addEventListener('change', function() {
+            if (this.value) {
+                this.classList.add('is-valid');
+                this.classList.remove('is-invalid');
+            }
+        });
+    });
 }
 
-// وظائف البحث والفلترة
+// ============================================
+// 6. وظائف البحث والفلترة (Frontend فقط)
+// ============================================
 function searchRequests(query) {
     const rows = document.querySelectorAll('#requestsTable tbody tr');
     
@@ -321,62 +174,80 @@ function filterRequests(status) {
     });
 }
 
-
-// وظائف التحقق من الصحة المتقدمة
-function validateForm(formId) {
-    const form = document.getElementById(formId);
-    const inputs = form.querySelectorAll('input[required], select[required], textarea[required]');
-    let isValid = true;
+function clearFilters() {
+    // مسح حقول البحث والفلاتر (UI فقط)
+    document.getElementById('searchInput')?.value = '';
+    document.getElementById('statusFilter')?.selectedIndex = 0;
+    document.getElementById('dateFilter')?.value = '';
     
-    inputs.forEach(input => {
-        if (!input.value.trim()) {
-            input.classList.add('is-invalid');
-            isValid = false;
-        } else {
-            input.classList.remove('is-invalid');
-        }
-    });
+    // إظهار جميع الصفوف
+    const rows = document.querySelectorAll('#requestsTable tbody tr');
+    rows.forEach(row => row.style.display = '');
     
-    return isValid;
+    showNotification('تم مسح الفلاتر', 'info');
 }
 
-// تهيئة التقويم
-function initializeDatePicker() {
-    const dateInputs = document.querySelectorAll('input[type="date"]');
-    dateInputs.forEach(input => {
-        // إضافة تحسينات للتقويم
-        input.addEventListener('change', function() {
-            if (this.value) {
-                this.classList.add('is-valid');
-            }
-        });
-    });
-}
-
-// وظائف الطباعة
-function printRequest(requestId) {
+// ============================================
+// 7. وظائف الطباعة والتصدير (UI فقط)
+// ============================================
+function printRequest() {
     window.print();
 }
 
-// تصدير البيانات
-function exportToExcel() {
-    showNotification('جاري تصدير البيانات...', 'info');
+function printRequests() {
+    window.print();
 }
 
-// وظائف الأمان
-function maskSensitiveData(text, type) {
-    switch (type) {
-        case 'phone':
-            return text.replace(/(\d{3})\d{4}(\d{3})/, '$1-****-$2');
-        case 'id':
-            return text.replace(/(\d{3})\d{4}(\d{7})(\d{1})/, '$1-****-$2-$3');
-        default:
-            return text;
+function exportToExcel() {
+    showNotification('جاري تصدير البيانات...', 'info');
+    // Django سيتولى التصدير الفعلي
+}
+
+// ============================================
+// 8. وظائف مساعدة للواجهة
+// ============================================
+
+// إخفاء/إظهار كلمة المرور
+function togglePasswordVisibility(inputId) {
+    const input = document.getElementById(inputId);
+    if (input) {
+        input.type = input.type === 'password' ? 'text' : 'password';
     }
 }
 
-// تهيئة النظام عند تحميل الصفحة
-window.addEventListener('load', function() {
-    // تهيئة التقويم
-    initializeDatePicker();
-});
+// تأكيد الإجراء (UI فقط)
+function confirmAction(message) {
+    return confirm(message || 'هل أنت متأكد من هذا الإجراء؟');
+}
+
+// تفعيل/تعطيل زر
+function toggleButton(buttonId, enable = true) {
+    const button = document.getElementById(buttonId);
+    if (button) {
+        button.disabled = !enable;
+    }
+}
+
+// إضافة تأثير التحميل على الزر
+function setButtonLoading(buttonId, loading = true) {
+    const button = document.getElementById(buttonId);
+    if (button) {
+        if (loading) {
+            button.disabled = true;
+            button.dataset.originalText = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>جاري التحميل...';
+        } else {
+            button.disabled = false;
+            button.innerHTML = button.dataset.originalText || button.innerHTML;
+        }
+    }
+}
+
+// ============================================
+// 9. وظائف WhatsApp والاتصال (فتح في نافذة جديدة فقط)
+// ============================================
+function callCustomer(customerId) {
+    // Django سيتولى إنشاء رابط WhatsApp الصحيح
+    // هذه الدالة فقط للتوافق مع الأزرار الموجودة
+    console.log('WhatsApp call for customer:', customerId);
+}
