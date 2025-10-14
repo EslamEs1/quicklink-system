@@ -214,7 +214,19 @@
                                             <!-- Date of Birth -->
                                             <div class="col-md-6 mb-3">
                                                 <label class="form-label">تاريخ الميلاد <span class="text-danger">*</span></label>
-                                                <input type="date" class="form-control" id="dateOfBirth" required>
+                                                <input type="date" class="form-control" id="dateOfBirth" name="date_of_birth" required>
+                                                <div class="form-text">
+                                                    <i class="fas fa-info-circle me-1"></i>
+                                                    العمر يجب أن يكون 7 سنوات على الأقل
+                                                </div>
+                                                <div class="form-text text-danger" id="dobError" style="display: none;">
+                                                    <i class="fas fa-exclamation-triangle"></i>
+                                                    <span id="dobErrorMsg"></span>
+                                                </div>
+                                                <div class="form-text text-success" id="dobSuccess" style="display: none;">
+                                                    <i class="fas fa-check-circle"></i>
+                                                    العمر: <span id="ageDisplay"></span> سنة ✓
+                                                </div>
                                             </div>
                                         </div>
 
@@ -636,10 +648,22 @@
 
         function initializeForm() {
             // Set today's date
-            document.getElementById('requestDate').value = new Date().toISOString().split('T')[0];
+            const today = new Date();
+            document.getElementById('requestDate').value = today.toISOString().split('T')[0];
             
             // Generate reference number
             document.getElementById('referenceNumber').value = generateReferenceNumber();
+            
+            // Set date of birth constraints
+            const dobInput = document.getElementById('dateOfBirth');
+            const maxDate = new Date(today);
+            maxDate.setFullYear(today.getFullYear() - 7); // 7 سنوات للخلف
+            
+            const minDate = new Date(today);
+            minDate.setFullYear(today.getFullYear() - 120); // 120 سنة للخلف
+            
+            dobInput.setAttribute('max', maxDate.toISOString().split('T')[0]);
+            dobInput.setAttribute('min', minDate.toISOString().split('T')[0]);
         }
 
         function setupImageUpload() {
@@ -941,6 +965,9 @@
             // التحقق من رقم الهوية
             document.getElementById('emiratesId').addEventListener('input', validateEmiratesId);
             
+            // التحقق من تاريخ الميلاد
+            document.getElementById('dateOfBirth').addEventListener('change', validateDateOfBirth);
+            
             // التحقق من اختيار القالب
             const templateSelect = document.getElementById('templateSelect');
             if (templateSelect) {
@@ -1055,6 +1082,61 @@
                 showNotification('تحذير: اكتشاف اسم مكرر مع هوية مختلفة!', 'danger');
             } else {
                 document.getElementById('idConflictWarning').style.display = 'none';
+            }
+        }
+        
+        function validateDateOfBirth() {
+            const dobInput = document.getElementById('dateOfBirth');
+            const dob = new Date(dobInput.value);
+            const today = new Date();
+            const errorDiv = document.getElementById('dobError');
+            const errorMsg = document.getElementById('dobErrorMsg');
+            const successDiv = document.getElementById('dobSuccess');
+            const ageDisplay = document.getElementById('ageDisplay');
+            
+            if (!dobInput.value) {
+                errorDiv.style.display = 'none';
+                successDiv.style.display = 'none';
+                dobInput.classList.remove('is-valid', 'is-invalid');
+                return;
+            }
+            
+            // حساب العمر
+            let age = today.getFullYear() - dob.getFullYear();
+            const monthDiff = today.getMonth() - dob.getMonth();
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+                age--;
+            }
+            
+            // التحقق من التاريخ
+            if (dob > today) {
+                // تاريخ من المستقبل
+                errorMsg.textContent = 'لا يمكن اختيار تاريخ من المستقبل!';
+                errorDiv.style.display = 'block';
+                successDiv.style.display = 'none';
+                dobInput.classList.remove('is-valid');
+                dobInput.classList.add('is-invalid');
+            } else if (age < 7) {
+                // أقل من 7 سنوات
+                errorMsg.textContent = `العمر ${age} سنوات - يجب أن يكون 7 سنوات على الأقل`;
+                errorDiv.style.display = 'block';
+                successDiv.style.display = 'none';
+                dobInput.classList.remove('is-valid');
+                dobInput.classList.add('is-invalid');
+            } else if (age > 120) {
+                // أكثر من 120 سنة (غير معقول)
+                errorMsg.textContent = `العمر ${age} سنة - يرجى التحقق من التاريخ`;
+                errorDiv.style.display = 'block';
+                successDiv.style.display = 'none';
+                dobInput.classList.remove('is-valid');
+                dobInput.classList.add('is-invalid');
+            } else {
+                // صحيح
+                ageDisplay.textContent = age;
+                errorDiv.style.display = 'none';
+                successDiv.style.display = 'block';
+                dobInput.classList.remove('is-invalid');
+                dobInput.classList.add('is-valid');
             }
         }
 
