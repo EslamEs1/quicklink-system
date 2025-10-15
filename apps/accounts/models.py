@@ -15,10 +15,10 @@ class UserProfile(models.Model):
     )
     
     # معلومات إضافية
-    employee_id = models.CharField('الرقم الوظيفي', max_length=50, unique=True)
-    department = models.CharField('القسم', max_length=100)
-    job_title = models.CharField('المسمى الوظيفي', max_length=100)
-    phone = models.CharField('رقم الجوال', max_length=20)
+    employee_id = models.CharField('الرقم الوظيفي', max_length=50, unique=True, blank=True)
+    department = models.CharField('القسم', max_length=100, blank=True)
+    job_title = models.CharField('المسمى الوظيفي', max_length=100, blank=True)
+    phone = models.CharField('رقم الجوال', max_length=20, blank=True)
     
     # الصورة
     avatar = models.ImageField('الصورة الشخصية', upload_to='avatars/', blank=True)
@@ -67,7 +67,21 @@ class UserProfile(models.Model):
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
-        UserProfile.objects.create(user=instance)
+        # توليد رقم وظيفي فريد
+        import uuid
+        employee_id = f"EMP-{uuid.uuid4().hex[:8].upper()}"
+        
+        # التأكد من عدم التكرار
+        while UserProfile.objects.filter(employee_id=employee_id).exists():
+            employee_id = f"EMP-{uuid.uuid4().hex[:8].upper()}"
+        
+        UserProfile.objects.create(
+            user=instance,
+            employee_id=employee_id,
+            department='غير محدد',
+            job_title='غير محدد',
+            phone='غير محدد'
+        )
 
 
 @receiver(post_save, sender=User)
