@@ -99,19 +99,27 @@ def create(request):
                 print("  - Nationality:", nationality)
                 
                 # التحقق من عدم وجود نفس رقم الهوية
-                if Customer.objects.filter(emirates_id=emirates_id).exists():
+                existing_customer = Customer.objects.filter(emirates_id=emirates_id).first()
+                if existing_customer:
                     print("❌ Emirates ID already exists:", emirates_id)
-                    messages.error(request, 'رقم الهوية موجود مسبقاً! استخدم "اختيار عميل موجود"')
+                    messages.error(request, f'رقم الهوية {emirates_id} موجود مسبقاً للعميل "{existing_customer.full_name}". استخدم "اختيار عميل موجود" أو استخدم رقم هوية مختلف.')
                     return redirect('requests:create')
                 
                 # التحقق من البيانات المطلوبة
-                if not full_name or not emirates_id or not phone or not date_of_birth:
-                    print("❌ Missing required fields:")
-                    print("  - Full Name:", full_name)
-                    print("  - Emirates ID:", emirates_id)
-                    print("  - Phone:", phone)
-                    print("  - Date of Birth:", date_of_birth)
-                    messages.error(request, 'يرجى ملء جميع الحقول المطلوبة')
+                missing_fields = []
+                if not full_name:
+                    missing_fields.append('الاسم الرباعي')
+                if not emirates_id:
+                    missing_fields.append('رقم الهوية')
+                if not phone:
+                    missing_fields.append('رقم الجوال')
+                if not date_of_birth:
+                    missing_fields.append('تاريخ الميلاد')
+                
+                if missing_fields:
+                    print("❌ Missing required fields:", missing_fields)
+                    fields_list = '، '.join(missing_fields)
+                    messages.error(request, f'يرجى ملء الحقول المطلوبة التالية: {fields_list}')
                     return redirect('requests:create')
                 
                 # إنشاء العميل
@@ -194,8 +202,10 @@ def create(request):
             # رسالة نجاح
             if customer_created:
                 messages.success(request, f'✅ تم إنشاء ملف العميل "{customer.full_name}" والطلب بنجاح! الرقم المرجعي: {new_request.reference_number}')
+                print(f"🎉 SUCCESS: Customer and Request created - Customer ID: {customer.id}, Request ID: {new_request.id}")
             else:
                 messages.success(request, f'✅ تم إنشاء الطلب بنجاح للعميل "{customer.full_name}"! الرقم المرجعي: {new_request.reference_number}')
+                print(f"🎉 SUCCESS: Request created for existing customer - Customer ID: {customer.id}, Request ID: {new_request.id}")
             
             # إعادة التوجيه إلى صفحة تفاصيل الطلب
             return redirect('requests:detail', pk=new_request.pk)
@@ -204,7 +214,20 @@ def create(request):
             import traceback
             error_details = traceback.format_exc()
             print(f"❌ خطأ في إنشاء الطلب: {error_details}")  # للتشخيص في Console
-            messages.error(request, f'❌ حدث خطأ: {str(e)}')
+            
+            # رسائل خطأ أكثر وضوحاً
+            error_message = str(e)
+            if 'emirates_id' in error_message.lower():
+                messages.error(request, '❌ خطأ في رقم الهوية. تأكد من صحة الرقم.')
+            elif 'phone' in error_message.lower():
+                messages.error(request, '❌ خطأ في رقم الجوال. تأكد من صحة الرقم.')
+            elif 'email' in error_message.lower():
+                messages.error(request, '❌ خطأ في البريد الإلكتروني. تأكد من صحة العنوان.')
+            elif 'date' in error_message.lower():
+                messages.error(request, '❌ خطأ في التاريخ. تأكد من صحة تاريخ الميلاد.')
+            else:
+                messages.error(request, f'❌ حدث خطأ غير متوقع: {error_message}')
+            
             return redirect('requests:create')
     
     # GET request - جلب قائمة العملاء للاختيار
