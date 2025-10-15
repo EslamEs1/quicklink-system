@@ -201,22 +201,31 @@ def edit(request, pk):
 
 # @login_required
 def delete(request, pk):
-    """حذف عميل (soft delete)"""
-    customer = get_object_or_404(Customer, pk=pk, is_active=True)
+    """حذف عميل نهائي"""
+    customer = get_object_or_404(Customer, pk=pk)
     
     if request.method == 'POST':
-        # Soft delete - تعطيل العميل بدلاً من الحذف الفعلي
-        customer.is_active = False
-        customer.save()
+        customer_name = customer.full_name
         
-        # يمكن إضافة حذف فعلي إذا أردت:
-        # customer.delete()
+        # التحقق من وجود طلبات مرتبطة بالعميل
+        requests_count = customer.requests.count()
+        if requests_count > 0:
+            messages.error(request, f'❌ لا يمكن حذف العميل "{customer_name}" لأنه لديه {requests_count} طلب(ات) مرتبط(ة). يرجى حذف الطلبات أولاً أو استخدام التعديل بدلاً من الحذف.')
+            return redirect('clients:detail', pk=pk)
         
-        messages.success(request, f'✅ تم حذف العميل "{customer.full_name}" بنجاح')
+        # حذف نهائي للعميل
+        customer.delete()
+        
+        messages.success(request, f'✅ تم حذف العميل "{customer_name}" نهائياً من النظام')
         return redirect('clients:list')
     
-    # GET request - عرض صفحة تأكيد الحذف (اختياري)
-    return redirect('clients:detail', pk=pk)
+    # GET request - عرض صفحة تأكيد الحذف
+    context = {
+        'page_title': f'حذف العميل: {customer.full_name}',
+        'customer': customer,
+        'requests_count': customer.requests.count(),
+    }
+    return render(request, 'clients/delete_confirm.html', context)
 
 
 # @login_required

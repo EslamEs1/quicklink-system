@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}حذف العميل - {{ customer.full_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0 text-gray-800">
+                        <i class="fas fa-user-times text-danger me-2"></i>
+                        حذف العميل
+                    </h1>
+                    <p class="text-muted mb-0">تأكيد حذف العميل نهائياً من النظام</p>
+                </div>
+                <div>
+                    <a href="{% url 'clients:detail' customer.pk %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>
+                        العودة للتفاصيل
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Warning Card -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        تحذير: حذف نهائي
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger">
+                        <h6><i class="fas fa-warning me-2"></i>تحذير مهم:</h6>
+                        <p class="mb-0">هذا الإجراء سيقوم بحذف العميل نهائياً من النظام ولن يمكن استرجاع البيانات مرة أخرى.</p>
+                    </div>
+
+                    <!-- Customer Info -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6 class="text-primary">معلومات العميل:</h6>
+                            <ul class="list-unstyled">
+                                <li><strong>الاسم:</strong> {{ customer.full_name }}</li>
+                                <li><strong>رقم الهوية:</strong> {{ customer.masked_emirates_id }}</li>
+                                <li><strong>الجوال:</strong> {{ customer.masked_phone }}</li>
+                                <li><strong>الجنسية:</strong> {{ customer.nationality }}</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-primary">الإحصائيات:</h6>
+                            <ul class="list-unstyled">
+                                <li><strong>تاريخ التسجيل:</strong> {{ customer.created_at|date:"Y-m-d" }}</li>
+                                <li><strong>عدد الطلبات:</strong> {{ requests_count }}</li>
+                                <li><strong>الحالة:</strong> 
+                                    {% if customer.is_active %}
+                                        <span class="badge bg-success">نشط</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">غير نشط</span>
+                                    {% endif %}
+                                </li>
+                                <li><strong>التوثيق:</strong> 
+                                    {% if customer.is_verified %}
+                                        <span class="badge bg-success">موثق</span>
+                                    {% else %}
+                                        <span class="badge bg-warning">غير موثق</span>
+                                    {% endif %}
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Requests Warning -->
+                    {% if requests_count > 0 %}
+                    <div class="alert alert-warning">
+                        <h6><i class="fas fa-exclamation-circle me-2"></i>تحذير:</h6>
+                        <p class="mb-2">هذا العميل لديه <strong>{{ requests_count }} طلب(ات)</strong> مرتبط(ة) به.</p>
+                        <p class="mb-0">لا يمكن حذف العميل إلا بعد حذف جميع الطلبات المرتبطة به أولاً.</p>
+                    </div>
+                    {% endif %}
+
+                    <!-- Actions -->
+                    <div class="d-flex gap-2">
+                        {% if requests_count > 0 %}
+                            <!-- Cannot Delete -->
+                            <button type="button" class="btn btn-danger" disabled>
+                                <i class="fas fa-trash me-1"></i>
+                                لا يمكن الحذف (يوجد طلبات)
+                            </button>
+                            <a href="{% url 'clients:detail' customer.pk %}" class="btn btn-primary">
+                                <i class="fas fa-eye me-1"></i>
+                                عرض الطلبات
+                            </a>
+                        {% else %}
+                            <!-- Can Delete -->
+                            <form method="post" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger" onclick="return confirm('هل أنت متأكد من حذف هذا العميل نهائياً؟ لن يمكن استرجاع البيانات مرة أخرى.')">
+                                    <i class="fas fa-trash me-1"></i>
+                                    حذف نهائي
+                                </button>
+                            </form>
+                        {% endif %}
+                        
+                        <a href="{% url 'clients:detail' customer.pk %}" class="btn btn-secondary">
+                            <i class="fas fa-times me-1"></i>
+                            إلغاء
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Additional Info -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        معلومات إضافية
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>ما سيتم حذفه:</h6>
+                            <ul class="small">
+                                <li>معلومات العميل الشخصية</li>
+                                <li>رقم الهوية (سيصبح متاحاً للاستخدام مرة أخرى)</li>
+                                <li>معلومات الاتصال</li>
+                                <li>التواريخ والإحصائيات</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>ما لن يتم حذفه:</h6>
+                            <ul class="small">
+                                <li>الطلبات المرتبطة (إذا وجدت)</li>
+                                <li>سجلات التدقيق</li>
+                                <li>الملفات المرفقة</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

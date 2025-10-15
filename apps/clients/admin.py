@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.contrib import messages
 from .models import Customer, IdentityConflict
 
 
@@ -10,6 +11,7 @@ class CustomerAdmin(admin.ModelAdmin):
     list_filter = ['is_active', 'is_verified', 'gender', 'nationality', 'created_at']
     search_fields = ['full_name', 'full_name_english', 'emirates_id', 'phone', 'email']
     readonly_fields = ['created_at', 'updated_at', 'masked_emirates_id', 'masked_phone', 'age']
+    actions = ['delete_selected_customers', 'deactivate_customers']
     
     fieldsets = (
         ('المعلومات الأساسية', {
@@ -32,6 +34,37 @@ class CustomerAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
+    
+    def delete_selected_customers(self, request, queryset):
+        """حذف العملاء المحددين نهائياً"""
+        deleted_count = 0
+        skipped_count = 0
+        
+        for customer in queryset:
+            # التحقق من وجود طلبات مرتبطة
+            if customer.requests.count() > 0:
+                skipped_count += 1
+                continue
+            
+            # حذف العميل نهائياً
+            customer_name = customer.full_name
+            customer.delete()
+            deleted_count += 1
+        
+        if deleted_count > 0:
+            messages.success(request, f'تم حذف {deleted_count} عميل نهائياً من النظام')
+        
+        if skipped_count > 0:
+            messages.warning(request, f'تم تخطي {skipped_count} عميل بسبب وجود طلبات مرتبطة')
+    
+    delete_selected_customers.short_description = "حذف العملاء المحددين نهائياً"
+    
+    def deactivate_customers(self, request, queryset):
+        """تعطيل العملاء المحددين (soft delete)"""
+        updated_count = queryset.update(is_active=False)
+        messages.success(request, f'تم تعطيل {updated_count} عميل')
+    
+    deactivate_customers.short_description = "تعطيل العملاء المحددين"
 
 
 @admin.register(IdentityConflict)
