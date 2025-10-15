@@ -326,30 +326,19 @@
                                 </div>
                             </div>
 
-                            <!-- ID Upload Section -->
+                            <!-- Summary Section -->
                             <div class="col-lg-4">
-                                <div class="card shadow-custom" id="imageUploadCard">
-                                    <div class="card-header">
-                                        <h5 class="mb-0">
-                                            <i class="fas fa-camera me-2"></i>
-                                            صورة الهوية
-                                        </h5>
+                                <div class="card shadow-custom">
+                                    <div class="card-header bg-info text-white">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-info-circle me-2"></i>
+                                            ملخص البيانات
+                                        </h6>
                                     </div>
-                                    <div class="card-body text-center">
-                                        <div class="upload-area border border-2 border-dashed rounded p-4" id="uploadArea" style="border-color: #dee2e6;">
-                                            <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
-                                            <p class="text-muted">اسحب وأفلت صورة الهوية هنا</p>
-                                            <p class="text-muted small">أو انقر للاختيار</p>
-                                            <input type="file" id="idImage" accept="image/*" class="d-none" name="id_image" required>
-                                        </div>
-                                        <div class="invalid-feedback d-none" id="imageError">
-                                            يرجى رفع صورة الهوية
-                                        </div>
-                                        <div class="preview-area d-none" id="previewArea">
-                                            <img id="imagePreview" class="img-fluid rounded mb-2" style="max-height: 200px;">
-                                            <button type="button" class="btn btn-sm btn-danger" onclick="removeImage()">
-                                                <i class="fas fa-trash me-1"></i>إزالة
-                                            </button>
+                                    <div class="card-body">
+                                        <div class="alert alert-info">
+                                            <i class="fas fa-lightbulb me-2"></i>
+                                            <strong>تلميح:</strong> سيتم رفع المستندات في الخطوة التالية
                                         </div>
                                     </div>
                                 </div>
@@ -375,12 +364,6 @@
                                                 <input class="form-check-input" type="checkbox" id="checkId" disabled>
                                                 <label class="form-check-label" for="checkId">
                                                     <small>✓ صحة رقم الهوية</small>
-                                                </label>
-                                            </div>
-                                            <div class="form-check mb-2">
-                                                <input class="form-check-input" type="checkbox" id="checkImage" disabled>
-                                                <label class="form-check-label" for="checkImage">
-                                                    <small>✓ رفع صورة الهوية</small>
                                                 </label>
                                             </div>
                                         </div>
@@ -474,12 +457,16 @@
                                         <label class="form-label">مستندات إضافية (اختياري)</label>
                                         <div class="upload-area">
                                             <input type="file" class="form-control" id="additionalDocs" name="additional_docs" 
-                                                   accept=".pdf,.jpg,.jpeg,.png" multiple>
+                                                   accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" multiple>
                                             <div class="upload-preview mt-2" id="additionalDocsPreview"></div>
                                         </div>
                                         <div class="form-text">
                                             <i class="fas fa-file-alt me-1"></i>
-                                            يمكن رفع مستندات إضافية مثل: شهادات، عقود، إلخ
+                                            يمكن رفع عدة مستندات مثل: شهادات، عقود، صور، ملفات PDF، إلخ
+                                        </div>
+                                        <div class="form-text text-info">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            يمكن اختيار عدة ملفات مرة واحدة (اضغط Ctrl+Click)
                                         </div>
                                     </div>
                                 </div>
@@ -803,18 +790,25 @@
                 updateFilesList();
                 updateDocumentCheck();
                 
-                // Show preview
+                // Show preview for all files
                 let previewHTML = '';
-                files.forEach(file => {
+                files.forEach((file, index) => {
                     const reader = new FileReader();
                     reader.onload = function(e) {
                         if (file.type.startsWith('image/')) {
-                            previewHTML += `<img src="${e.target.result}" alt="${file.name}" class="img-thumbnail me-2">`;
+                            previewHTML += `
+                                <div class="d-inline-block me-2 mb-2">
+                                    <img src="${e.target.result}" alt="${file.name}" class="img-thumbnail" style="max-width: 80px; max-height: 80px;">
+                                    <div class="small text-center mt-1">${file.name.length > 15 ? file.name.substring(0, 15) + '...' : file.name}</div>
+                                </div>
+                            `;
                         } else {
-                            previewHTML += `<div class="d-inline-block me-2">
-                                <i class="fas fa-file-alt fa-2x text-primary"></i>
-                                <div class="small">${file.name}</div>
-                            </div>`;
+                            previewHTML += `
+                                <div class="d-inline-block me-2 mb-2 text-center">
+                                    <i class="fas ${getFileIcon(file.name)} fa-2x text-primary"></i>
+                                    <div class="small mt-1">${file.name.length > 15 ? file.name.substring(0, 15) + '...' : file.name}</div>
+                                </div>
+                            `;
                         }
                         additionalDocsPreview.innerHTML = previewHTML;
                     };
@@ -858,6 +852,31 @@
                     checkDocuments.checked = false;
                 }
                 updateProgress();
+            }
+            
+            // Function to get file icon based on extension
+            function getFileIcon(filename) {
+                const extension = filename.split('.').pop().toLowerCase();
+                switch(extension) {
+                    case 'pdf':
+                        return 'fa-file-pdf text-danger';
+                    case 'doc':
+                    case 'docx':
+                        return 'fa-file-word text-primary';
+                    case 'jpg':
+                    case 'jpeg':
+                    case 'png':
+                    case 'gif':
+                        return 'fa-file-image text-success';
+                    case 'xls':
+                    case 'xlsx':
+                        return 'fa-file-excel text-success';
+                    case 'zip':
+                    case 'rar':
+                        return 'fa-file-archive text-warning';
+                    default:
+                        return 'fa-file-alt text-secondary';
+                }
             }
             
             // Global function to remove files
