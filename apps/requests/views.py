@@ -213,6 +213,49 @@ def create(request):
     customers = Customer.objects.filter(is_active=True).order_by('-updated_at')[:50]
     templates = Template.objects.filter(is_active=True, is_published=True).order_by('template_type', 'name')
     
+    # إنشاء قوالب تجريبية إذا لم توجد
+    if not templates.exists():
+        from apps.requests.models import TemplateType
+        template_type, created = TemplateType.objects.get_or_create(
+            name_arabic='قوالب عامة',
+            defaults={
+                'name_english': 'General Templates',
+                'icon': 'fa-file-alt',
+                'color': 'primary',
+                'is_active': True
+            }
+        )
+        
+        # إنشاء قوالب تجريبية
+        Template.objects.get_or_create(
+            name='قالب ربط حساب PayTabs',
+            defaults={
+                'name_english': 'PayTabs Account Linking Template',
+                'content_arabic': 'هذا قالب لربط حساب PayTabs',
+                'content_english': 'This is a template for linking PayTabs account',
+                'template_type': template_type,
+                'is_active': True,
+                'is_published': True,
+                'version': '1.0'
+            }
+        )
+        
+        Template.objects.get_or_create(
+            name='قالب إنشاء حساب جديد',
+            defaults={
+                'name_english': 'New Account Creation Template',
+                'content_arabic': 'هذا قالب لإنشاء حساب جديد',
+                'content_english': 'This is a template for creating new account',
+                'template_type': template_type,
+                'is_active': True,
+                'is_published': True,
+                'version': '1.0'
+            }
+        )
+        
+        # إعادة جلب القوالب
+        templates = Template.objects.filter(is_active=True, is_published=True).order_by('template_type', 'name')
+    
     # جلب أنواع الطلبات من Database (ديناميكي 100%)
     from apps.requests.models import RequestType
     request_types = RequestType.objects.filter(is_active=True).select_related('category').order_by('category__display_order', 'display_order')
