@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}إضافة فئة جديدة{% endblock %}
+{% block title %}تعديل الفئة - {{ category.name_arabic }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -11,10 +11,10 @@
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <h1 class="h3 mb-0 text-gray-800">
-                        <i class="fas fa-plus text-success me-2"></i>
-                        إضافة فئة جديدة
+                        <i class="fas fa-edit text-primary me-2"></i>
+                        تعديل الفئة
                     </h1>
-                    <p class="text-muted mb-0">إنشاء فئة جديدة لتنظيم أنواع الطلبات</p>
+                    <p class="text-muted mb-0">تعديل معلومات الفئة: {{ category.name_arabic }}</p>
                 </div>
                 <div>
                     <a href="{% url 'requests:categories_list' %}" class="btn btn-secondary">
@@ -26,14 +26,14 @@
         </div>
     </div>
 
-    <!-- Create Form -->
+    <!-- Edit Form -->
     <div class="row justify-content-center">
         <div class="col-lg-8">
             <div class="card shadow-custom">
-                <div class="card-header bg-success text-white">
+                <div class="card-header bg-primary text-white">
                     <h5 class="mb-0">
                         <i class="fas fa-layer-group me-2"></i>
-                        معلومات الفئة الجديدة
+                        تعديل الفئة
                     </h5>
                 </div>
                 <div class="card-body">
@@ -55,8 +55,7 @@
                                     الاسم العربي <span class="text-danger">*</span>
                                 </label>
                                 <input type="text" class="form-control" id="name_arabic" name="name_arabic" 
-                                       required placeholder="مثال: الخدمات الحكومية">
-                                <div class="form-text">الاسم الذي سيظهر في النظام</div>
+                                       value="{{ category.name_arabic }}" required>
                             </div>
                             
                             <div class="col-md-6 mb-3">
@@ -65,8 +64,17 @@
                                     الاسم الإنجليزي
                                 </label>
                                 <input type="text" class="form-control" id="name_english" name="name_english" 
-                                       placeholder="Example: Government Services">
-                                <div class="form-text">اختياري - للاستخدام التقني</div>
+                                       value="{{ category.name_english }}">
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="code" class="form-label">
+                                    <i class="fas fa-code me-1"></i>
+                                    الرمز
+                                </label>
+                                <input type="text" class="form-control" id="code" name="code" 
+                                       value="{{ category.code }}" readonly>
+                                <div class="form-text">الرمز يتم توليده تلقائياً</div>
                             </div>
                             
                             <div class="col-md-6 mb-3">
@@ -75,8 +83,7 @@
                                     ترتيب العرض
                                 </label>
                                 <input type="number" class="form-control" id="display_order" name="display_order" 
-                                       value="1" min="1">
-                                <div class="form-text">رقم الترتيب في القوائم</div>
+                                       value="{{ category.display_order }}" min="1">
                             </div>
                         </div>
 
@@ -95,16 +102,15 @@
                                     اللون
                                 </label>
                                 <select class="form-select" id="color" name="color">
-                                    <option value="primary">أزرق</option>
-                                    <option value="success">أخضر</option>
-                                    <option value="warning">أصفر</option>
-                                    <option value="danger">أحمر</option>
-                                    <option value="info">سماوي</option>
-                                    <option value="secondary">رمادي</option>
-                                    <option value="dark">أسود</option>
-                                    <option value="light">فاتح</option>
+                                    <option value="primary" {% if category.color == 'primary' %}selected{% endif %}>أزرق</option>
+                                    <option value="success" {% if category.color == 'success' %}selected{% endif %}>أخضر</option>
+                                    <option value="warning" {% if category.color == 'warning' %}selected{% endif %}>أصفر</option>
+                                    <option value="danger" {% if category.color == 'danger' %}selected{% endif %}>أحمر</option>
+                                    <option value="info" {% if category.color == 'info' %}selected{% endif %}>سماوي</option>
+                                    <option value="secondary" {% if category.color == 'secondary' %}selected{% endif %}>رمادي</option>
+                                    <option value="dark" {% if category.color == 'dark' %}selected{% endif %}>أسود</option>
+                                    <option value="light" {% if category.color == 'light' %}selected{% endif %}>فاتح</option>
                                 </select>
-                                <div class="form-text">لون الفئة في الواجهة</div>
                             </div>
                             
                             <div class="col-md-6 mb-3">
@@ -114,23 +120,22 @@
                                 </label>
                                 <select class="form-select" id="icon" name="icon">
                                     <option value="">بدون أيقونة</option>
-                                    <option value="fa-layer-group">طبقات</option>
-                                    <option value="fa-file-alt">مستند</option>
-                                    <option value="fa-briefcase">حقيبة</option>
-                                    <option value="fa-cogs">تروس</option>
-                                    <option value="fa-chart-line">رسم بياني</option>
-                                    <option value="fa-users">مستخدمين</option>
-                                    <option value="fa-handshake">مصافحة</option>
-                                    <option value="fa-building">مبنى</option>
-                                    <option value="fa-graduation-cap">تعليم</option>
-                                    <option value="fa-heart">صحة</option>
-                                    <option value="fa-car">نقل</option>
-                                    <option value="fa-home">عقارات</option>
-                                    <option value="fa-credit-card">مالية</option>
-                                    <option value="fa-shield-alt">أمن</option>
-                                    <option value="fa-gavel">قانونية</option>
+                                    <option value="fa-layer-group" {% if category.icon == 'fa-layer-group' %}selected{% endif %}>طبقات</option>
+                                    <option value="fa-file-alt" {% if category.icon == 'fa-file-alt' %}selected{% endif %}>مستند</option>
+                                    <option value="fa-briefcase" {% if category.icon == 'fa-briefcase' %}selected{% endif %}>حقيبة</option>
+                                    <option value="fa-cogs" {% if category.icon == 'fa-cogs' %}selected{% endif %}>تروس</option>
+                                    <option value="fa-chart-line" {% if category.icon == 'fa-chart-line' %}selected{% endif %}>رسم بياني</option>
+                                    <option value="fa-users" {% if category.icon == 'fa-users' %}selected{% endif %}>مستخدمين</option>
+                                    <option value="fa-handshake" {% if category.icon == 'fa-handshake' %}selected{% endif %}>مصافحة</option>
+                                    <option value="fa-building" {% if category.icon == 'fa-building' %}selected{% endif %}>مبنى</option>
+                                    <option value="fa-graduation-cap" {% if category.icon == 'fa-graduation-cap' %}selected{% endif %}>تعليم</option>
+                                    <option value="fa-heart" {% if category.icon == 'fa-heart' %}selected{% endif %}>صحة</option>
+                                    <option value="fa-car" {% if category.icon == 'fa-car' %}selected{% endif %}>نقل</option>
+                                    <option value="fa-home" {% if category.icon == 'fa-home' %}selected{% endif %}>عقارات</option>
+                                    <option value="fa-credit-card" {% if category.icon == 'fa-credit-card' %}selected{% endif %}>مالية</option>
+                                    <option value="fa-shield-alt" {% if category.icon == 'fa-shield-alt' %}selected{% endif %}>أمن</option>
+                                    <option value="fa-gavel" {% if category.icon == 'fa-gavel' %}selected{% endif %}>قانونية</option>
                                 </select>
-                                <div class="form-text">أيقونة تمثل الفئة</div>
                             </div>
                         </div>
 
@@ -145,7 +150,8 @@
                             
                             <div class="col-md-6 mb-3">
                                 <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
+                                    <input class="form-check-input" type="checkbox" id="is_active" name="is_active" 
+                                           {% if category.is_active %}checked{% endif %}>
                                     <label class="form-check-label" for="is_active">
                                         <i class="fas fa-power-off me-1"></i>
                                         الفئة نشطة
@@ -163,21 +169,25 @@
                                     معاينة الفئة
                                 </h6>
                                 <div class="card bg-light">
-                                    <div class="card-header bg-primary text-white" id="preview-header">
+                                    <div class="card-header bg-{{ category.color }} text-white">
                                         <div class="d-flex justify-content-between align-items-center">
                                             <h6 class="mb-0">
-                                                <i class="fas fa-layer-group me-2" id="preview-icon"></i>
-                                                <span id="preview-name">اسم الفئة</span>
+                                                {% if category.icon %}
+                                                <i class="fas {{ category.icon }} me-2"></i>
+                                                {% endif %}
+                                                <span id="preview-name">{{ category.name_arabic }}</span>
                                             </h6>
-                                            <span class="badge bg-light text-dark" id="preview-status">نشط</span>
+                                            <span class="badge bg-light text-dark" id="preview-status">
+                                                {% if category.is_active %}نشط{% else %}معطل{% endif %}
+                                            </span>
                                         </div>
                                     </div>
                                     <div class="card-body">
                                         <p class="text-muted mb-2">
-                                            <small><i class="fas fa-language me-1"></i><span id="preview-english">لا يوجد اسم إنجليزي</span></small>
+                                            <small><i class="fas fa-language me-1"></i><span id="preview-english">{{ category.name_english|default:"لا يوجد اسم إنجليزي" }}</span></small>
                                         </p>
                                         <p class="mb-0">
-                                            <strong>الرمز:</strong> <code id="preview-code">سيتم توليده تلقائياً</code>
+                                            <strong>الرمز:</strong> <code>{{ category.code }}</code>
                                         </p>
                                     </div>
                                 </div>
@@ -186,9 +196,9 @@
 
                         <!-- Actions -->
                         <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-success">
-                                <i class="fas fa-plus me-1"></i>
-                                إنشاء الفئة
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>
+                                حفظ التغييرات
                             </button>
                             <a href="{% url 'requests:categories_list' %}" class="btn btn-secondary">
                                 <i class="fas fa-times me-1"></i>
@@ -199,34 +209,39 @@
                 </div>
             </div>
 
-            <!-- Help Information -->
+            <!-- Category Statistics -->
             <div class="card mt-4">
                 <div class="card-header">
                     <h6 class="mb-0">
-                        <i class="fas fa-question-circle me-2"></i>
-                        معلومات مفيدة
+                        <i class="fas fa-chart-bar me-2"></i>
+                        إحصائيات الفئة
                     </h6>
                 </div>
                 <div class="card-body">
                     <div class="row">
-                        <div class="col-md-6">
-                            <h6>نصائح لإنشاء الفئة:</h6>
-                            <ul class="small">
-                                <li>اختر اسماً واضحاً ومفهوماً</li>
-                                <li>استخدم ألوان مختلفة للتمييز</li>
-                                <li>اختر أيقونة مناسبة للمحتوى</li>
-                                <li>حدد ترتيب مناسب للعرض</li>
-                            </ul>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h5 class="text-primary">{{ category.request_types.count }}</h5>
+                                <small class="text-muted">أنواع الطلبات</small>
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <h6>أمثلة على الفئات:</h6>
-                            <ul class="small">
-                                <li>الخدمات الحكومية</li>
-                                <li>الخدمات المالية</li>
-                                <li>الخدمات التعليمية</li>
-                                <li>الخدمات الصحية</li>
-                                <li>الخدمات العقارية</li>
-                            </ul>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h5 class="text-success">{{ category.created_at|date:"Y-m-d" }}</h5>
+                                <small class="text-muted">تاريخ الإنشاء</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h5 class="text-info">{{ category.updated_at|date:"Y-m-d" }}</h5>
+                                <small class="text-muted">آخر تحديث</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h5 class="text-warning">{{ category.display_order }}</h5>
+                                <small class="text-muted">ترتيب العرض</small>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -239,7 +254,7 @@
 <script>
     // تحديث المعاينة عند تغيير الحقول
     document.getElementById('name_arabic').addEventListener('input', function() {
-        document.getElementById('preview-name').textContent = this.value || 'اسم الفئة';
+        document.getElementById('preview-name').textContent = this.value;
     });
     
     document.getElementById('name_english').addEventListener('input', function() {
@@ -247,18 +262,8 @@
     });
     
     document.getElementById('color').addEventListener('change', function() {
-        const preview = document.getElementById('preview-header');
+        const preview = document.querySelector('.card-header');
         preview.className = `card-header bg-${this.value} text-white`;
-    });
-    
-    document.getElementById('icon').addEventListener('change', function() {
-        const iconElement = document.getElementById('preview-icon');
-        if (this.value) {
-            iconElement.className = `fas ${this.value} me-2`;
-            iconElement.style.display = 'inline';
-        } else {
-            iconElement.style.display = 'none';
-        }
     });
     
     document.getElementById('is_active').addEventListener('change', function() {
