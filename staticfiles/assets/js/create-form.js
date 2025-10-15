@@ -243,19 +243,68 @@ function validateStep1_5() {
     
     // التحقق من رفع صورة الهوية الإماراتية (إجباري)
     const idImageInput = document.getElementById('idImage');
+    const idImageUpload = document.getElementById('idImageUpload');
     let isValid = true;
     
     if (!idImageInput || !idImageInput.files || idImageInput.files.length === 0) {
         console.log('❌ Missing Emirates ID image upload');
+        
+        // إضافة border أحمر
+        if (idImageUpload) {
+            idImageUpload.classList.add('border-danger');
+            idImageUpload.style.borderColor = '#dc3545';
+            idImageUpload.style.borderWidth = '2px';
+            idImageUpload.style.borderStyle = 'solid';
+        }
+        
+        // إضافة رسالة خطأ
+        const errorMsg = document.getElementById('idImageError') || createErrorMessage('idImageUpload', 'يرجى رفع صورة الهوية الإماراتية');
+        
         isValid = false;
     } else {
         console.log('✅ Emirates ID image uploaded');
+        
+        // إضافة border أخضر
+        if (idImageUpload) {
+            idImageUpload.classList.remove('border-danger');
+            idImageUpload.classList.add('border-success');
+            idImageUpload.style.borderColor = '#28a745';
+            idImageUpload.style.borderWidth = '2px';
+            idImageUpload.style.borderStyle = 'solid';
+        }
+        
+        // إخفاء رسالة الخطأ
+        const errorMsg = document.getElementById('idImageError');
+        if (errorMsg) {
+            errorMsg.remove();
+        }
     }
     
     // المستندات الإضافية اختيارية، لا نحتاج للتحقق منها
     
     console.log(`✅ Step 1.5 validation: ${isValid ? 'PASSED' : 'FAILED'}`);
     return isValid;
+}
+
+// دالة مساعدة لإنشاء رسائل الخطأ
+function createErrorMessage(parentId, message) {
+    const parent = document.getElementById(parentId);
+    if (!parent) return null;
+    
+    // إزالة رسالة الخطأ الموجودة
+    const existingError = document.getElementById(parentId + 'Error');
+    if (existingError) {
+        existingError.remove();
+    }
+    
+    // إنشاء رسالة خطأ جديدة
+    const errorDiv = document.createElement('div');
+    errorDiv.id = parentId + 'Error';
+    errorDiv.className = 'form-text text-danger mt-2';
+    errorDiv.innerHTML = `<i class="fas fa-exclamation-triangle me-1"></i>${message}`;
+    
+    parent.appendChild(errorDiv);
+    return errorDiv;
 }
 
 function validateStep2() {
@@ -266,11 +315,13 @@ function validateStep2() {
         console.log('❌ No template selected');
         if (templateSelect) {
             templateSelect.classList.add('is-invalid');
+            templateSelect.classList.remove('is-valid');
         }
         return false;
     }
     
     templateSelect.classList.remove('is-invalid');
+    templateSelect.classList.add('is-valid');
     console.log('✅ Step 2 validation: PASSED');
     return true;
 }
@@ -300,7 +351,16 @@ function validateStep4() {
         console.log('💵 Cash payment - checking receipt number');
         if (!receiptNumber || !receiptNumber.value.trim()) {
             console.log('❌ Cash payment but no receipt number');
+            if (receiptNumber) {
+                receiptNumber.classList.add('is-invalid');
+                receiptNumber.classList.remove('is-valid');
+            }
             return false;
+        } else {
+            if (receiptNumber) {
+                receiptNumber.classList.remove('is-invalid');
+                receiptNumber.classList.add('is-valid');
+            }
         }
     }
     
