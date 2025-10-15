@@ -67,16 +67,12 @@ def dashboard(request):
 def create(request):
     """إنشاء طلب جديد"""
     if request.method == 'POST':
-        print("🚀 POST request received")
-        print("📝 POST data:", request.POST)
-        print("📁 FILES data:", request.FILES)
         try:
             # التحقق من خيار العميل
             existing_customer_id = request.POST.get('existing_customer_id')
             
             if existing_customer_id:
                 # استخدام عميل موجود
-                print("👤 Using existing customer:", existing_customer_id)
                 customer = get_object_or_404(Customer, pk=existing_customer_id)
                 customer_created = False
             else:
@@ -89,21 +85,16 @@ def create(request):
                 gender = request.POST.get('gender', 'male')
                 nationality = request.POST.get('nationality', 'الإمارات')
                 
-                print("👤 Creating new customer:")
-                print("  - Name:", full_name)
-                print("  - Emirates ID:", emirates_id)
-                print("  - Phone:", phone)
-                print("  - Email:", email)
-                print("  - DOB:", date_of_birth)
-                print("  - Gender:", gender)
-                print("  - Nationality:", nationality)
-                
                 # التحقق من عدم وجود نفس رقم الهوية
                 existing_customer = Customer.objects.filter(emirates_id=emirates_id).first()
                 if existing_customer:
-                    print("❌ Emirates ID already exists:", emirates_id)
                     messages.error(request, f'رقم الهوية {emirates_id} موجود مسبقاً للعميل "{existing_customer.full_name}". استخدم "اختيار عميل موجود" أو استخدم رقم هوية مختلف.')
-                    return redirect('requests:create')
+                    return render(request, 'requests/create.html', {
+                        'page_title': 'إنشاء طلب جديد',
+                        'templates': Template.objects.filter(is_active=True, is_published=True).order_by('template_type', 'name'),
+                        'customers': Customer.objects.filter(is_active=True).order_by('-updated_at')[:50],
+                        'request_types': RequestType.objects.filter(is_active=True).select_related('category').order_by('category__display_order', 'display_order'),
+                    })
                 
                 # التحقق من البيانات المطلوبة
                 missing_fields = []
@@ -117,10 +108,14 @@ def create(request):
                     missing_fields.append('تاريخ الميلاد')
                 
                 if missing_fields:
-                    print("❌ Missing required fields:", missing_fields)
                     fields_list = '، '.join(missing_fields)
                     messages.error(request, f'يرجى ملء الحقول المطلوبة التالية: {fields_list}')
-                    return redirect('requests:create')
+                    return render(request, 'requests/create.html', {
+                        'page_title': 'إنشاء طلب جديد',
+                        'templates': Template.objects.filter(is_active=True, is_published=True).order_by('template_type', 'name'),
+                        'customers': Customer.objects.filter(is_active=True).order_by('-updated_at')[:50],
+                        'request_types': RequestType.objects.filter(is_active=True).select_related('category').order_by('category__display_order', 'display_order'),
+                    })
                 
                 # إنشاء العميل
                 customer = Customer.objects.create(
@@ -133,18 +128,12 @@ def create(request):
                     nationality=nationality,
                     created_by=request.user if request.user.is_authenticated else None,
                 )
-                print("✅ Customer created successfully:", customer.id)
                 customer_created = True
             
             # الحصول على نوع الطلب
             request_type_id = request.POST.get('request_type_id')
             template_id = request.POST.get('template_id')
             payment_method = request.POST.get('paymentMethod', 'paytabs')
-            
-            print("📋 Request details:")
-            print("  - Request Type ID:", request_type_id)
-            print("  - Template ID:", template_id)
-            print("  - Payment Method:", payment_method)
             
             # حساب المبلغ من نوع الطلب
             from apps.requests.models import RequestType
@@ -156,18 +145,10 @@ def create(request):
                 base_price = float(request_type_instance.default_price)
                 tax = base_price * 0.05  # 5% ضريبة
                 total_amount = base_price + tax
-                print("💰 Pricing:")
-                print("  - Base Price:", base_price)
-                print("  - Tax:", tax)
-                print("  - Total:", total_amount)
             
             # الحصول على الأولوية وتاريخ الاستحقاق
             priority = request.POST.get('priority', 'medium')
             due_date = request.POST.get('due_date', None)
-            
-            print("⏰ Priority & Due Date:")
-            print("  - Priority:", priority)
-            print("  - Due Date:", due_date)
             
             # إنشاء الطلب
             new_request = Request.objects.create(
@@ -179,7 +160,6 @@ def create(request):
                 description=request.POST.get('description', ''),
                 created_by=request.user if request.user.is_authenticated else None,
             )
-            print("✅ Request created successfully:", new_request.id, new_request.reference_number)
             
             # ربط القالب إذا تم اختياره
             if template_id:
@@ -202,19 +182,13 @@ def create(request):
             # رسالة نجاح
             if customer_created:
                 messages.success(request, f'✅ تم إنشاء ملف العميل "{customer.full_name}" والطلب بنجاح! الرقم المرجعي: {new_request.reference_number}')
-                print(f"🎉 SUCCESS: Customer and Request created - Customer ID: {customer.id}, Request ID: {new_request.id}")
             else:
                 messages.success(request, f'✅ تم إنشاء الطلب بنجاح للعميل "{customer.full_name}"! الرقم المرجعي: {new_request.reference_number}')
-                print(f"🎉 SUCCESS: Request created for existing customer - Customer ID: {customer.id}, Request ID: {new_request.id}")
             
             # إعادة التوجيه إلى صفحة تفاصيل الطلب
             return redirect('requests:detail', pk=new_request.pk)
             
         except Exception as e:
-            import traceback
-            error_details = traceback.format_exc()
-            print(f"❌ خطأ في إنشاء الطلب: {error_details}")  # للتشخيص في Console
-            
             # رسائل خطأ أكثر وضوحاً
             error_message = str(e)
             if 'emirates_id' in error_message.lower():
@@ -228,7 +202,12 @@ def create(request):
             else:
                 messages.error(request, f'❌ حدث خطأ غير متوقع: {error_message}')
             
-            return redirect('requests:create')
+            return render(request, 'requests/create.html', {
+                'page_title': 'إنشاء طلب جديد',
+                'templates': Template.objects.filter(is_active=True, is_published=True).order_by('template_type', 'name'),
+                'customers': Customer.objects.filter(is_active=True).order_by('-updated_at')[:50],
+                'request_types': RequestType.objects.filter(is_active=True).select_related('category').order_by('category__display_order', 'display_order'),
+            })
     
     # GET request - جلب قائمة العملاء للاختيار
     customers = Customer.objects.filter(is_active=True).order_by('-updated_at')[:50]
