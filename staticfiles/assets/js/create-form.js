@@ -218,9 +218,16 @@ function validateIdImageUpload() {
 function changeStep(direction) {
     console.log(`🔄 Changing step: ${currentStep} + ${direction}`);
     
-    if (direction > 0 && !validateCurrentStep()) {
-        console.log('❌ Current step validation failed');
-        return false;
+    if (direction > 0) {
+        console.log('🔍 Validating current step before proceeding...');
+        const validationResult = validateCurrentStep();
+        console.log('🔍 Validation result:', validationResult);
+        
+        if (!validationResult) {
+            console.log('❌ Current step validation failed - cannot proceed');
+            return false;
+        }
+        console.log('✅ Current step validation passed - proceeding...');
     }
     
     if (direction > 0) {
@@ -405,6 +412,10 @@ function validateStep1_5() {
     const idImageInput = document.getElementById('idImage');
     let isValid = true;
     
+    console.log('📁 ID Image input:', idImageInput);
+    console.log('📁 ID Image files:', idImageInput ? idImageInput.files : 'null');
+    console.log('📁 Files length:', idImageInput ? idImageInput.files.length : 'null');
+    
     if (!idImageInput || !idImageInput.files || idImageInput.files.length === 0) {
         console.log('❌ Missing Emirates ID image upload');
         
@@ -413,7 +424,7 @@ function validateStep1_5() {
         
         isValid = false;
     } else {
-        console.log('✅ Emirates ID image uploaded');
+        console.log('✅ Emirates ID image uploaded - File name:', idImageInput.files[0].name);
         
         // استخدام الدالة المحدثة لإخفاء رسالة الخطأ
         validateIdImageUpload();
