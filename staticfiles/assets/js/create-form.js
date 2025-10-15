@@ -79,6 +79,15 @@ function setupFileInputListeners() {
         });
     }
     
+    // Template selection input
+    const templateSelect = document.getElementById('templateSelect');
+    if (templateSelect) {
+        templateSelect.addEventListener('change', function() {
+            console.log('📋 Template selection changed');
+            validateTemplateSelection();
+        });
+    }
+    
     console.log('✅ File input listeners setup complete');
 }
 
@@ -173,6 +182,36 @@ function getFileIcon(filename) {
             return 'fa-file-archive text-warning';
         default:
             return 'fa-file-alt text-secondary';
+    }
+}
+
+// Real-time validation for template selection
+function validateTemplateSelection() {
+    const templateSelect = document.getElementById('templateSelect');
+    
+    if (!templateSelect) return;
+    
+    if (templateSelect.value) {
+        console.log('✅ Template selected - removing error styling');
+        
+        // Remove error styling
+        templateSelect.classList.remove('is-invalid');
+        templateSelect.classList.add('is-valid');
+        
+        // Remove error message
+        const errorMsg = document.getElementById('templateSelectError');
+        if (errorMsg) {
+            errorMsg.remove();
+        }
+    } else {
+        console.log('❌ No template selected - adding error styling');
+        
+        // Add error styling
+        templateSelect.classList.remove('is-valid');
+        templateSelect.classList.add('is-invalid');
+        
+        // Add error message
+        const errorMsg = document.getElementById('templateSelectError') || createErrorMessage('templateSelect', 'يرجى اختيار قالب قانوني');
     }
 }
 
@@ -461,18 +500,31 @@ function validateStep2() {
     console.log('🔍 Validating Step 2...');
     const templateSelect = document.getElementById('templateSelect');
     
+    console.log('📋 Template select element:', templateSelect);
+    console.log('📋 Template select value:', templateSelect ? templateSelect.value : 'null');
+    
     if (!templateSelect || !templateSelect.value) {
         console.log('❌ No template selected');
         if (templateSelect) {
             templateSelect.classList.add('is-invalid');
             templateSelect.classList.remove('is-valid');
+            
+            // إضافة رسالة خطأ
+            const errorMsg = document.getElementById('templateSelectError') || createErrorMessage('templateSelect', 'يرجى اختيار قالب قانوني');
         }
         return false;
     }
     
     templateSelect.classList.remove('is-invalid');
     templateSelect.classList.add('is-valid');
-    console.log('✅ Step 2 validation: PASSED');
+    
+    // إخفاء رسالة الخطأ
+    const errorMsg = document.getElementById('templateSelectError');
+    if (errorMsg) {
+        errorMsg.remove();
+    }
+    
+    console.log('✅ Step 2 validation: PASSED - Selected template:', templateSelect.options[templateSelect.selectedIndex].text);
     return true;
 }
 
