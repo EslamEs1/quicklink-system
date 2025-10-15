@@ -50,13 +50,13 @@ function initializeForm() {
         dobInput.setAttribute('min', minDate.toISOString().split('T')[0]);
     }
     
-    // Setup file input event listeners for real-time validation
+    // Setup real-time validation for file inputs
     setupFileInputListeners();
     
     console.log('✅ Form initialized');
 }
 
-// Setup file input event listeners for real-time validation
+// Setup real-time validation for file inputs
 function setupFileInputListeners() {
     console.log('🔧 Setting up file input listeners...');
     
@@ -66,15 +66,6 @@ function setupFileInputListeners() {
         idImageInput.addEventListener('change', function() {
             console.log('📁 ID Image input changed');
             validateIdImageUpload();
-        });
-    }
-    
-    // Additional documents input
-    const additionalDocsInput = document.getElementById('additionalDocs');
-    if (additionalDocsInput) {
-        additionalDocsInput.addEventListener('change', function() {
-            console.log('📁 Additional docs input changed');
-            // Additional docs are optional, so no validation needed
         });
     }
     
