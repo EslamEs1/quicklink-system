@@ -340,7 +340,7 @@
                                             <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
                                             <p class="text-muted">اسحب وأفلت صورة الهوية هنا</p>
                                             <p class="text-muted small">أو انقر للاختيار</p>
-                                            <input type="file" id="idImage" accept="image/*" class="d-none" required>
+                                            <input type="file" id="idImage" accept="image/*" class="d-none" name="id_image">
                                         </div>
                                         <div class="preview-area d-none" id="previewArea">
                                             <img id="imagePreview" class="img-fluid rounded mb-2" style="max-height: 200px;">
@@ -755,6 +755,13 @@
                         imagePreview.src = e.target.result;
                         uploadArea.classList.add('d-none');
                         previewArea.classList.remove('d-none');
+                        
+                        // ✅ تحديث checklist - الصورة رُفعت
+                        const checkImage = document.getElementById('checkImage');
+                        if (checkImage) {
+                            checkImage.checked = true;
+                            checkImage.disabled = false;
+                        }
                     };
                     reader.readAsDataURL(file);
                 } else {
@@ -767,6 +774,13 @@
             document.getElementById('idImage').value = '';
             document.getElementById('uploadArea').classList.remove('d-none');
             document.getElementById('previewArea').classList.add('d-none');
+            
+            // ✅ تحديث checklist - الصورة أُزيلت
+            const checkImage = document.getElementById('checkImage');
+            if (checkImage) {
+                checkImage.checked = false;
+                checkImage.disabled = true;
+            }
         }
 
         function setupValidation() {
@@ -970,6 +984,7 @@
                 requestType: document.getElementById('requestType')?.value || '',
                 priority: document.getElementById('priority')?.value || '',
                 dueDate: document.getElementById('dueDate')?.value || '',
+                hasImage: document.getElementById('idImage')?.files.length > 0,
                 timestamp: new Date().toISOString()
             };
             
@@ -1035,6 +1050,15 @@
                     if (formData.requestType) document.getElementById('requestType').value = formData.requestType;
                     if (formData.priority) document.getElementById('priority').value = formData.priority;
                     if (formData.dueDate) document.getElementById('dueDate').value = formData.dueDate;
+                    
+                    // تحديث checklist للصورة
+                    if (formData.hasImage) {
+                        const checkImage = document.getElementById('checkImage');
+                        if (checkImage) {
+                            checkImage.checked = true;
+                            checkImage.disabled = false;
+                        }
+                    }
                     
                     // تشغيل التحقق
                     checkNameMatch();
