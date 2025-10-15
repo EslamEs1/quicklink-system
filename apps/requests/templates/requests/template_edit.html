@@ -62,13 +62,16 @@
                                     </div>
                                     <div class="col-md-4 mb-3">
                                         <label class="form-label">نوع القالب <span class="text-danger">*</span></label>
-                                        <select class="form-control" name="template_type" required>
-                                            <option value="authorization" {% if template.template_type == 'authorization' %}selected{% endif %}>تفويض ربط حساب</option>
-                                            <option value="service_agreement" {% if template.template_type == 'service_agreement' %}selected{% endif %}>اتفاقية الخدمة</option>
-                                            <option value="financial_contract" {% if template.template_type == 'financial_contract' %}selected{% endif %}>عقد الخدمات المالية</option>
-                                            <option value="customer_declaration" {% if template.template_type == 'customer_declaration' %}selected{% endif %}>إقرار العميل</option>
-                                            <option value="privacy_policy" {% if template.template_type == 'privacy_policy' %}selected{% endif %}>سياسة الخصوصية</option>
-                                            <option value="disclaimer" {% if template.template_type == 'disclaimer' %}selected{% endif %}>إخلاء المسؤولية</option>
+                                        <select class="form-control" name="template_type_id" required>
+                                            <option value="">اختر النوع</option>
+                                            {% for template_type in template_types %}
+                                            <option value="{{ template_type.id }}" {% if template.template_type and template.template_type.id == template_type.id %}selected{% endif %}>
+                                                {% if template_type.icon %}
+                                                <i class="fas {{ template_type.icon }}"></i>
+                                                {% endif %}
+                                                {{ template_type.name_arabic }}
+                                            </option>
+                                            {% endfor %}
                                         </select>
                                     </div>
                                 </div>
@@ -148,14 +151,6 @@
                                     <label class="form-check-label" for="isPublished">
                                         <strong>منشور</strong>
                                         <br><small class="text-muted">ظاهر في قائمة القوالب</small>
-                                    </label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="requires_admin_approval" id="requiresApproval"
-                                           {% if template.requires_admin_approval %}checked{% endif %}>
-                                    <label class="form-check-label" for="requiresApproval">
-                                        <strong>يحتاج موافقة المشرف</strong>
-                                        <br><small class="text-muted">لا يمكن استخدامه بدون موافقة</small>
                                     </label>
                                 </div>
                             </div>

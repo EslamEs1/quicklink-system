@@ -403,8 +403,6 @@ class Template(models.Model):
     is_active = models.BooleanField('نشط', default=True)
     is_published = models.BooleanField('منشور', default=False)
     
-    # الصلاحيات
-    requires_admin_approval = models.BooleanField('يحتاج موافقة المشرف', default=True)
     
     # الملف المرفق
     file = models.FileField('ملف القالب', upload_to='templates/', blank=True)

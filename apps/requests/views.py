@@ -631,7 +631,6 @@ def template_create(request):
         # الحالات
         is_active = request.POST.get('is_active') == 'on'
         is_published = request.POST.get('is_published') == 'on'
-        requires_admin_approval = request.POST.get('requires_admin_approval') == 'on'
         save_as_draft = request.POST.get('save_as_draft')
         
         # جلب نوع القالب
@@ -648,7 +647,6 @@ def template_create(request):
             content_english=content_english,
             is_active=is_active if not save_as_draft else False,
             is_published=is_published if not save_as_draft else False,
-            requires_admin_approval=requires_admin_approval,
             created_by=request.user if request.user.is_authenticated else None
         )
         
@@ -699,7 +697,6 @@ def template_edit(request, pk):
         # الحالات
         template.is_active = request.POST.get('is_active') == 'on'
         template.is_published = request.POST.get('is_published') == 'on'
-        template.requires_admin_approval = request.POST.get('requires_admin_approval') == 'on'
         
         # نشر مباشرة
         if request.POST.get('publish'):
