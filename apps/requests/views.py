@@ -569,16 +569,17 @@ def pending(request):
 def templates_list(request):
     """القوالب القانونية"""
     from django.db.models import Count
+    from apps.requests.models import TemplateType
     
     # الفلاتر
     type_filter = request.GET.get('type')
     status_filter = request.GET.get('status')
     
-    # Query - لا نستخدم annotate لأن usage_count موجود في Model
-    templates = Template.objects.all()
+    # Query - جلب القوالب مع أنواعها
+    templates = Template.objects.select_related('template_type').all()
     
     if type_filter and type_filter != 'all':
-        templates = templates.filter(template_type=type_filter)
+        templates = templates.filter(template_type_id=type_filter)
     
     if status_filter and status_filter != 'all':
         if status_filter == 'active':
@@ -598,6 +599,9 @@ def templates_list(request):
     # إجمالي الاستخدامات من جميع القوالب
     total_usage = sum(t.usage_count for t in Template.objects.all())
     
+    # جلب أنواع القوالب للفلترة
+    template_types = TemplateType.objects.filter(is_active=True).order_by('display_order')
+    
     context = {
         'page_title': 'القوالب القانونية',
         'templates': templates,
@@ -605,6 +609,7 @@ def templates_list(request):
         'active_templates': active_templates,
         'draft_templates': draft_templates,
         'total_usage': total_usage,
+        'template_types': template_types,
     }
     return render(request, 'requests/templates_list.html', context)
 
@@ -612,12 +617,14 @@ def templates_list(request):
 # @login_required
 def template_create(request):
     """إنشاء قالب قانوني جديد"""
+    from apps.requests.models import TemplateType
+    
     if request.method == 'POST':
         # جلب البيانات
         name = request.POST.get('name')
         name_english = request.POST.get('name_english', '')
         version = request.POST.get('version', '1.0')
-        template_type = request.POST.get('template_type')
+        template_type_id = request.POST.get('template_type_id')
         content_arabic = request.POST.get('content_arabic')
         content_english = request.POST.get('content_english', '')
         
@@ -626,6 +633,9 @@ def template_create(request):
         is_published = request.POST.get('is_published') == 'on'
         requires_admin_approval = request.POST.get('requires_admin_approval') == 'on'
         save_as_draft = request.POST.get('save_as_draft')
+        
+        # جلب نوع القالب
+        template_type = get_object_or_404(TemplateType, pk=template_type_id) if template_type_id else None
         
         # إنشاء القالب (الرمز سيُنشأ تلقائياً في save())
         template = Template.objects.create(
@@ -655,9 +665,12 @@ def template_create(request):
         
         return redirect('requests:templates_list')
     
-    # GET request
+    # GET request - جلب أنواع القوالب
+    template_types = TemplateType.objects.filter(is_active=True).order_by('display_order')
+    
     context = {
         'page_title': 'إضافة قالب جديد',
+        'template_types': template_types,
     }
     return render(request, 'requests/template_create.html', context)
 
@@ -665,6 +678,8 @@ def template_create(request):
 # @login_required
 def template_edit(request, pk):
     """تعديل قالب قانوني"""
+    from apps.requests.models import TemplateType
+    
     template = get_object_or_404(Template, pk=pk)
     
     if request.method == 'POST':
@@ -672,7 +687,12 @@ def template_edit(request, pk):
         template.name = request.POST.get('name')
         template.name_english = request.POST.get('name_english', '')
         template.version = request.POST.get('version')
-        template.template_type = request.POST.get('template_type')
+        
+        # تحديث نوع القالب
+        template_type_id = request.POST.get('template_type_id')
+        if template_type_id:
+            template.template_type = get_object_or_404(TemplateType, pk=template_type_id)
+        
         template.content_arabic = request.POST.get('content_arabic')
         template.content_english = request.POST.get('content_english', '')
         
@@ -696,10 +716,13 @@ def template_edit(request, pk):
         messages.success(request, f'تم تحديث القالب "{template.name}" بنجاح!')
         return redirect('requests:templates_list')
     
-    # GET request
+    # GET request - جلب أنواع القوالب
+    template_types = TemplateType.objects.filter(is_active=True).order_by('display_order')
+    
     context = {
         'page_title': f'تعديل القالب: {template.name}',
         'template': template,
+        'template_types': template_types,
     }
     return render(request, 'requests/template_edit.html', context)
 

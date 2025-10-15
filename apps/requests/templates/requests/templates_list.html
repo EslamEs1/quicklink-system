@@ -43,10 +43,9 @@
                             <label class="form-label">فلترة حسب النوع</label>
                             <select class="form-control" id="typeFilter">
                                 <option value="all">جميع الأنواع</option>
-                                <option value="authorization">تفويض</option>
-                                <option value="agreement">اتفاقية</option>
-                                <option value="contract">عقد</option>
-                                <option value="declaration">إقرار</option>
+                                {% for template_type in template_types %}
+                                <option value="{{ template_type.id }}">{{ template_type.name_arabic }}</option>
+                                {% endfor %}
                             </select>
                         </div>
                         <div class="col-md-3 mb-3">
@@ -118,22 +117,14 @@
                 <!-- Template Card {{ template.id }} -->
                 <div class="col-lg-4 col-md-6 mb-4">
                     <div class="card template-card shadow-custom">
-                        <div class="card-header 
-                            {% if template.template_type == 'authorization' %}bg-primary
-                            {% elif template.template_type == 'service_agreement' %}bg-success
-                            {% elif template.template_type == 'financial_contract' %}bg-warning text-dark
-                            {% elif template.template_type == 'customer_declaration' %}bg-info
-                            {% elif template.template_type == 'privacy_policy' %}bg-secondary
-                            {% else %}bg-danger{% endif %} text-white">
+                        <div class="card-header bg-{{ template.template_type.color|default:'primary' }} text-white">
                             <div class="d-flex justify-content-between align-items-center">
                                 <h6 class="mb-0">
-                                    <i class="fas 
-                                        {% if template.template_type == 'authorization' %}fa-file-signature
-                                        {% elif template.template_type == 'service_agreement' %}fa-handshake
-                                        {% elif template.template_type == 'financial_contract' %}fa-file-contract
-                                        {% elif template.template_type == 'customer_declaration' %}fa-clipboard-check
-                                        {% elif template.template_type == 'privacy_policy' %}fa-shield-alt
-                                        {% else %}fa-ban{% endif %} me-1"></i>
+                                    {% if template.template_type and template.template_type.icon %}
+                                    <i class="fas {{ template.template_type.icon }} me-1"></i>
+                                    {% else %}
+                                    <i class="fas fa-file-alt me-1"></i>
+                                    {% endif %}
                                     {{ template.name }}
                                 </h6>
                                 <span class="badge 
@@ -153,7 +144,16 @@
                             <div class="template-meta mb-3">
                                 <div class="d-flex justify-content-between mb-2">
                                     <span class="text-muted">النوع:</span>
-                                    <span class="badge bg-info">{{ template.get_template_type_display }}</span>
+                                    {% if template.template_type %}
+                                    <span class="badge bg-{{ template.template_type.color }}">
+                                        {% if template.template_type.icon %}
+                                        <i class="fas {{ template.template_type.icon }} me-1"></i>
+                                        {% endif %}
+                                        {{ template.template_type.name_arabic }}
+                                    </span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">بدون نوع</span>
+                                    {% endif %}
                                 </div>
                                 <div class="d-flex justify-content-between mb-2">
                                     <span class="text-muted">الإصدار:</span>
