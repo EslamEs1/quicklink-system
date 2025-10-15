@@ -166,20 +166,6 @@
 
 {% block extra_js %}
 <script>
-    function toggleTypeStatus(id, activate) {
-        const action = activate ? 'تفعيل' : 'تعطيل';
-        if (confirm(`هل أنت متأكد من ${action} هذا النوع؟`)) {
-            // سيتم إضافة AJAX request لاحقاً
-            showNotification(`جاري ${action} النوع...`, 'info');
-        }
-    }
-    
-    function deleteType(id) {
-        if (confirm('هل أنت متأكد من حذف هذا النوع؟ لا يمكن التراجع عن هذا الإجراء.')) {
-            // سيتم إضافة AJAX request لاحقاً
-            showNotification('جاري الحذف...', 'info');
-        }
-    }
 </script>
 {% endblock %}
 {% endblock content %}

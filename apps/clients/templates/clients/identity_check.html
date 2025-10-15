@@ -180,7 +180,7 @@
                                                 <a href="{% url 'clients:detail' conflict.customer2.id %}" class="btn btn-sm btn-outline-primary" title="مراجعة العميل الثاني">
                                                     <i class="fas fa-user"></i> 2
                                                 </a>
-                                                <form method="post" action="{% url 'clients:resolve_conflict' conflict.id %}" style="display: inline;" onsubmit="return confirm('هل أنت متأكد من حل هذا التعارض؟');">
+                                                <form method="post" action="{% url 'clients:resolve_conflict' conflict.id %}" style="display: inline;">
                                                     {% csrf_token %}
                                                     <button type="submit" class="btn btn-sm btn-outline-success" title="حل التعارض">
                                                         <i class="fas fa-check"></i>

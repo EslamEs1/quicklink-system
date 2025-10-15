@@ -79,7 +79,7 @@
                                 {% if category.is_active %}
                                 <form method="post" action="{% url 'requests:category_toggle' category.id %}" class="d-inline">
                                     {% csrf_token %}
-                                    <button type="submit" class="btn btn-outline-warning btn-sm" onclick="return confirm('هل أنت متأكد من تعطيل هذه الفئة؟')">
+                                    <button type="submit" class="btn btn-outline-warning btn-sm">
                                         <i class="fas fa-pause"></i>
                                         تعطيل
                                     </button>
@@ -87,7 +87,7 @@
                                 {% else %}
                                 <form method="post" action="{% url 'requests:category_toggle' category.id %}" class="d-inline">
                                     {% csrf_token %}
-                                    <button type="submit" class="btn btn-outline-success btn-sm" onclick="return confirm('هل أنت متأكد من تفعيل هذه الفئة؟')">
+                                    <button type="submit" class="btn btn-outline-success btn-sm">
                                         <i class="fas fa-play"></i>
                                         تفعيل
                                     </button>
