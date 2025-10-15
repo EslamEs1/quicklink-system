@@ -29,4 +29,6 @@ urlpatterns = [
     path('requests/categories/', views.categories_list, name='categories_list'),
     path('requests/categories/create/', views.category_create, name='category_create'),
     path('requests/categories/<int:pk>/edit/', views.category_edit, name='category_edit'),
+    path('requests/categories/<int:pk>/toggle/', views.category_toggle, name='category_toggle'),
+    path('requests/categories/<int:pk>/delete/', views.category_delete, name='category_delete'),
 ]

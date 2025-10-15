@@ -866,3 +866,48 @@ def category_edit(request, pk):
         'category': category,
     }
     return render(request, 'requests/category_edit.html', context)
+
+
+# @login_required
+def category_toggle(request, pk):
+    """تفعيل/تعطيل فئة"""
+    from apps.requests.models import RequestCategory
+    category = get_object_or_404(RequestCategory, pk=pk)
+    
+    if request.method == 'POST':
+        # تبديل حالة التفعيل
+        category.is_active = not category.is_active
+        category.save()
+        
+        status = 'تفعيل' if category.is_active else 'تعطيل'
+        messages.success(request, f'✅ تم {status} الفئة "{category.name_arabic}" بنجاح')
+    
+    return redirect('requests:categories_list')
+
+
+# @login_required
+def category_delete(request, pk):
+    """حذف فئة"""
+    from apps.requests.models import RequestCategory
+    category = get_object_or_404(RequestCategory, pk=pk)
+    
+    if request.method == 'POST':
+        # التحقق من وجود أنواع طلبات مرتبطة
+        request_types_count = category.request_types.count()
+        if request_types_count > 0:
+            messages.error(request, f'❌ لا يمكن حذف الفئة "{category.name_arabic}" لأنها تحتوي على {request_types_count} نوع طلب. يرجى حذف أو نقل الأنواع أولاً.')
+            return redirect('requests:categories_list')
+        
+        # حذف الفئة
+        category_name = category.name_arabic
+        category.delete()
+        
+        messages.success(request, f'✅ تم حذف الفئة "{category_name}" نهائياً')
+        return redirect('requests:categories_list')
+    
+    # GET request - عرض صفحة تأكيد الحذف
+    context = {
+        'page_title': f'حذف الفئة: {category.name_arabic}',
+        'category': category,
+    }
+    return render(request, 'requests/category_delete_confirm.html', context)
