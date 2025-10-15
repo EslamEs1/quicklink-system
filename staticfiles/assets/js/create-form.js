@@ -50,7 +50,72 @@ function initializeForm() {
         dobInput.setAttribute('min', minDate.toISOString().split('T')[0]);
     }
     
+    // Setup file input event listeners for real-time validation
+    setupFileInputListeners();
+    
     console.log('✅ Form initialized');
+}
+
+// Setup file input event listeners for real-time validation
+function setupFileInputListeners() {
+    console.log('🔧 Setting up file input listeners...');
+    
+    // Emirates ID image input
+    const idImageInput = document.getElementById('idImage');
+    if (idImageInput) {
+        idImageInput.addEventListener('change', function() {
+            console.log('📁 ID Image input changed');
+            validateIdImageUpload();
+        });
+    }
+    
+    // Additional documents input
+    const additionalDocsInput = document.getElementById('additionalDocs');
+    if (additionalDocsInput) {
+        additionalDocsInput.addEventListener('change', function() {
+            console.log('📁 Additional docs input changed');
+            // Additional docs are optional, so no validation needed
+        });
+    }
+    
+    console.log('✅ File input listeners setup complete');
+}
+
+// Real-time validation for ID image upload
+function validateIdImageUpload() {
+    const idImageInput = document.getElementById('idImage');
+    const idImageUpload = document.getElementById('idImageUpload');
+    
+    if (!idImageInput || !idImageUpload) return;
+    
+    if (idImageInput.files && idImageInput.files.length > 0) {
+        console.log('✅ ID Image uploaded - removing error styling');
+        
+        // Remove error styling
+        idImageUpload.classList.remove('border-danger');
+        idImageUpload.classList.add('border-success');
+        idImageUpload.style.borderColor = '#28a745';
+        idImageUpload.style.borderWidth = '2px';
+        idImageUpload.style.borderStyle = 'solid';
+        
+        // Remove error message
+        const errorMsg = document.getElementById('idImageError');
+        if (errorMsg) {
+            errorMsg.remove();
+        }
+    } else {
+        console.log('❌ ID Image not uploaded - adding error styling');
+        
+        // Add error styling
+        idImageUpload.classList.remove('border-success');
+        idImageUpload.classList.add('border-danger');
+        idImageUpload.style.borderColor = '#dc3545';
+        idImageUpload.style.borderWidth = '2px';
+        idImageUpload.style.borderStyle = 'solid';
+        
+        // Add error message
+        const errorMsg = document.getElementById('idImageError') || createErrorMessage('idImageUpload', 'يرجى رفع صورة الهوية الإماراتية');
+    }
 }
 
 // ============ STEP NAVIGATION ============
@@ -243,41 +308,20 @@ function validateStep1_5() {
     
     // التحقق من رفع صورة الهوية الإماراتية (إجباري)
     const idImageInput = document.getElementById('idImage');
-    const idImageUpload = document.getElementById('idImageUpload');
     let isValid = true;
     
     if (!idImageInput || !idImageInput.files || idImageInput.files.length === 0) {
         console.log('❌ Missing Emirates ID image upload');
         
-        // إضافة border أحمر
-        if (idImageUpload) {
-            idImageUpload.classList.add('border-danger');
-            idImageUpload.style.borderColor = '#dc3545';
-            idImageUpload.style.borderWidth = '2px';
-            idImageUpload.style.borderStyle = 'solid';
-        }
-        
-        // إضافة رسالة خطأ
-        const errorMsg = document.getElementById('idImageError') || createErrorMessage('idImageUpload', 'يرجى رفع صورة الهوية الإماراتية');
+        // استخدام الدالة المحدثة لإظهار رسالة الخطأ
+        validateIdImageUpload();
         
         isValid = false;
     } else {
         console.log('✅ Emirates ID image uploaded');
         
-        // إضافة border أخضر
-        if (idImageUpload) {
-            idImageUpload.classList.remove('border-danger');
-            idImageUpload.classList.add('border-success');
-            idImageUpload.style.borderColor = '#28a745';
-            idImageUpload.style.borderWidth = '2px';
-            idImageUpload.style.borderStyle = 'solid';
-        }
-        
-        // إخفاء رسالة الخطأ
-        const errorMsg = document.getElementById('idImageError');
-        if (errorMsg) {
-            errorMsg.remove();
-        }
+        // استخدام الدالة المحدثة لإخفاء رسالة الخطأ
+        validateIdImageUpload();
     }
     
     // المستندات الإضافية اختيارية، لا نحتاج للتحقق منها
