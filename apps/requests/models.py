@@ -59,6 +59,61 @@ class RequestCategory(models.Model):
         super().save(*args, **kwargs)
 
 
+class TemplateType(models.Model):
+    """أنواع القوالب القانونية (ديناميكية)"""
+    
+    name_arabic = models.CharField('الاسم بالعربية', max_length=200)
+    name_english = models.CharField('الاسم بالإنجليزية', max_length=200, blank=True)
+    code = models.CharField('الرمز', max_length=50, unique=True, editable=False)
+    icon = models.CharField('الأيقونة', max_length=50, blank=True, default='fa-file-alt', 
+                           help_text='مثال: fa-file-alt (اختياري)')
+    color = models.CharField('اللون', max_length=20, default='primary',
+                            choices=[
+                                ('primary', 'أزرق'),
+                                ('success', 'أخضر'),
+                                ('warning', 'أصفر'),
+                                ('info', 'سماوي'),
+                                ('danger', 'أحمر'),
+                                ('secondary', 'رمادي'),
+                                ('dark', 'أسود'),
+                                ('light', 'فاتح'),
+                            ])
+    description = models.TextField('الوصف', blank=True)
+    display_order = models.IntegerField('ترتيب العرض', default=0)
+    is_active = models.BooleanField('نشط', default=True)
+    
+    # الإحصائيات
+    usage_count = models.IntegerField('عدد الاستخدامات', default=0)
+    
+    created_at = models.DateTimeField('تاريخ الإنشاء', auto_now_add=True)
+    updated_at = models.DateTimeField('آخر تحديث', auto_now=True)
+    
+    class Meta:
+        verbose_name = 'نوع قالب'
+        verbose_name_plural = 'أنواع القوالب'
+        ordering = ['display_order', 'name_arabic']
+    
+    def __str__(self):
+        return self.name_arabic
+    
+    def save(self, *args, **kwargs):
+        # توليد الرمز تلقائياً من الاسم
+        if not self.code:
+            from django.utils.text import slugify
+            # استخدام الاسم الإنجليزي أو العربي
+            base_name = self.name_english if self.name_english else self.name_arabic
+            # تحويل إلى slug
+            code = slugify(base_name).replace('-', '_')
+            # التأكد من عدم التكرار
+            original_code = code
+            counter = 1
+            while TemplateType.objects.filter(code=code).exclude(pk=self.pk).exists():
+                code = f"{original_code}_{counter}"
+                counter += 1
+            self.code = code[:50]
+        super().save(*args, **kwargs)
+
+
 class RequestType(models.Model):
     """أنواع الطلبات (ديناميكية)"""
     
@@ -326,15 +381,23 @@ class Template(models.Model):
     # الإصدار
     version = models.CharField('الإصدار', max_length=20, default='1.0')
     
-    # النوع
-    template_type = models.CharField('نوع القالب', max_length=100, choices=[
-        ('authorization', 'تفويض ربط حساب'),
-        ('service_agreement', 'اتفاقية الخدمة'),
-        ('financial_contract', 'عقد الخدمات المالية'),
-        ('customer_declaration', 'إقرار العميل'),
-        ('privacy_policy', 'سياسة الخصوصية'),
-        ('disclaimer', 'إخلاء المسؤولية'),
-    ])
+    # النوع (ديناميكي)
+    template_type = models.ForeignKey(
+        'TemplateType',
+        on_delete=models.PROTECT,
+        related_name='templates',
+        verbose_name='نوع القالب',
+        null=True,  # للتوافق المؤقت
+        blank=True
+    )
+    
+    # النوع القديم (للتوافق المؤقت - سيتم حذفه لاحقاً)
+    template_type_legacy = models.CharField(
+        'نوع القالب (قديم)',
+        max_length=100,
+        blank=True,
+        null=True
+    )
     
     # الحالة
     is_active = models.BooleanField('نشط', default=True)

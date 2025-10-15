@@ -1,0 +1,293 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}تعديل نوع القالب - {{ template_type.name_arabic }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0 text-gray-800">
+                        <i class="fas fa-edit text-primary me-2"></i>
+                        تعديل نوع القالب
+                    </h1>
+                    <p class="text-muted mb-0">تعديل معلومات نوع القالب: {{ template_type.name_arabic }}</p>
+                </div>
+                <div>
+                    <a href="{% url 'requests:template_types_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>
+                        العودة لأنواع القوالب
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Form -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-custom">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list-ul me-2"></i>
+                        تعديل نوع القالب
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <!-- Basic Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    المعلومات الأساسية
+                                </h6>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="name_arabic" class="form-label">
+                                    <i class="fas fa-font me-1"></i>
+                                    الاسم العربي <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" class="form-control" id="name_arabic" name="name_arabic" 
+                                       value="{{ template_type.name_arabic }}" required>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="name_english" class="form-label">
+                                    <i class="fas fa-language me-1"></i>
+                                    الاسم الإنجليزي
+                                </label>
+                                <input type="text" class="form-control" id="name_english" name="name_english" 
+                                       value="{{ template_type.name_english }}">
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="code" class="form-label">
+                                    <i class="fas fa-code me-1"></i>
+                                    الرمز
+                                </label>
+                                <input type="text" class="form-control" id="code" name="code" 
+                                       value="{{ template_type.code }}" readonly>
+                                <div class="form-text">الرمز يتم توليده تلقائياً</div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="display_order" class="form-label">
+                                    <i class="fas fa-sort-numeric-up me-1"></i>
+                                    ترتيب العرض
+                                </label>
+                                <input type="number" class="form-control" id="display_order" name="display_order" 
+                                       value="{{ template_type.display_order }}" min="1">
+                            </div>
+                        </div>
+
+                        <!-- Visual Settings -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">
+                                    <i class="fas fa-palette me-2"></i>
+                                    الإعدادات البصرية
+                                </h6>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="color" class="form-label">
+                                    <i class="fas fa-paint-brush me-1"></i>
+                                    اللون
+                                </label>
+                                <select class="form-select" id="color" name="color">
+                                    <option value="primary" {% if template_type.color == 'primary' %}selected{% endif %}>أزرق</option>
+                                    <option value="success" {% if template_type.color == 'success' %}selected{% endif %}>أخضر</option>
+                                    <option value="warning" {% if template_type.color == 'warning' %}selected{% endif %}>أصفر</option>
+                                    <option value="danger" {% if template_type.color == 'danger' %}selected{% endif %}>أحمر</option>
+                                    <option value="info" {% if template_type.color == 'info' %}selected{% endif %}>سماوي</option>
+                                    <option value="secondary" {% if template_type.color == 'secondary' %}selected{% endif %}>رمادي</option>
+                                    <option value="dark" {% if template_type.color == 'dark' %}selected{% endif %}>أسود</option>
+                                    <option value="light" {% if template_type.color == 'light' %}selected{% endif %}>فاتح</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="icon" class="form-label">
+                                    <i class="fas fa-icons me-1"></i>
+                                    الأيقونة
+                                </label>
+                                <select class="form-select" id="icon" name="icon">
+                                    <option value="fa-file-alt" {% if template_type.icon == 'fa-file-alt' %}selected{% endif %}>مستند</option>
+                                    <option value="fa-file-signature" {% if template_type.icon == 'fa-file-signature' %}selected{% endif %}>توقيع</option>
+                                    <option value="fa-handshake" {% if template_type.icon == 'fa-handshake' %}selected{% endif %}>اتفاقية</option>
+                                    <option value="fa-file-contract" {% if template_type.icon == 'fa-file-contract' %}selected{% endif %}>عقد</option>
+                                    <option value="fa-clipboard-check" {% if template_type.icon == 'fa-clipboard-check' %}selected{% endif %}>إقرار</option>
+                                    <option value="fa-shield-alt" {% if template_type.icon == 'fa-shield-alt' %}selected{% endif %}>أمن</option>
+                                    <option value="fa-gavel" {% if template_type.icon == 'fa-gavel' %}selected{% endif %}>قانونية</option>
+                                    <option value="fa-user-shield" {% if template_type.icon == 'fa-user-shield' %}selected{% endif %}>حماية</option>
+                                    <option value="fa-balance-scale" {% if template_type.icon == 'fa-balance-scale' %}selected{% endif %}>عدالة</option>
+                                    <option value="fa-book" {% if template_type.icon == 'fa-book' %}selected{% endif %}>وثيقة</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">
+                                    <i class="fas fa-align-right me-2"></i>
+                                    الوصف
+                                </h6>
+                            </div>
+                            
+                            <div class="col-12 mb-3">
+                                <label for="description" class="form-label">
+                                    <i class="fas fa-text-height me-1"></i>
+                                    وصف النوع
+                                </label>
+                                <textarea class="form-control" id="description" name="description" rows="3">{{ template_type.description }}</textarea>
+                            </div>
+                        </div>
+
+                        <!-- Status Settings -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">
+                                    <i class="fas fa-toggle-on me-2"></i>
+                                    إعدادات الحالة
+                                </h6>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="is_active" name="is_active" 
+                                           {% if template_type.is_active %}checked{% endif %}>
+                                    <label class="form-check-label" for="is_active">
+                                        <i class="fas fa-power-off me-1"></i>
+                                        النوع نشط
+                                    </label>
+                                    <div class="form-text">الأنواع غير النشطة لن تظهر في القوائم</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Preview -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">
+                                    <i class="fas fa-eye me-2"></i>
+                                    معاينة النوع
+                                </h6>
+                                <div class="card bg-light">
+                                    <div class="card-header bg-{{ template_type.color }} text-white">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <h6 class="mb-0">
+                                                {% if template_type.icon %}
+                                                <i class="fas {{ template_type.icon }} me-2"></i>
+                                                {% endif %}
+                                                <span id="preview-name">{{ template_type.name_arabic }}</span>
+                                            </h6>
+                                            <span class="badge bg-light text-dark" id="preview-status">
+                                                {% if template_type.is_active %}نشط{% else %}معطل{% endif %}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="text-muted mb-2">
+                                            <small><i class="fas fa-language me-1"></i><span id="preview-english">{{ template_type.name_english|default:"لا يوجد اسم إنجليزي" }}</span></small>
+                                        </p>
+                                        <p class="mb-0">
+                                            <strong>الرمز:</strong> <code>{{ template_type.code }}</code>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>
+                                حفظ التغييرات
+                            </button>
+                            <a href="{% url 'requests:template_types_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-1"></i>
+                                إلغاء
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Template Type Statistics -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>
+                        إحصائيات نوع القالب
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h5 class="text-primary">{{ template_type.templates.count }}</h5>
+                                <small class="text-muted">عدد القوالب</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h5 class="text-success">{{ template_type.created_at|date:"Y-m-d" }}</h5>
+                                <small class="text-muted">تاريخ الإنشاء</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h5 class="text-info">{{ template_type.updated_at|date:"Y-m-d" }}</h5>
+                                <small class="text-muted">آخر تحديث</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h5 class="text-warning">{{ template_type.display_order }}</h5>
+                                <small class="text-muted">ترتيب العرض</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    // تحديث المعاينة عند تغيير الحقول
+    document.getElementById('name_arabic').addEventListener('input', function() {
+        document.getElementById('preview-name').textContent = this.value;
+    });
+    
+    document.getElementById('name_english').addEventListener('input', function() {
+        document.getElementById('preview-english').textContent = this.value || 'لا يوجد اسم إنجليزي';
+    });
+    
+    document.getElementById('color').addEventListener('change', function() {
+        const preview = document.querySelector('.card-header');
+        preview.className = `card-header bg-${this.value} text-white`;
+    });
+    
+    document.getElementById('icon').addEventListener('change', function() {
+        const iconElement = document.querySelector('.card-header .fas');
+        if (iconElement) {
+            iconElement.className = `fas ${this.value} me-2`;
+        }
+    });
+    
+    document.getElementById('is_active').addEventListener('change', function() {
+        document.getElementById('preview-status').textContent = this.checked ? 'نشط' : 'معطل';
+    });
+</script>
+{% endblock %}
+{% endblock content %}

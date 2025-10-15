@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Page Title -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">
+                    <i class="fas fa-list-ul me-2 text-primary"></i>
+                    إدارة أنواع القوالب
+                </h2>
+                <div class="btn-group" role="group">
+                    <a href="{% url 'requests:template_type_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i>
+                        إضافة نوع جديد
+                    </a>
+                    <a href="{% url 'requests:templates_list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-file-contract me-1"></i>
+                        إدارة القوالب
+                    </a>
+                </div>
+            </div>
+
+            <!-- Info Alert -->
+            <div class="alert alert-info mb-4">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>معلومة:</strong> أنواع القوالب ديناميكية - يمكنك إضافة أو تعديل أو حذف الأنواع حسب احتياجات العمل القانونية.
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="row mb-4">
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stats-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-list icon-large text-primary"></i>
+                            <div class="stats-number">{{ total_types|default:0 }}</div>
+                            <div class="stats-label">إجمالي الأنواع</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stats-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-check-circle icon-large text-success"></i>
+                            <div class="stats-number">{{ active_types|default:0 }}</div>
+                            <div class="stats-label">أنواع نشطة</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stats-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-file-contract icon-large text-info"></i>
+                            <div class="stats-number">{{ total_types|default:0 }}</div>
+                            <div class="stats-label">القوالب</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stats-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-chart-line icon-large text-warning"></i>
+                            <div class="stats-number">{{ total_usage|default:0 }}</div>
+                            <div class="stats-label">مرات الاستخدام</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Template Types Cards -->
+            <div class="row">
+                {% if template_types %}
+                    {% for type in template_types %}
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="card shadow-custom">
+                        <div class="card-header bg-{{ type.color }} text-white">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">
+                                    {% if type.icon %}
+                                    <i class="fas {{ type.icon }} me-2"></i>
+                                    {% endif %}
+                                    {{ type.name_arabic }}
+                                </h5>
+                                {% if type.is_active %}
+                                <span class="badge bg-light text-dark">نشط</span>
+                                {% else %}
+                                <span class="badge bg-secondary">معطل</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            {% if type.name_english %}
+                            <p class="text-muted mb-3">
+                                <small><i class="fas fa-language me-1"></i>{{ type.name_english }}</small>
+                            </p>
+                            {% endif %}
+                            
+                            {% if type.description %}
+                            <p class="mb-3">
+                                <small>{{ type.description|truncatewords:10 }}</small>
+                            </p>
+                            {% endif %}
+                            
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted">الرمز:</span>
+                                    <code>{{ type.code }}</code>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted">عدد القوالب:</span>
+                                    <strong>{{ type.templates.count }} قالب</strong>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted">الترتيب:</span>
+                                    <span class="badge bg-secondary">{{ type.display_order }}</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted">الأيقونة:</span>
+                                    {% if type.icon %}
+                                    <i class="fas {{ type.icon }} text-{{ type.color }}"></i>
+                                    {% else %}
+                                    <span class="text-muted">بدون</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="btn-group w-100" role="group">
+                                <a href="{% url 'requests:template_type_edit' type.id %}" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-edit"></i>
+                                    تعديل
+                                </a>
+                                {% if type.is_active %}
+                                <form method="post" action="{% url 'requests:template_type_toggle' type.id %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-warning btn-sm">
+                                        <i class="fas fa-pause"></i>
+                                        تعطيل
+                                    </button>
+                                </form>
+                                {% else %}
+                                <form method="post" action="{% url 'requests:template_type_toggle' type.id %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-success btn-sm">
+                                        <i class="fas fa-play"></i>
+                                        تفعيل
+                                    </button>
+                                </form>
+                                {% endif %}
+                                {% if type.templates.count == 0 %}
+                                <a href="{% url 'requests:template_type_delete' type.id %}" class="btn btn-outline-danger btn-sm">
+                                    <i class="fas fa-trash"></i>
+                                    حذف
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                    {% endfor %}
+                {% else %}
+                <div class="col-12">
+                    <div class="card shadow-custom">
+                        <div class="card-body text-center py-5">
+                            <i class="fas fa-list-ul fa-4x text-muted mb-3"></i>
+                            <h5 class="text-muted">لا توجد أنواع قوالب</h5>
+                            <p class="text-muted">ابدأ بإضافة نوع قالب لتنظيم القوالب القانونية</p>
+                            <a href="{% url 'requests:template_type_create' %}" class="btn btn-primary mt-3">
+                                <i class="fas fa-plus me-1"></i>
+                                إضافة نوع جديد
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+{% endblock content %}

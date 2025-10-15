@@ -957,3 +957,177 @@ def category_delete(request, pk):
         'category': category,
     }
     return render(request, 'requests/category_delete_confirm.html', context)
+
+
+# @login_required
+def template_toggle(request, pk):
+    """تفعيل/تعطيل قالب"""
+    template = get_object_or_404(Template, pk=pk)
+    
+    if request.method == 'POST':
+        # تبديل حالة التفعيل
+        template.is_active = not template.is_active
+        template.save()
+        
+        status = 'تفعيل' if template.is_active else 'تعطيل'
+        messages.success(request, f'✅ تم {status} القالب "{template.name}" بنجاح')
+    
+    return redirect('requests:templates_list')
+
+
+# @login_required
+def template_delete(request, pk):
+    """حذف قالب"""
+    template = get_object_or_404(Template, pk=pk)
+    
+    if request.method == 'POST':
+        # التحقق من وجود طلبات مرتبطة
+        requests_count = template.requests.count()
+        if requests_count > 0:
+            messages.error(request, f'❌ لا يمكن حذف القالب "{template.name}" لأنه مستخدم في {requests_count} طلب. يرجى حذف أو نقل الطلبات أولاً.')
+            return redirect('requests:templates_list')
+        
+        # حذف القالب
+        template_name = template.name
+        template.delete()
+        
+        messages.success(request, f'✅ تم حذف القالب "{template_name}" نهائياً')
+        return redirect('requests:templates_list')
+    
+    # GET request - عرض صفحة تأكيد الحذف
+    context = {
+        'page_title': f'حذف القالب: {template.name}',
+        'template': template,
+        'requests_count': template.requests.count(),
+    }
+    return render(request, 'requests/template_delete_confirm.html', context)
+
+
+# @login_required
+def template_types_list(request):
+    """قائمة أنواع القوالب"""
+    from apps.requests.models import TemplateType
+    
+    # جلب جميع الأنواع
+    template_types = TemplateType.objects.all().order_by('display_order', 'name_arabic')
+    
+    # إحصائيات
+    total_types = TemplateType.objects.count()
+    active_types = TemplateType.objects.filter(is_active=True).count()
+    total_usage = sum(t.usage_count for t in TemplateType.objects.all())
+    
+    context = {
+        'page_title': 'إدارة أنواع القوالب',
+        'template_types': template_types,
+        'total_types': total_types,
+        'active_types': active_types,
+        'total_usage': total_usage,
+    }
+    return render(request, 'requests/template_types_list.html', context)
+
+
+# @login_required
+def template_type_create(request):
+    """إنشاء نوع قالب جديد"""
+    from apps.requests.models import TemplateType
+    
+    if request.method == 'POST':
+        name_arabic = request.POST.get('name_arabic')
+        name_english = request.POST.get('name_english', '')
+        icon = request.POST.get('icon', 'fa-file-alt')
+        color = request.POST.get('color', 'primary')
+        description = request.POST.get('description', '')
+        display_order = request.POST.get('display_order', 0)
+        is_active = request.POST.get('is_active') == 'on'
+        
+        # إنشاء النوع (الرمز سيتم توليده تلقائياً)
+        template_type = TemplateType.objects.create(
+            name_arabic=name_arabic,
+            name_english=name_english,
+            icon=icon,
+            color=color,
+            description=description,
+            display_order=display_order,
+            is_active=is_active
+        )
+        
+        messages.success(request, f'تم إنشاء نوع القالب "{template_type.name_arabic}" بنجاح! الرمز: {template_type.code}')
+        return redirect('requests:template_types_list')
+    
+    context = {
+        'page_title': 'إضافة نوع قالب جديد',
+    }
+    return render(request, 'requests/template_type_create.html', context)
+
+
+# @login_required
+def template_type_edit(request, pk):
+    """تعديل نوع قالب"""
+    from apps.requests.models import TemplateType
+    template_type = get_object_or_404(TemplateType, pk=pk)
+    
+    if request.method == 'POST':
+        template_type.name_arabic = request.POST.get('name_arabic')
+        template_type.name_english = request.POST.get('name_english', '')
+        template_type.icon = request.POST.get('icon', 'fa-file-alt')
+        template_type.color = request.POST.get('color', 'primary')
+        template_type.description = request.POST.get('description', '')
+        template_type.display_order = request.POST.get('display_order', 0)
+        template_type.is_active = request.POST.get('is_active') == 'on'
+        
+        template_type.save()
+        
+        messages.success(request, f'تم تحديث نوع القالب "{template_type.name_arabic}" بنجاح!')
+        return redirect('requests:template_types_list')
+    
+    context = {
+        'page_title': f'تعديل: {template_type.name_arabic}',
+        'template_type': template_type,
+    }
+    return render(request, 'requests/template_type_edit.html', context)
+
+
+# @login_required
+def template_type_toggle(request, pk):
+    """تفعيل/تعطيل نوع قالب"""
+    from apps.requests.models import TemplateType
+    template_type = get_object_or_404(TemplateType, pk=pk)
+    
+    if request.method == 'POST':
+        # تبديل حالة التفعيل
+        template_type.is_active = not template_type.is_active
+        template_type.save()
+        
+        status = 'تفعيل' if template_type.is_active else 'تعطيل'
+        messages.success(request, f'✅ تم {status} نوع القالب "{template_type.name_arabic}" بنجاح')
+    
+    return redirect('requests:template_types_list')
+
+
+# @login_required
+def template_type_delete(request, pk):
+    """حذف نوع قالب"""
+    from apps.requests.models import TemplateType
+    template_type = get_object_or_404(TemplateType, pk=pk)
+    
+    if request.method == 'POST':
+        # التحقق من وجود قوالب مرتبطة
+        templates_count = template_type.templates.count()
+        if templates_count > 0:
+            messages.error(request, f'❌ لا يمكن حذف نوع القالب "{template_type.name_arabic}" لأنه يحتوي على {templates_count} قالب. يرجى حذف أو نقل القوالب أولاً.')
+            return redirect('requests:template_types_list')
+        
+        # حذف نوع القالب
+        template_type_name = template_type.name_arabic
+        template_type.delete()
+        
+        messages.success(request, f'✅ تم حذف نوع القالب "{template_type_name}" نهائياً')
+        return redirect('requests:template_types_list')
+    
+    # GET request - عرض صفحة تأكيد الحذف
+    context = {
+        'page_title': f'حذف نوع القالب: {template_type.name_arabic}',
+        'template_type': template_type,
+        'templates_count': template_type.templates.count(),
+    }
+    return render(request, 'requests/template_type_delete_confirm.html', context)

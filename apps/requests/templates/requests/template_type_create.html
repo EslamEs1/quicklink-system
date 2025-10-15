@@ -1,0 +1,278 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}إضافة نوع قالب جديد{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0 text-gray-800">
+                        <i class="fas fa-plus text-success me-2"></i>
+                        إضافة نوع قالب جديد
+                    </h1>
+                    <p class="text-muted mb-0">إنشاء نوع قالب جديد لتنظيم القوالب القانونية</p>
+                </div>
+                <div>
+                    <a href="{% url 'requests:template_types_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>
+                        العودة لأنواع القوالب
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Form -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-custom">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list-ul me-2"></i>
+                        معلومات نوع القالب الجديد
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <!-- Basic Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    المعلومات الأساسية
+                                </h6>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="name_arabic" class="form-label">
+                                    <i class="fas fa-font me-1"></i>
+                                    الاسم العربي <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" class="form-control" id="name_arabic" name="name_arabic" 
+                                       required placeholder="مثال: تفويض ربط حساب">
+                                <div class="form-text">الاسم الذي سيظهر في النظام</div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="name_english" class="form-label">
+                                    <i class="fas fa-language me-1"></i>
+                                    الاسم الإنجليزي
+                                </label>
+                                <input type="text" class="form-control" id="name_english" name="name_english" 
+                                       placeholder="Example: Authorization">
+                                <div class="form-text">اختياري - للاستخدام التقني</div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="display_order" class="form-label">
+                                    <i class="fas fa-sort-numeric-up me-1"></i>
+                                    ترتيب العرض
+                                </label>
+                                <input type="number" class="form-control" id="display_order" name="display_order" 
+                                       value="1" min="1">
+                                <div class="form-text">رقم الترتيب في القوائم</div>
+                            </div>
+                        </div>
+
+                        <!-- Visual Settings -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">
+                                    <i class="fas fa-palette me-2"></i>
+                                    الإعدادات البصرية
+                                </h6>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="color" class="form-label">
+                                    <i class="fas fa-paint-brush me-1"></i>
+                                    اللون
+                                </label>
+                                <select class="form-select" id="color" name="color">
+                                    <option value="primary">أزرق</option>
+                                    <option value="success">أخضر</option>
+                                    <option value="warning">أصفر</option>
+                                    <option value="danger">أحمر</option>
+                                    <option value="info">سماوي</option>
+                                    <option value="secondary">رمادي</option>
+                                    <option value="dark">أسود</option>
+                                    <option value="light">فاتح</option>
+                                </select>
+                                <div class="form-text">لون النوع في الواجهة</div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="icon" class="form-label">
+                                    <i class="fas fa-icons me-1"></i>
+                                    الأيقونة
+                                </label>
+                                <select class="form-select" id="icon" name="icon">
+                                    <option value="fa-file-alt">مستند</option>
+                                    <option value="fa-file-signature">توقيع</option>
+                                    <option value="fa-handshake">اتفاقية</option>
+                                    <option value="fa-file-contract">عقد</option>
+                                    <option value="fa-clipboard-check">إقرار</option>
+                                    <option value="fa-shield-alt">أمن</option>
+                                    <option value="fa-gavel">قانونية</option>
+                                    <option value="fa-user-shield">حماية</option>
+                                    <option value="fa-balance-scale">عدالة</option>
+                                    <option value="fa-book">وثيقة</option>
+                                </select>
+                                <div class="form-text">أيقونة تمثل النوع</div>
+                            </div>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">
+                                    <i class="fas fa-align-right me-2"></i>
+                                    الوصف
+                                </h6>
+                            </div>
+                            
+                            <div class="col-12 mb-3">
+                                <label for="description" class="form-label">
+                                    <i class="fas fa-text-height me-1"></i>
+                                    وصف النوع
+                                </label>
+                                <textarea class="form-control" id="description" name="description" rows="3" 
+                                          placeholder="وصف مختصر عن نوع القالب ومواضعه القانونية..."></textarea>
+                                <div class="form-text">وصف مختصر عن النوع ومواضعه القانونية</div>
+                            </div>
+                        </div>
+
+                        <!-- Status Settings -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">
+                                    <i class="fas fa-toggle-on me-2"></i>
+                                    إعدادات الحالة
+                                </h6>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
+                                    <label class="form-check-label" for="is_active">
+                                        <i class="fas fa-power-off me-1"></i>
+                                        النوع نشط
+                                    </label>
+                                    <div class="form-text">الأنواع غير النشطة لن تظهر في القوائم</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Preview -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">
+                                    <i class="fas fa-eye me-2"></i>
+                                    معاينة النوع
+                                </h6>
+                                <div class="card bg-light">
+                                    <div class="card-header bg-primary text-white" id="preview-header">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <h6 class="mb-0">
+                                                <i class="fas fa-file-alt me-2" id="preview-icon"></i>
+                                                <span id="preview-name">اسم النوع</span>
+                                            </h6>
+                                            <span class="badge bg-light text-dark" id="preview-status">نشط</span>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="text-muted mb-2">
+                                            <small><i class="fas fa-language me-1"></i><span id="preview-english">لا يوجد اسم إنجليزي</span></small>
+                                        </p>
+                                        <p class="mb-0">
+                                            <strong>الرمز:</strong> <code id="preview-code">سيتم توليده تلقائياً</code>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-plus me-1"></i>
+                                إنشاء النوع
+                            </button>
+                            <a href="{% url 'requests:template_types_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-1"></i>
+                                إلغاء
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Help Information -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-question-circle me-2"></i>
+                        معلومات مفيدة
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>نصائح لإنشاء نوع القالب:</h6>
+                            <ul class="small">
+                                <li>اختر اسماً واضحاً ومفهوماً</li>
+                                <li>استخدم ألوان مختلفة للتمييز</li>
+                                <li>اختر أيقونة مناسبة للمحتوى</li>
+                                <li>حدد ترتيب مناسب للعرض</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>أمثلة على أنواع القوالب:</h6>
+                            <ul class="small">
+                                <li>تفويض ربط حساب</li>
+                                <li>اتفاقية الخدمة</li>
+                                <li>عقد الخدمات المالية</li>
+                                <li>إقرار العميل</li>
+                                <li>سياسة الخصوصية</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    // تحديث المعاينة عند تغيير الحقول
+    document.getElementById('name_arabic').addEventListener('input', function() {
+        document.getElementById('preview-name').textContent = this.value || 'اسم النوع';
+    });
+    
+    document.getElementById('name_english').addEventListener('input', function() {
+        document.getElementById('preview-english').textContent = this.value || 'لا يوجد اسم إنجليزي';
+    });
+    
+    document.getElementById('color').addEventListener('change', function() {
+        const preview = document.getElementById('preview-header');
+        preview.className = `card-header bg-${this.value} text-white`;
+    });
+    
+    document.getElementById('icon').addEventListener('change', function() {
+        const iconElement = document.getElementById('preview-icon');
+        iconElement.className = `fas ${this.value} me-2`;
+    });
+    
+    document.getElementById('is_active').addEventListener('change', function() {
+        document.getElementById('preview-status').textContent = this.checked ? 'نشط' : 'معطل';
+    });
+</script>
+{% endblock %}
+{% endblock content %}

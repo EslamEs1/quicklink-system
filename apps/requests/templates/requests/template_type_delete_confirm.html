@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}حذف نوع القالب - {{ template_type.name_arabic }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0 text-gray-800">
+                        <i class="fas fa-list-ul text-danger me-2"></i>
+                        حذف نوع القالب
+                    </h1>
+                    <p class="text-muted mb-0">تأكيد حذف نوع القالب نهائياً من النظام</p>
+                </div>
+                <div>
+                    <a href="{% url 'requests:template_types_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>
+                        العودة لأنواع القوالب
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Warning Card -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        تحذير: حذف نهائي
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger">
+                        <h6><i class="fas fa-warning me-2"></i>تحذير مهم:</h6>
+                        <p class="mb-0">هذا الإجراء سيقوم بحذف نوع القالب نهائياً من النظام ولن يمكن استرجاع البيانات مرة أخرى.</p>
+                    </div>
+
+                    <!-- Template Type Info -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6 class="text-primary">معلومات نوع القالب:</h6>
+                            <ul class="list-unstyled">
+                                <li><strong>الاسم العربي:</strong> {{ template_type.name_arabic }}</li>
+                                {% if template_type.name_english %}
+                                <li><strong>الاسم الإنجليزي:</strong> {{ template_type.name_english }}</li>
+                                {% endif %}
+                                <li><strong>الرمز:</strong> <code>{{ template_type.code }}</code></li>
+                                <li><strong>الأيقونة:</strong> 
+                                    {% if template_type.icon %}
+                                    <i class="fas {{ template_type.icon }} text-{{ template_type.color }}"></i>
+                                    {% else %}
+                                    <span class="text-muted">بدون</span>
+                                    {% endif %}
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-primary">الإحصائيات:</h6>
+                            <ul class="list-unstyled">
+                                <li><strong>تاريخ الإنشاء:</strong> {{ template_type.created_at|date:"Y-m-d" }}</li>
+                                <li><strong>عدد القوالب:</strong> {{ templates_count }}</li>
+                                <li><strong>الترتيب:</strong> {{ template_type.display_order }}</li>
+                                <li><strong>الحالة:</strong> 
+                                    {% if template_type.is_active %}
+                                        <span class="badge bg-success">نشط</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">معطل</span>
+                                    {% endif %}
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Templates Warning -->
+                    {% if templates_count > 0 %}
+                    <div class="alert alert-warning">
+                        <h6><i class="fas fa-exclamation-circle me-2"></i>تحذير:</h6>
+                        <p class="mb-2">هذا النوع يحتوي على <strong>{{ templates_count }} قالب</strong> في النظام.</p>
+                        <p class="mb-0">لا يمكن حذف نوع القالب إلا بعد حذف أو نقل جميع القوالب المرتبطة به أولاً.</p>
+                    </div>
+
+                    <!-- Templates List -->
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            <h6 class="mb-0">القوالب المرتبطة:</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                {% for template in template_type.templates.all|slice:":10" %}
+                                <div class="col-md-6 mb-2">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span>{{ template.name }} (v{{ template.version }})</span>
+                                        <a href="{% url 'requests:template_edit' template.id %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                                {% if templates_count > 10 %}
+                                <div class="col-12">
+                                    <p class="text-muted text-center">... و {{ templates_count|add:"-10" }} قالب آخر</p>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Actions -->
+                    <div class="d-flex gap-2 mt-4">
+                        {% if templates_count > 0 %}
+                            <!-- Cannot Delete -->
+                            <button type="button" class="btn btn-danger" disabled>
+                                <i class="fas fa-trash me-1"></i>
+                                لا يمكن الحذف (يوجد قوالب)
+                            </button>
+                            <a href="{% url 'requests:templates_list' %}" class="btn btn-primary">
+                                <i class="fas fa-list me-1"></i>
+                                عرض القوالب المرتبطة
+                            </a>
+                        {% else %}
+                            <!-- Can Delete -->
+                            <form method="post" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="fas fa-trash me-1"></i>
+                                    حذف نهائي
+                                </button>
+                            </form>
+                        {% endif %}
+                        
+                        <a href="{% url 'requests:template_types_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-times me-1"></i>
+                            إلغاء
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Additional Info -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        معلومات إضافية
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>ما سيتم حذفه:</h6>
+                            <ul class="small">
+                                <li>معلومات نوع القالب</li>
+                                <li>الرمز (سيصبح متاحاً للاستخدام مرة أخرى)</li>
+                                <li>الألوان والأيقونات</li>
+                                <li>إعدادات الترتيب</li>
+                                <li>التواريخ والإحصائيات</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>ما لن يتم حذفه:</h6>
+                            <ul class="small">
+                                <li>القوالب التي تستخدم هذا النوع</li>
+                                <li>سجلات التدقيق</li>
+                                <li>المرفقات والملفات</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

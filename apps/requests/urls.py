@@ -19,6 +19,15 @@ urlpatterns = [
     path('templates/', views.templates_list, name='templates_list'),
     path('templates/create/', views.template_create, name='template_create'),
     path('templates/<int:pk>/edit/', views.template_edit, name='template_edit'),
+    path('templates/<int:pk>/toggle/', views.template_toggle, name='template_toggle'),
+    path('templates/<int:pk>/delete/', views.template_delete, name='template_delete'),
+    
+    # إدارة أنواع القوالب
+    path('template-types/', views.template_types_list, name='template_types_list'),
+    path('template-types/create/', views.template_type_create, name='template_type_create'),
+    path('template-types/<int:pk>/edit/', views.template_type_edit, name='template_type_edit'),
+    path('template-types/<int:pk>/toggle/', views.template_type_toggle, name='template_type_toggle'),
+    path('template-types/<int:pk>/delete/', views.template_type_delete, name='template_type_delete'),
     
     # إدارة أنواع الطلبات
     path('request-types/', views.request_types_list, name='request_types_list'),
