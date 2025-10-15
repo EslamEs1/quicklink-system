@@ -199,14 +199,6 @@
                             <label class="text-muted mb-1">المبلغ المطلوب</label>
                             <p class="fw-bold mb-0 text-success">{{ request.total_amount|default:"0" }} درهم</p>
                         </div>
-                        <div class="col-md-12 mb-3">
-                            <label class="text-muted mb-1">ملاحظات</label>
-                            <p class="mb-0">{{ request.notes|default:"لا توجد ملاحظات" }}</p>
-                        </div>
-                        <div class="col-md-12 mb-3">
-                            <label class="text-muted mb-1">الوصف</label>
-                            <p class="mb-0">{{ request.description|default:"لا يوجد وصف" }}</p>
-                        </div>
                         {% if request.internal_notes %}
                         <div class="col-md-12 mb-3">
                             <label class="text-muted mb-1">ملاحظات داخلية</label>
