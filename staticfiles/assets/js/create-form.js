@@ -257,16 +257,9 @@ function validateIdImageUpload() {
 function changeStep(direction) {
     console.log(`🔄 Changing step: ${currentStep} + ${direction}`);
     
-    if (direction > 0) {
-        console.log('🔍 Validating current step before proceeding...');
-        const validationResult = validateCurrentStep();
-        console.log('🔍 Validation result:', validationResult);
-        
-        if (!validationResult) {
-            console.log('❌ Current step validation failed - cannot proceed');
-            return false;
-        }
-        console.log('✅ Current step validation passed - proceeding...');
+    if (direction > 0 && !validateCurrentStep()) {
+        console.log('❌ Current step validation failed');
+        return false;
     }
     
     if (direction > 0) {
@@ -451,10 +444,6 @@ function validateStep1_5() {
     const idImageInput = document.getElementById('idImage');
     let isValid = true;
     
-    console.log('📁 ID Image input:', idImageInput);
-    console.log('📁 ID Image files:', idImageInput ? idImageInput.files : 'null');
-    console.log('📁 Files length:', idImageInput ? idImageInput.files.length : 'null');
-    
     if (!idImageInput || !idImageInput.files || idImageInput.files.length === 0) {
         console.log('❌ Missing Emirates ID image upload');
         
@@ -463,7 +452,7 @@ function validateStep1_5() {
         
         isValid = false;
     } else {
-        console.log('✅ Emirates ID image uploaded - File name:', idImageInput.files[0].name);
+        console.log('✅ Emirates ID image uploaded');
         
         // استخدام الدالة المحدثة لإخفاء رسالة الخطأ
         validateIdImageUpload();
@@ -502,18 +491,19 @@ function validateStep2() {
     
     console.log('📋 Template select element:', templateSelect);
     console.log('📋 Template select value:', templateSelect ? templateSelect.value : 'null');
+    console.log('📋 Template select options:', templateSelect ? templateSelect.options.length : 'null');
     
-        if (!templateSelect || !templateSelect.value) {
-            console.log('❌ No template selected');
-            if (templateSelect) {
-                templateSelect.classList.add('is-invalid');
-                templateSelect.classList.remove('is-valid');
-                
-                // إضافة رسالة خطأ أكثر وضوحاً
-                const errorMsg = document.getElementById('templateSelectError') || createErrorMessage('templateSelect', '⚠️ يرجى اختيار قالب قانوني من القائمة أعلاه');
-            }
-            return false;
+    if (!templateSelect || !templateSelect.value) {
+        console.log('❌ No template selected');
+        if (templateSelect) {
+            templateSelect.classList.add('is-invalid');
+            templateSelect.classList.remove('is-valid');
+            
+            // إضافة رسالة خطأ واضحة
+            const errorMsg = document.getElementById('templateSelectError') || createErrorMessage('templateSelect', 'يرجى اختيار قالب قانوني من القائمة أعلاه');
         }
+        return false;
+    }
     
     templateSelect.classList.remove('is-invalid');
     templateSelect.classList.add('is-valid');
