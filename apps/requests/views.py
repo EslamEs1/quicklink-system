@@ -709,8 +709,8 @@ def request_types_list(request):
     """قائمة أنواع الطلبات"""
     from apps.requests.models import RequestType
     
-    # جلب جميع الأنواع
-    request_types = RequestType.objects.all().order_by('category', 'display_order')
+    # جلب جميع الأنواع مع الفئات
+    request_types = RequestType.objects.select_related('category').order_by('category__display_order', 'display_order')
     
     # إحصائيات
     total_types = RequestType.objects.count()
@@ -794,6 +794,52 @@ def request_type_edit(request, pk):
         'request_type': request_type,
     }
     return render(request, 'requests/request_type_edit.html', context)
+
+
+# @login_required
+def request_type_toggle(request, pk):
+    """تفعيل/تعطيل نوع طلب"""
+    from apps.requests.models import RequestType
+    request_type = get_object_or_404(RequestType, pk=pk)
+    
+    if request.method == 'POST':
+        # تبديل حالة التفعيل
+        request_type.is_active = not request_type.is_active
+        request_type.save()
+        
+        status = 'تفعيل' if request_type.is_active else 'تعطيل'
+        messages.success(request, f'✅ تم {status} نوع الطلب "{request_type.name_arabic}" بنجاح')
+    
+    return redirect('requests:request_types_list')
+
+
+# @login_required
+def request_type_delete(request, pk):
+    """حذف نوع طلب"""
+    from apps.requests.models import RequestType
+    request_type = get_object_or_404(RequestType, pk=pk)
+    
+    if request.method == 'POST':
+        # التحقق من وجود طلبات مرتبطة
+        requests_count = request_type.requests.count()
+        if requests_count > 0:
+            messages.error(request, f'❌ لا يمكن حذف نوع الطلب "{request_type.name_arabic}" لأنه مستخدم في {requests_count} طلب. يرجى حذف أو نقل الطلبات أولاً.')
+            return redirect('requests:request_types_list')
+        
+        # حذف نوع الطلب
+        request_type_name = request_type.name_arabic
+        request_type.delete()
+        
+        messages.success(request, f'✅ تم حذف نوع الطلب "{request_type_name}" نهائياً')
+        return redirect('requests:request_types_list')
+    
+    # GET request - عرض صفحة تأكيد الحذف
+    context = {
+        'page_title': f'حذف نوع الطلب: {request_type.name_arabic}',
+        'request_type': request_type,
+        'requests_count': request_type.requests.count(),
+    }
+    return render(request, 'requests/request_type_delete_confirm.html', context)
 
 
 # @login_required

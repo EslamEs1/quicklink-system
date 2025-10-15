@@ -24,6 +24,8 @@ urlpatterns = [
     path('request-types/', views.request_types_list, name='request_types_list'),
     path('request-types/create/', views.request_type_create, name='request_type_create'),
     path('request-types/<int:pk>/edit/', views.request_type_edit, name='request_type_edit'),
+    path('request-types/<int:pk>/toggle/', views.request_type_toggle, name='request_type_toggle'),
+    path('request-types/<int:pk>/delete/', views.request_type_delete, name='request_type_delete'),
     
     # إدارة فئات الطلبات
     path('requests/categories/', views.categories_list, name='categories_list'),

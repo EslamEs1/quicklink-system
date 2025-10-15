@@ -103,15 +103,16 @@
                                     </td>
                                     <td><code>{{ type.code }}</code></td>
                                     <td>
-                                        <span class="badge 
-                                            {% if type.category == 'paytabs' %}bg-primary
-                                            {% elif type.category == 'payment_gateway' %}bg-success
-                                            {% elif type.category == 'merchant' %}bg-warning text-dark
-                                            {% elif type.category == 'bank' %}bg-info
-                                            {% elif type.category == 'additional' %}bg-secondary
-                                            {% else %}bg-dark{% endif %}">
-                                            {{ type.get_category_display }}
+                                        {% if type.category %}
+                                        <span class="badge bg-{{ type.category.color }}">
+                                            {% if type.category.icon %}
+                                            <i class="fas {{ type.category.icon }} me-1"></i>
+                                            {% endif %}
+                                            {{ type.category.name_arabic }}
                                         </span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">بدون فئة</span>
+                                        {% endif %}
                                     </td>
                                     <td><strong>{{ type.default_price }} درهم</strong></td>
                                     <td>{{ type.usage_count|default:0 }} مرة</td>
@@ -129,18 +130,24 @@
                                                 <i class="fas fa-edit"></i>
                                             </a>
                                             {% if type.is_active %}
-                                            <button class="btn btn-action btn-warning" onclick="toggleTypeStatus({{ type.id }}, false)" title="تعطيل">
-                                                <i class="fas fa-pause"></i>
-                                            </button>
+                                            <form method="post" action="{% url 'requests:request_type_toggle' type.id %}" class="d-inline">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-action btn-warning" title="تعطيل">
+                                                    <i class="fas fa-pause"></i>
+                                                </button>
+                                            </form>
                                             {% else %}
-                                            <button class="btn btn-action btn-success" onclick="toggleTypeStatus({{ type.id }}, true)" title="تفعيل">
-                                                <i class="fas fa-play"></i>
-                                            </button>
+                                            <form method="post" action="{% url 'requests:request_type_toggle' type.id %}" class="d-inline">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-action btn-success" title="تفعيل">
+                                                    <i class="fas fa-play"></i>
+                                                </button>
+                                            </form>
                                             {% endif %}
                                             {% if type.usage_count == 0 %}
-                                            <button class="btn btn-action btn-delete" onclick="deleteType({{ type.id }})" title="حذف">
+                                            <a href="{% url 'requests:request_type_delete' type.id %}" class="btn btn-action btn-delete" title="حذف">
                                                 <i class="fas fa-trash"></i>
-                                            </button>
+                                            </a>
                                             {% endif %}
                                         </div>
                                     </td>
