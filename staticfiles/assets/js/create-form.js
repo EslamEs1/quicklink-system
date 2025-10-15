@@ -503,17 +503,17 @@ function validateStep2() {
     console.log('📋 Template select element:', templateSelect);
     console.log('📋 Template select value:', templateSelect ? templateSelect.value : 'null');
     
-    if (!templateSelect || !templateSelect.value) {
-        console.log('❌ No template selected');
-        if (templateSelect) {
-            templateSelect.classList.add('is-invalid');
-            templateSelect.classList.remove('is-valid');
-            
-            // إضافة رسالة خطأ
-            const errorMsg = document.getElementById('templateSelectError') || createErrorMessage('templateSelect', 'يرجى اختيار قالب قانوني');
+        if (!templateSelect || !templateSelect.value) {
+            console.log('❌ No template selected');
+            if (templateSelect) {
+                templateSelect.classList.add('is-invalid');
+                templateSelect.classList.remove('is-valid');
+                
+                // إضافة رسالة خطأ أكثر وضوحاً
+                const errorMsg = document.getElementById('templateSelectError') || createErrorMessage('templateSelect', '⚠️ يرجى اختيار قالب قانوني من القائمة أعلاه');
+            }
+            return false;
         }
-        return false;
-    }
     
     templateSelect.classList.remove('is-invalid');
     templateSelect.classList.add('is-valid');
