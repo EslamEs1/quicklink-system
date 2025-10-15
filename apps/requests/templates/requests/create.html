@@ -626,6 +626,7 @@
         // Initialize form
         document.addEventListener('DOMContentLoaded', function() {
             initializeForm();
+            setupImageUpload();
             setupValidation();
             loadSavedData();
             setupAutoSave();
@@ -713,6 +714,60 @@
             dobInput.setAttribute('min', minDate.toISOString().split('T')[0]);
         }
 
+        function setupImageUpload() {
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('idImage');
+            const previewArea = document.getElementById('previewArea');
+            const imagePreview = document.getElementById('imagePreview');
+
+            if (!uploadArea || !fileInput) return;
+
+            uploadArea.addEventListener('click', () => fileInput.click());
+            
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+            
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
+            
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    handleFileSelect(files[0]);
+                }
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    handleFileSelect(e.target.files[0]);
+                }
+            });
+
+            function handleFileSelect(file) {
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        imagePreview.src = e.target.result;
+                        uploadArea.classList.add('d-none');
+                        previewArea.classList.remove('d-none');
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    alert('يرجى اختيار ملف صورة صالح');
+                }
+            }
+        }
+
+        function removeImage() {
+            document.getElementById('idImage').value = '';
+            document.getElementById('uploadArea').classList.remove('d-none');
+            document.getElementById('previewArea').classList.add('d-none');
+        }
 
         function setupValidation() {
             // التحقق من تطابق الأسماء
