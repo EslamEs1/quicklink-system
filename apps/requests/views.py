@@ -67,27 +67,51 @@ def dashboard(request):
 def create(request):
     """إنشاء طلب جديد"""
     if request.method == 'POST':
+        print("🚀 POST request received")
+        print("📝 POST data:", request.POST)
+        print("📁 FILES data:", request.FILES)
         try:
             # التحقق من خيار العميل
             existing_customer_id = request.POST.get('existing_customer_id')
             
             if existing_customer_id:
                 # استخدام عميل موجود
+                print("👤 Using existing customer:", existing_customer_id)
                 customer = get_object_or_404(Customer, pk=existing_customer_id)
                 customer_created = False
             else:
                 # إنشاء عميل جديد
                 full_name = request.POST.get('customerName')
                 emirates_id = request.POST.get('emiratesId')
-                phone = request.POST.get('mobileNumber')  # تم تصحيح اسم الحقل
+                phone = request.POST.get('mobileNumber')
                 email = request.POST.get('email', '')
-                date_of_birth = request.POST.get('date_of_birth')  # تم تصحيح اسم الحقل
+                date_of_birth = request.POST.get('date_of_birth')
                 gender = request.POST.get('gender', 'male')
                 nationality = request.POST.get('nationality', 'الإمارات')
                 
+                print("👤 Creating new customer:")
+                print("  - Name:", full_name)
+                print("  - Emirates ID:", emirates_id)
+                print("  - Phone:", phone)
+                print("  - Email:", email)
+                print("  - DOB:", date_of_birth)
+                print("  - Gender:", gender)
+                print("  - Nationality:", nationality)
+                
                 # التحقق من عدم وجود نفس رقم الهوية
                 if Customer.objects.filter(emirates_id=emirates_id).exists():
+                    print("❌ Emirates ID already exists:", emirates_id)
                     messages.error(request, 'رقم الهوية موجود مسبقاً! استخدم "اختيار عميل موجود"')
+                    return redirect('requests:create')
+                
+                # التحقق من البيانات المطلوبة
+                if not full_name or not emirates_id or not phone or not date_of_birth:
+                    print("❌ Missing required fields:")
+                    print("  - Full Name:", full_name)
+                    print("  - Emirates ID:", emirates_id)
+                    print("  - Phone:", phone)
+                    print("  - Date of Birth:", date_of_birth)
+                    messages.error(request, 'يرجى ملء جميع الحقول المطلوبة')
                     return redirect('requests:create')
                 
                 # إنشاء العميل
@@ -101,12 +125,18 @@ def create(request):
                     nationality=nationality,
                     created_by=request.user if request.user.is_authenticated else None,
                 )
+                print("✅ Customer created successfully:", customer.id)
                 customer_created = True
             
             # الحصول على نوع الطلب
             request_type_id = request.POST.get('request_type_id')
             template_id = request.POST.get('template_id')
             payment_method = request.POST.get('paymentMethod', 'paytabs')
+            
+            print("📋 Request details:")
+            print("  - Request Type ID:", request_type_id)
+            print("  - Template ID:", template_id)
+            print("  - Payment Method:", payment_method)
             
             # حساب المبلغ من نوع الطلب
             from apps.requests.models import RequestType
@@ -118,10 +148,18 @@ def create(request):
                 base_price = float(request_type_instance.default_price)
                 tax = base_price * 0.05  # 5% ضريبة
                 total_amount = base_price + tax
+                print("💰 Pricing:")
+                print("  - Base Price:", base_price)
+                print("  - Tax:", tax)
+                print("  - Total:", total_amount)
             
             # الحصول على الأولوية وتاريخ الاستحقاق
             priority = request.POST.get('priority', 'medium')
             due_date = request.POST.get('due_date', None)
+            
+            print("⏰ Priority & Due Date:")
+            print("  - Priority:", priority)
+            print("  - Due Date:", due_date)
             
             # إنشاء الطلب
             new_request = Request.objects.create(
@@ -133,6 +171,7 @@ def create(request):
                 description=request.POST.get('description', ''),
                 created_by=request.user if request.user.is_authenticated else None,
             )
+            print("✅ Request created successfully:", new_request.id, new_request.reference_number)
             
             # ربط القالب إذا تم اختياره
             if template_id:
