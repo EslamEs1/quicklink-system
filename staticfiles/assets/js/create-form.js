@@ -65,11 +65,115 @@ function setupFileInputListeners() {
     if (idImageInput) {
         idImageInput.addEventListener('change', function() {
             console.log('📁 ID Image input changed');
+            handleIdImageUpload();
             validateIdImageUpload();
         });
     }
     
+    // Additional documents input
+    const additionalDocsInput = document.getElementById('additionalDocs');
+    if (additionalDocsInput) {
+        additionalDocsInput.addEventListener('change', function() {
+            console.log('📁 Additional docs input changed');
+            handleAdditionalDocsUpload();
+        });
+    }
+    
     console.log('✅ File input listeners setup complete');
+}
+
+// Handle Emirates ID image upload
+function handleIdImageUpload() {
+    const idImageInput = document.getElementById('idImage');
+    const idImagePreview = document.getElementById('idImagePreview');
+    
+    if (!idImageInput || !idImagePreview) return;
+    
+    const file = idImageInput.files[0];
+    if (file) {
+        console.log('📸 Processing Emirates ID image:', file.name);
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            idImagePreview.innerHTML = `
+                <img src="${e.target.result}" alt="Emirates ID Preview" class="img-thumbnail">
+                <div class="mt-2">
+                    <small class="text-success">
+                        <i class="fas fa-check-circle"></i>
+                        ${file.name}
+                    </small>
+                </div>
+            `;
+        };
+        reader.readAsDataURL(file);
+    } else {
+        idImagePreview.innerHTML = '';
+    }
+}
+
+// Handle additional documents upload
+function handleAdditionalDocsUpload() {
+    const additionalDocsInput = document.getElementById('additionalDocs');
+    const additionalDocsPreview = document.getElementById('additionalDocsPreview');
+    
+    if (!additionalDocsInput || !additionalDocsPreview) return;
+    
+    const files = Array.from(additionalDocsInput.files);
+    if (files.length > 0) {
+        console.log('📄 Processing additional documents:', files.length);
+        
+        let previewHTML = '';
+        files.forEach((file, index) => {
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewHTML += `
+                        <div class="d-inline-block me-2 mb-2">
+                            <img src="${e.target.result}" alt="${file.name}" class="img-thumbnail" style="max-width: 80px; max-height: 80px;">
+                            <div class="small text-center mt-1">${file.name.length > 15 ? file.name.substring(0, 15) + '...' : file.name}</div>
+                        </div>
+                    `;
+                    additionalDocsPreview.innerHTML = previewHTML;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                previewHTML += `
+                    <div class="d-inline-block me-2 mb-2 text-center">
+                        <i class="fas ${getFileIcon(file.name)} fa-2x text-primary"></i>
+                        <div class="small mt-1">${file.name.length > 15 ? file.name.substring(0, 15) + '...' : file.name}</div>
+                    </div>
+                `;
+                additionalDocsPreview.innerHTML = previewHTML;
+            }
+        });
+    } else {
+        additionalDocsPreview.innerHTML = '';
+    }
+}
+
+// Function to get file icon based on extension
+function getFileIcon(filename) {
+    const extension = filename.split('.').pop().toLowerCase();
+    switch(extension) {
+        case 'pdf':
+            return 'fa-file-pdf text-danger';
+        case 'doc':
+        case 'docx':
+            return 'fa-file-word text-primary';
+        case 'jpg':
+        case 'jpeg':
+        case 'png':
+        case 'gif':
+            return 'fa-file-image text-success';
+        case 'xls':
+        case 'xlsx':
+            return 'fa-file-excel text-success';
+        case 'zip':
+        case 'rar':
+            return 'fa-file-archive text-warning';
+        default:
+            return 'fa-file-alt text-secondary';
+    }
 }
 
 // Real-time validation for ID image upload
