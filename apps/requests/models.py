@@ -379,47 +379,63 @@ class Request(models.Model):
                 is_published=True
             )
             
-            # 3. البحث بناءً على نوع الطلب واسمه
-            request_name_words = [
-                self.request_type.name_arabic.lower(),
-                self.request_type.name_english.lower() if self.request_type.name_english else ''
-            ]
+            # 3. البحث بناءً على نوع الطلب واسمه (كلمات فردية)
+            request_name_words = []
             
-            # 4. البحث في أسماء القوالب
+            # استخراج الكلمات من الاسم العربي
+            if self.request_type.name_arabic:
+                arabic_words = self.request_type.name_arabic.lower().split()
+                request_name_words.extend(arabic_words)
+            
+            # استخراج الكلمات من الاسم الإنجليزي
+            if self.request_type.name_english:
+                english_words = self.request_type.name_english.lower().split()
+                request_name_words.extend(english_words)
+            
+            # 4. البحث في أسماء القوالب (كلمات فردية)
             name_conditions = models.Q()
             for word in request_name_words:
-                if word:
+                if word and len(word) > 2:  # تجاهل الكلمات القصيرة
                     name_conditions |= models.Q(name__icontains=word)
                     name_conditions |= models.Q(name_english__icontains=word)
             
             if name_conditions:
                 template_query = template_query.filter(name_conditions)
             
-            # 5. تصفية حسب نوع العميل
+            # 5. تصفية حسب نوع العميل (اختياري)
             if customer_type:
-                customer_conditions = models.Q()
+                # البحث عن قوالب محددة لنوع العميل
+                customer_specific_conditions = models.Q()
                 if customer_type == 'company':
-                    customer_conditions = models.Q(
+                    customer_specific_conditions = models.Q(
                         name__icontains='شركة'
                     ) | models.Q(
                         name__icontains='مؤسسة'
                     ) | models.Q(
-                        name__english__icontains='company'
+                        name_english__icontains='company'
                     ) | models.Q(
-                        name__english__icontains='corporate'
+                        name_english__icontains='corporate'
                     )
                 elif customer_type == 'individual':
-                    customer_conditions = models.Q(
+                    customer_specific_conditions = models.Q(
                         name__icontains='فرد'
                     ) | models.Q(
                         name__icontains='شخص'
                     ) | models.Q(
-                        name__english__icontains='individual'
+                        name_english__icontains='individual'
                     ) | models.Q(
-                        name__english__icontains='personal'
+                        name_english__icontains='personal'
                     )
                 
-                template_query = template_query.filter(customer_conditions)
+                # البحث عن القوالب المحددة + القوالب العامة (التي لا تحتوي على كلمات نوع العميل)
+                general_conditions = ~models.Q(name__icontains='شركة') & ~models.Q(name__icontains='مؤسسة') & \
+                                   ~models.Q(name__icontains='فرد') & ~models.Q(name__icontains='شخص') & \
+                                   ~models.Q(name_english__icontains='company') & ~models.Q(name_english__icontains='corporate') & \
+                                   ~models.Q(name_english__icontains='individual') & ~models.Q(name_english__icontains='personal')
+                
+                # دمج الشروط: قوالب محددة للعميل + قوالب عامة
+                final_conditions = customer_specific_conditions | general_conditions
+                template_query = template_query.filter(final_conditions)
             
             # 6. اختيار أول قالب مناسب
             selected_template = template_query.first()
