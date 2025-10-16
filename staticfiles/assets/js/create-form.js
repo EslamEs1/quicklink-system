@@ -39,6 +39,14 @@ function initializeForm() {
         dobInput.setAttribute('min', minDate.toISOString().split('T')[0]);
     }
     
+    // Set due date constraints (must be in future)
+    const dueDateInput = document.getElementById('dueDate');
+    if (dueDateInput) {
+        const tomorrow = new Date(today);
+        tomorrow.setDate(today.getDate() + 1); // Tomorrow as minimum
+        dueDateInput.setAttribute('min', tomorrow.toISOString().split('T')[0]);
+    }
+    
     // Setup file input listeners
     setupFileInputListeners();
     
@@ -307,6 +315,12 @@ function setupValidation() {
         dobInput.addEventListener('change', validateDateOfBirth);
     }
     
+    // Due date validation (must be in future)
+    const dueDateInput = document.getElementById('dueDate');
+    if (dueDateInput) {
+        dueDateInput.addEventListener('change', validateDueDate);
+    }
+    
     // Documents validation
     const idImageInput = document.getElementById('idImage');
     if (idImageInput) {
@@ -365,8 +379,78 @@ function validateStep1() {
         }
     });
     
+    // التحقق من تاريخ الاستحقاق (إذا تم إدخاله)
+    const dueDateInput = document.getElementById('dueDate');
+    if (dueDateInput && dueDateInput.value) {
+        const dueDate = new Date(dueDateInput.value);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Reset time to start of day
+        
+        if (dueDate <= today) {
+            console.log('❌ Due date must be in the future');
+            dueDateInput.classList.add('is-invalid');
+            showDueDateError('تاريخ الاستحقاق يجب أن يكون في المستقبل');
+            isValid = false;
+        } else {
+            dueDateInput.classList.remove('is-invalid');
+            showDueDateSuccess('تاريخ صحيح');
+        }
+    }
+    
     console.log(`✅ Step 1 validation: ${isValid ? 'PASSED' : 'FAILED'}`);
     return isValid;
+}
+
+// Helper functions for due date validation
+function showDueDateError(message) {
+    const errorDiv = document.getElementById('dueDateError');
+    const successDiv = document.getElementById('dueDateSuccess');
+    const errorMsg = document.getElementById('dueDateErrorMsg');
+    
+    if (errorDiv && errorMsg) {
+        errorMsg.textContent = message;
+        errorDiv.style.display = 'block';
+    }
+    if (successDiv) {
+        successDiv.style.display = 'none';
+    }
+}
+
+function showDueDateSuccess(message) {
+    const errorDiv = document.getElementById('dueDateError');
+    const successDiv = document.getElementById('dueDateSuccess');
+    
+    if (errorDiv) {
+        errorDiv.style.display = 'none';
+    }
+    if (successDiv) {
+        successDiv.style.display = 'block';
+    }
+}
+
+// Validate due date in real-time
+function validateDueDate() {
+    const dueDateInput = document.getElementById('dueDate');
+    if (!dueDateInput || !dueDateInput.value) {
+        // Clear messages if no date selected
+        const errorDiv = document.getElementById('dueDateError');
+        const successDiv = document.getElementById('dueDateSuccess');
+        if (errorDiv) errorDiv.style.display = 'none';
+        if (successDiv) successDiv.style.display = 'none';
+        return;
+    }
+    
+    const dueDate = new Date(dueDateInput.value);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Reset time to start of day
+    
+    if (dueDate <= today) {
+        dueDateInput.classList.add('is-invalid');
+        showDueDateError('تاريخ الاستحقاق يجب أن يكون في المستقبل');
+    } else {
+        dueDateInput.classList.remove('is-invalid');
+        showDueDateSuccess('تاريخ صحيح');
+    }
 }
 
 function validateStep2() {

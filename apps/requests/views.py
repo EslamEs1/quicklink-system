@@ -150,6 +150,20 @@ def create(request):
             priority = request.POST.get('priority', 'medium')
             due_date = request.POST.get('due_date', None)
             
+            # التحقق من تاريخ الاستحقاق (يجب أن يكون في المستقبل)
+            if due_date:
+                from datetime import date
+                due_date_obj = datetime.strptime(due_date, '%Y-%m-%d').date()
+                today = date.today()
+                if due_date_obj <= today:
+                    messages.error(request, 'تاريخ الاستحقاق يجب أن يكون في المستقبل، وليس اليوم أو أيام ماضية.')
+                    return render(request, 'requests/create.html', {
+                        'page_title': 'إنشاء طلب جديد',
+                        'templates': Template.objects.filter(is_active=True, is_published=True).order_by('template_type', 'name'),
+                        'customers': Customer.objects.filter(is_active=True).order_by('-updated_at')[:50],
+                        'request_types': RequestType.objects.filter(is_active=True).select_related('category').order_by('category__display_order', 'display_order'),
+                    })
+            
             # إنشاء الطلب (السعر سيتم تحديده تلقائياً في save())
             new_request = Request.objects.create(
                 customer=customer,

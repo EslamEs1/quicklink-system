@@ -317,10 +317,18 @@
                                             <!-- Due Date -->
                                             <div class="col-md-6 mb-3">
                                                 <label class="form-label">تاريخ الاستحقاق</label>
-                                                <input type="date" class="form-control" id="dueDate" name="due_date">
+                                                <input type="date" class="form-control" id="dueDate" name="due_date" min="">
                                                 <div class="form-text">
                                                     <i class="fas fa-calendar me-1"></i>
-                                                    الموعد النهائي لإنجاز الطلب (اختياري)
+                                                    الموعد النهائي لإنجاز الطلب (اختياري) - يجب أن يكون في المستقبل
+                                                </div>
+                                                <div class="form-text text-danger" id="dueDateError" style="display: none;">
+                                                    <i class="fas fa-exclamation-triangle"></i>
+                                                    <span id="dueDateErrorMsg"></span>
+                                                </div>
+                                                <div class="form-text text-success" id="dueDateSuccess" style="display: none;">
+                                                    <i class="fas fa-check-circle"></i>
+                                                    تاريخ صحيح ✓
                                                 </div>
                                             </div>
                                         </div>
