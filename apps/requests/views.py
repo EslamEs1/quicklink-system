@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db import models
-from .models import Request, Template
+from .models import Request, Template, RequestType
 from apps.clients.models import Customer
 from apps.payments.models import Payment
 from datetime import datetime, date
@@ -284,7 +284,6 @@ def create(request):
         templates = Template.objects.filter(is_active=True, is_published=True).order_by('template_type', 'name')
     
     # جلب أنواع الطلبات من Database (ديناميكي 100%)
-    from apps.requests.models import RequestType
     request_types = RequestType.objects.filter(is_active=True).select_related('category').order_by('category__display_order', 'display_order')
     
     # Generate reference number on server side (optimization)
@@ -448,7 +447,6 @@ def edit(request, pk):
         # تحديث نوع الطلب
         request_type_id = request.POST.get('request_type_id')
         if request_type_id:
-            from apps.requests.models import RequestType
             req.request_type = get_object_or_404(RequestType, pk=request_type_id)
         
         # تحديث القالب
@@ -473,7 +471,6 @@ def edit(request, pk):
     
     # GET request - عرض نموذج التعديل
     # جلب أنواع الطلبات
-    from apps.requests.models import RequestType
     request_types = RequestType.objects.filter(is_active=True).select_related('category').order_by('category__display_order', 'display_order')
     
     # جلب القوالب
@@ -818,7 +815,6 @@ def template_edit(request, pk):
 # @login_required
 def request_types_list(request):
     """قائمة أنواع الطلبات"""
-    from apps.requests.models import RequestType
     
     # جلب جميع الأنواع مع الفئات
     request_types = RequestType.objects.select_related('category').order_by('category__display_order', 'display_order')
@@ -841,7 +837,7 @@ def request_types_list(request):
 # @login_required
 def request_type_create(request):
     """إنشاء نوع طلب جديد"""
-    from apps.requests.models import RequestType, RequestCategory
+    from apps.requests.models import RequestCategory
     
     if request.method == 'POST':
         name_arabic = request.POST.get('name_arabic')
@@ -883,7 +879,6 @@ def request_type_create(request):
 # @login_required
 def request_type_edit(request, pk):
     """تعديل نوع طلب"""
-    from apps.requests.models import RequestType
     request_type = get_object_or_404(RequestType, pk=pk)
     
     if request.method == 'POST':
@@ -910,7 +905,6 @@ def request_type_edit(request, pk):
 # @login_required
 def request_type_toggle(request, pk):
     """تفعيل/تعطيل نوع طلب"""
-    from apps.requests.models import RequestType
     request_type = get_object_or_404(RequestType, pk=pk)
     
     if request.method == 'POST':
@@ -927,7 +921,6 @@ def request_type_toggle(request, pk):
 # @login_required
 def request_type_delete(request, pk):
     """حذف نوع طلب"""
-    from apps.requests.models import RequestType
     request_type = get_object_or_404(RequestType, pk=pk)
     
     if request.method == 'POST':
