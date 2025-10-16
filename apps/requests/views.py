@@ -239,7 +239,6 @@ def create(request):
     # GET request - جلب قائمة العملاء للاختيار
     customers = Customer.objects.filter(is_active=True).order_by('-updated_at')[:50]
     templates = Template.objects.filter(is_active=True, is_published=True).order_by('template_type', 'name')
-    print(f"DEBUG: Found {templates.count()} existing templates")
     
     # إنشاء قوالب تجريبية إذا لم توجد
     if not templates.exists():
@@ -283,19 +282,39 @@ def create(request):
         
         # إعادة جلب القوالب
         templates = Template.objects.filter(is_active=True, is_published=True).order_by('template_type', 'name')
-        print(f"DEBUG: Created {templates.count()} templates after creation")
     
     # جلب أنواع الطلبات من Database (ديناميكي 100%)
     from apps.requests.models import RequestType
     request_types = RequestType.objects.filter(is_active=True).select_related('category').order_by('category__display_order', 'display_order')
     
+    # Generate reference number on server side (optimization)
+    reference_number = _generate_reference_number()
+    
     context = {
         'page_title': 'إنشاء طلب جديد',
         'templates': templates,
         'customers': customers,
-        'request_types': request_types,  # أنواع الطلبات من Database
+        'request_types': request_types,
+        'reference_number': reference_number,  # Pass to template
     }
     return render(request, 'requests/create.html', context)
+
+
+def _generate_reference_number():
+    """Generate unique reference number (moved from JavaScript)"""
+    from datetime import datetime
+    year = datetime.now().year
+    last_request = Request.objects.filter(
+        reference_number__startswith=f'QL-{year}'
+    ).order_by('-reference_number').first()
+    
+    if last_request:
+        last_num = int(last_request.reference_number.split('-')[-1])
+        new_num = last_num + 1
+    else:
+        new_num = 1
+    
+    return f'QL-{year}-{new_num:03d}'
 
 
 # @login_required

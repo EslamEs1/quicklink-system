@@ -1,6 +1,6 @@
 /**
- * Create Request Form - Fixed JavaScript
- * Enhanced debugging and validation
+ * Create Request Form - Optimized JavaScript
+ * Focused on UX essentials only
  */
 
 let currentStep = 1;
@@ -11,8 +11,6 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 DOM Loaded - Initializing create form');
     initializeForm();
     setupValidation();
-    setupAutoSave();
-    loadSavedData();
     setupFormSubmission();
 });
 
@@ -28,15 +26,6 @@ function initializeForm() {
         dateInput.value = today.toISOString().split('T')[0];
     }
     
-    // Generate reference number
-    const referenceInput = document.getElementById('referenceNumber');
-    if (referenceInput && !referenceInput.value) {
-        const year = today.getFullYear();
-        const timestamp = Date.now().toString().slice(-6); // Last 6 digits
-        referenceInput.value = `QL-${year}-${timestamp}`;
-        console.log('✅ Reference number generated:', referenceInput.value);
-    }
-    
     // Set date of birth constraints
     const dobInput = document.getElementById('dateOfBirth');
     if (dobInput) {
@@ -50,24 +39,13 @@ function initializeForm() {
         dobInput.setAttribute('min', minDate.toISOString().split('T')[0]);
     }
     
-    // Setup real-time validation for file inputs
+    // Setup file input listeners
     setupFileInputListeners();
-    
-    // Debug: Check template dropdown
-    const templateSelect = document.getElementById('templateSelect');
-    if (templateSelect) {
-        console.log('📋 Template dropdown found with', templateSelect.options.length, 'options');
-        for (let i = 0; i < templateSelect.options.length; i++) {
-            console.log(`  ${i}: "${templateSelect.options[i].text}" (value: "${templateSelect.options[i].value}")`);
-        }
-    } else {
-        console.log('❌ Template dropdown NOT found!');
-    }
     
     console.log('✅ Form initialized');
 }
 
-// Setup real-time validation for file inputs
+// Setup file input listeners (essential for UX)
 function setupFileInputListeners() {
     console.log('🔧 Setting up file input listeners...');
     
@@ -90,18 +68,10 @@ function setupFileInputListeners() {
         });
     }
     
-    // Template selection input (validation handled in setupValidation)
-    const templateSelect = document.getElementById('templateSelect');
-    if (templateSelect) {
-        templateSelect.addEventListener('change', function() {
-            console.log('📋 Template selection changed');
-        });
-    }
-    
     console.log('✅ File input listeners setup complete');
 }
 
-// Handle Emirates ID image upload
+// Handle Emirates ID image upload (essential for UX)
 function handleIdImageUpload() {
     const idImageInput = document.getElementById('idImage');
     const idImagePreview = document.getElementById('idImagePreview');
@@ -130,7 +100,7 @@ function handleIdImageUpload() {
     }
 }
 
-// Handle additional documents upload
+// Handle additional documents upload (essential for UX)
 function handleAdditionalDocsUpload() {
     const additionalDocsInput = document.getElementById('additionalDocs');
     const additionalDocsPreview = document.getElementById('additionalDocsPreview');
@@ -170,7 +140,7 @@ function handleAdditionalDocsUpload() {
     }
 }
 
-// Function to get file icon based on extension
+// Function to get file icon (essential for UX)
 function getFileIcon(filename) {
     const extension = filename.split('.').pop().toLowerCase();
     switch(extension) {
@@ -195,37 +165,7 @@ function getFileIcon(filename) {
     }
 }
 
-// Real-time validation for template selection
-function validateTemplateSelection() {
-    const templateSelect = document.getElementById('templateSelect');
-    
-    if (!templateSelect) return;
-    
-    if (templateSelect.value) {
-        console.log('✅ Template selected - removing error styling');
-        
-        // Remove error styling
-        templateSelect.classList.remove('is-invalid');
-        templateSelect.classList.add('is-valid');
-        
-        // Remove error message
-        const errorMsg = document.getElementById('templateSelectError');
-        if (errorMsg) {
-            errorMsg.remove();
-        }
-    } else {
-        console.log('❌ No template selected - adding error styling');
-        
-        // Add error styling
-        templateSelect.classList.remove('is-valid');
-        templateSelect.classList.add('is-invalid');
-        
-        // Add error message
-        const errorMsg = document.getElementById('templateSelectError') || createErrorMessage('templateSelect', 'يرجى اختيار قالب قانوني');
-    }
-}
-
-// Real-time validation for ID image upload
+// Real-time validation for ID image upload (essential for UX)
 function validateIdImageUpload() {
     const idImageInput = document.getElementById('idImage');
     const idImageUpload = document.getElementById('idImageUpload');
@@ -356,10 +296,10 @@ function updateButtons() {
     }
 }
 
-// ============ VALIDATION ============
+// ============ VALIDATION (Essential for UX) ============
 
 function setupValidation() {
-    // Name matching
+    // Name matching (essential for UX)
     const nameInput = document.getElementById('customerName');
     const confirmInput = document.getElementById('confirmName');
     if (nameInput && confirmInput) {
@@ -367,25 +307,25 @@ function setupValidation() {
         confirmInput.addEventListener('input', checkNameMatch);
     }
     
-    // Emirates ID validation
+    // Emirates ID validation (essential for UX)
     const idInput = document.getElementById('emiratesId');
     if (idInput) {
         idInput.addEventListener('input', validateEmiratesId);
     }
     
-    // Date of birth validation
+    // Date of birth validation (essential for UX)
     const dobInput = document.getElementById('dateOfBirth');
     if (dobInput) {
         dobInput.addEventListener('change', validateDateOfBirth);
     }
     
-    // Template selection
+    // Template selection (simplified)
     const templateSelect = document.getElementById('templateSelect');
     if (templateSelect) {
         templateSelect.addEventListener('change', checkTemplateSelection);
     }
     
-    // Payment methods
+    // Payment methods (essential for UX)
     const paymentMethods = document.querySelectorAll('input[name="paymentMethod"]');
     paymentMethods.forEach(method => {
         method.addEventListener('change', function() {
@@ -401,8 +341,6 @@ function setupValidation() {
             updateProgressBar();
         });
     });
-    
-    // Image upload is now handled in create.html inline JavaScript
 }
 
 function validateCurrentStep() {
@@ -441,8 +379,6 @@ function validateStep1() {
         }
     });
     
-    // لا نحتاج للتحقق من رفع الصورة هنا لأنها أصبحت في Step 1.5
-    
     console.log(`✅ Step 1 validation: ${isValid ? 'PASSED' : 'FAILED'}`);
     return isValid;
 }
@@ -456,87 +392,20 @@ function validateStep1_5() {
     
     if (!idImageInput || !idImageInput.files || idImageInput.files.length === 0) {
         console.log('❌ Missing Emirates ID image upload');
-        
-        // استخدام الدالة المحدثة لإظهار رسالة الخطأ
         validateIdImageUpload();
-        
         isValid = false;
     } else {
         console.log('✅ Emirates ID image uploaded');
-        
-        // استخدام الدالة المحدثة لإخفاء رسالة الخطأ
         validateIdImageUpload();
     }
-    
-    // المستندات الإضافية اختيارية، لا نحتاج للتحقق منها
     
     console.log(`✅ Step 1.5 validation: ${isValid ? 'PASSED' : 'FAILED'}`);
     return isValid;
 }
 
-// دالة مساعدة لإنشاء رسائل الخطأ
-function createErrorMessage(parentId, message) {
-    const parent = document.getElementById(parentId);
-    if (!parent) return null;
-    
-    // إزالة رسالة الخطأ الموجودة
-    const existingError = document.getElementById(parentId + 'Error');
-    if (existingError) {
-        existingError.remove();
-    }
-    
-    // إنشاء رسالة خطأ جديدة
-    const errorDiv = document.createElement('div');
-    errorDiv.id = parentId + 'Error';
-    errorDiv.className = 'form-text text-danger mt-2';
-    errorDiv.innerHTML = `<i class="fas fa-exclamation-triangle me-1"></i>${message}`;
-    
-    parent.appendChild(errorDiv);
-    return errorDiv;
-}
-
 function validateStep2() {
     console.log('🔍 Validating Step 2...');
-    const templateSelect = document.getElementById('templateSelect');
-    
-    console.log('📋 Template select element:', templateSelect);
-    console.log('📋 Template select value:', templateSelect ? templateSelect.value : 'null');
-    console.log('📋 Template select options:', templateSelect ? templateSelect.options.length : 'null');
-    
-    // Debug: Show all options
-    if (templateSelect && templateSelect.options) {
-        console.log('📋 All template options:');
-        for (let i = 0; i < templateSelect.options.length; i++) {
-            console.log(`  ${i}: "${templateSelect.options[i].text}" (value: "${templateSelect.options[i].value}")`);
-        }
-    }
-    
     // Template selection is now optional - system will auto-select
-    // We only validate if a template is manually selected
-    if (templateSelect && templateSelect.value) {
-        console.log('✅ Template manually selected:', templateSelect.options[templateSelect.selectedIndex].text);
-        templateSelect.classList.remove('is-invalid');
-        templateSelect.classList.add('is-valid');
-        
-        // إخفاء رسالة الخطأ
-        const errorMsg = document.getElementById('templateSelectError');
-        if (errorMsg) {
-            errorMsg.remove();
-        }
-    } else {
-        console.log('ℹ️ No template manually selected - system will auto-select');
-        if (templateSelect) {
-            templateSelect.classList.remove('is-invalid');
-            templateSelect.classList.remove('is-valid');
-        }
-        
-        // إخفاء رسالة الخطأ إذا كانت موجودة
-        const errorMsg = document.getElementById('templateSelectError');
-        if (errorMsg) {
-            errorMsg.remove();
-        }
-    }
-    
     console.log('✅ Step 2 validation: PASSED - Template will be auto-selected by system');
     return true;
 }
@@ -549,7 +418,6 @@ function validateStep4() {
     
     if (!paymentMethod) {
         console.log('❌ No payment method selected - setting default to paytabs');
-        // Set default to paytabs if none selected
         const paytabsRadio = document.getElementById('paytabs');
         if (paytabsRadio) {
             paytabsRadio.checked = true;
@@ -615,7 +483,7 @@ function selectExistingCustomer(id, name, emirates_id, phone, email) {
     event.target.closest('.list-group-item')?.classList.add('active');
 }
 
-// ============ VALIDATION HELPERS ============
+// ============ VALIDATION HELPERS (Essential for UX) ============
 
 function checkNameMatch() {
     const name = document.getElementById('customerName')?.value || '';
@@ -754,15 +622,30 @@ function checkTemplateSelection() {
         checkbox.checked = false;
         checkbox.disabled = true;
     }
-    
-    // Also call validation for visual feedback
-    validateTemplateSelection();
 }
 
-// ============ IMAGE UPLOAD ============
-// Image upload is now handled in create.html inline JavaScript
+// دالة مساعدة لإنشاء رسائل الخطأ
+function createErrorMessage(parentId, message) {
+    const parent = document.getElementById(parentId);
+    if (!parent) return null;
+    
+    // إزالة رسالة الخطأ الموجودة
+    const existingError = document.getElementById(parentId + 'Error');
+    if (existingError) {
+        existingError.remove();
+    }
+    
+    // إنشاء رسالة خطأ جديدة
+    const errorDiv = document.createElement('div');
+    errorDiv.id = parentId + 'Error';
+    errorDiv.className = 'form-text text-danger mt-2';
+    errorDiv.innerHTML = `<i class="fas fa-exclamation-triangle me-1"></i>${message}`;
+    
+    parent.appendChild(errorDiv);
+    return errorDiv;
+}
 
-// ============ PROGRESS & CHECKLIST ============
+// ============ PROGRESS & CHECKLIST (Essential for UX) ============
 
 function updateChecklistDisplay() {
     const currentStepNum = document.getElementById('currentStepNum');
@@ -788,12 +671,6 @@ function updateChecklistDisplay() {
     
     if (currentStepChecks) {
         currentStepChecks.classList.remove('d-none');
-    }
-    
-    // Hide/show image upload card (removed since we moved to step 1.5)
-    const imageCard = document.getElementById('imageUploadCard');
-    if (imageCard) {
-        imageCard.classList.add('d-none'); // Always hide since we moved to step 1.5
     }
 }
 
@@ -890,7 +767,7 @@ function updateReviewData() {
     }
 }
 
-// ============ PAYMENT DETAILS ============
+// ============ PAYMENT DETAILS (Simplified) ============
 
 function updatePaymentDetails() {
     const requestTypeSelect = document.getElementById('requestType');
@@ -915,104 +792,6 @@ function updatePaymentDetails() {
     document.getElementById('totalAmount').textContent = totalAmount.toFixed(2) + ' درهم';
 }
 
-// ============ AUTO-SAVE ============
-
-function setupAutoSave() {
-    const inputs = document.querySelectorAll('#createRequestForm input, #createRequestForm select');
-    inputs.forEach(input => {
-        input.addEventListener('change', saveFormData);
-        input.addEventListener('input', debounce(saveFormData, 1000));
-    });
-    
-    window.addEventListener('beforeunload', saveFormData);
-}
-
-function saveFormData() {
-    const formData = {
-        currentStep: currentStep,
-        customerName: document.getElementById('customerName')?.value || '',
-        confirmName: document.getElementById('confirmName')?.value || '',
-        emiratesId: document.getElementById('emiratesId')?.value || '',
-        dateOfBirth: document.getElementById('dateOfBirth')?.value || '',
-        nationality: document.getElementById('nationality')?.value || '',
-        mobileNumber: document.getElementById('mobileNumber')?.value || '',
-        email: document.getElementById('email')?.value || '',
-        requestType: document.getElementById('requestType')?.value || '',
-        priority: document.getElementById('priority')?.value || '',
-        dueDate: document.getElementById('dueDate')?.value || '',
-        templateSelect: document.getElementById('templateSelect')?.value || '',
-        paymentMethod: document.querySelector('input[name="paymentMethod"]:checked')?.value || '',
-        timestamp: new Date().toISOString()
-    };
-    
-    localStorage.setItem('createRequestFormData', JSON.stringify(formData));
-}
-
-function loadSavedData() {
-    const savedData = localStorage.getItem('createRequestFormData');
-    if (!savedData) return;
-    
-    try {
-        const formData = JSON.parse(savedData);
-        const savedTime = new Date(formData.timestamp);
-        const now = new Date();
-        const minutesDiff = (now - savedTime) / (1000 * 60);
-        
-        // Only restore if data is between 1-5 minutes old
-        if (minutesDiff > 5 || minutesDiff < 1) {
-            localStorage.removeItem('createRequestFormData');
-            return;
-        }
-        
-        const hasData = formData.customerName || formData.emiratesId || formData.email || formData.mobileNumber;
-        if (!hasData) {
-            localStorage.removeItem('createRequestFormData');
-            return;
-        }
-        
-        if (confirm('تم العثور على بيانات محفوظة منذ ' + Math.round(minutesDiff) + ' دقيقة. هل تريد استعادتها؟')) {
-            // Restore form data
-            Object.entries(formData).forEach(([key, value]) => {
-                if (key === 'paymentMethod') {
-                    const paymentRadio = document.getElementById(value);
-                    if (paymentRadio) paymentRadio.checked = true;
-                } else if (key === 'currentStep' && value > 1) {
-                    currentStep = value;
-                    changeStep(0);
-                } else if (key !== 'timestamp') {
-                    const element = document.getElementById(key);
-                    if (element) element.value = value;
-                }
-            });
-            
-            // Re-run validations
-            checkNameMatch();
-            validateEmiratesId();
-            validateDateOfBirth();
-        } else {
-            localStorage.removeItem('createRequestFormData');
-        }
-    } catch (error) {
-        localStorage.removeItem('createRequestFormData');
-    }
-}
-
-function clearSavedData() {
-    localStorage.removeItem('createRequestFormData');
-}
-
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
-
 // ============ FORM SUBMISSION ============
 
 function setupFormSubmission() {
@@ -1020,10 +799,6 @@ function setupFormSubmission() {
     if (form) {
         form.addEventListener('submit', function(e) {
             console.log('🚀 FORM SUBMISSION EVENT TRIGGERED');
-            console.log('📝 Current step:', currentStep);
-            console.log('📝 Total steps:', totalSteps);
-            console.log('📝 Form action:', form.action);
-            console.log('📝 Form method:', form.method);
             
             // If we're not on the last step, prevent submission and go to next step
             if (currentStep < totalSteps) {
@@ -1036,8 +811,6 @@ function setupFormSubmission() {
             // We're on the last step - validate and submit
             console.log('✅ On last step - validating and submitting');
             
-            // Validate final step
-            console.log('🔍 Starting final validation...');
             const validationResult = validateStep4();
             console.log('🔍 Validation result:', validationResult);
             
@@ -1049,10 +822,8 @@ function setupFormSubmission() {
             
             console.log('✅ All validation passed - submitting to Django');
             console.log('✅ Form will be submitted to:', form.action);
-            clearSavedData();
             
             // Don't prevent default - let Django handle the form submission
-            // Django will redirect to detail page on success
             console.log('✅ Allowing form submission to proceed...');
         });
     } else {
