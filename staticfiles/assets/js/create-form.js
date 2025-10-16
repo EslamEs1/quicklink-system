@@ -356,6 +356,14 @@ function setupValidation() {
         dueDateInput.addEventListener('change', validateDueDate);
     }
     
+    // Request type validation for existing customer
+    const requestTypeExistingSelect = document.getElementById('requestTypeExisting');
+    if (requestTypeExistingSelect) {
+        requestTypeExistingSelect.addEventListener('change', function() {
+            this.classList.remove('is-invalid');
+        });
+    }
+    
     // Documents validation
     const idImageInput = document.getElementById('idImage');
     if (idImageInput) {
@@ -399,20 +407,49 @@ function validateCurrentStep() {
 
 function validateStep1() {
     console.log('🔍 Validating Step 1...');
-    const required = ['customerName', 'confirmName', 'emiratesId', 'dateOfBirth', 'nationality', 'mobileNumber', 'requestType'];
+    
+    // التحقق من نوع العميل المختار
+    const existingOption = document.getElementById('existingCustomer');
+    const existingCustomerId = document.getElementById('existingCustomerId');
+    
     let isValid = true;
     
-    // التحقق من الحقول المطلوبة
-    required.forEach(fieldId => {
-        const field = document.getElementById(fieldId);
-        if (!field || !field.value.trim()) {
-            console.log(`❌ Missing field: ${fieldId}`);
-            if (field) field.classList.add('is-invalid');
+    if (existingOption && existingOption.checked) {
+        // عميل موجود - التحقق من اختيار العميل ونوع الطلب فقط
+        console.log('🔍 Validating existing customer...');
+        
+        if (!existingCustomerId || !existingCustomerId.value) {
+            console.log('❌ No existing customer selected');
+            showAlert('يرجى اختيار عميل من القائمة', 'warning');
+            isValid = false;
+        }
+        
+        // التحقق من نوع الطلب للعميل الموجود
+        const requestTypeExisting = document.getElementById('requestTypeExisting');
+        if (!requestTypeExisting || !requestTypeExisting.value) {
+            console.log('❌ No request type selected for existing customer');
+            if (requestTypeExisting) requestTypeExisting.classList.add('is-invalid');
             isValid = false;
         } else {
-            field.classList.remove('is-invalid');
+            requestTypeExisting.classList.remove('is-invalid');
         }
-    });
+        
+    } else {
+        // عميل جديد - التحقق من جميع الحقول المطلوبة
+        console.log('🔍 Validating new customer...');
+        const required = ['customerName', 'confirmName', 'emiratesId', 'dateOfBirth', 'nationality', 'mobileNumber', 'requestType'];
+        
+        required.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (!field || !field.value.trim()) {
+                console.log(`❌ Missing field: ${fieldId}`);
+                if (field) field.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                field.classList.remove('is-invalid');
+            }
+        });
+    }
     
     // التحقق من تاريخ الاستحقاق (إذا تم إدخاله)
     const dueDateInput = document.getElementById('dueDate');
@@ -919,4 +956,35 @@ function setupFormSubmission() {
     } else {
         console.error('❌ Form not found!');
     }
+});
+
+// ============ UTILITY FUNCTIONS ============
+
+function showAlert(message, type = 'info') {
+    // Remove existing alerts
+    const existingAlerts = document.querySelectorAll('.dynamic-alert');
+    existingAlerts.forEach(alert => alert.remove());
+
+    // Create new alert
+    const alert = document.createElement('div');
+    alert.className = `alert alert-${type} alert-dismissible fade show dynamic-alert`;
+    alert.style.position = 'fixed';
+    alert.style.top = '20px';
+    alert.style.right = '20px';
+    alert.style.zIndex = '9999';
+    alert.style.minWidth = '300px';
+    
+    alert.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+
+    document.body.appendChild(alert);
+
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        if (alert.parentNode) {
+            alert.remove();
+        }
+    }, 3000);
 }
