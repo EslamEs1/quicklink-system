@@ -356,32 +356,6 @@ function setupValidation() {
         dueDateInput.addEventListener('change', validateDueDate);
     }
     
-    // Request type validation for existing customer
-    const requestTypeExistingSelect = document.getElementById('requestTypeExisting');
-    if (requestTypeExistingSelect) {
-        requestTypeExistingSelect.addEventListener('change', function() {
-            this.classList.remove('is-invalid');
-        });
-    }
-    
-    // Customer form toggle
-    const existingCustomerRadio = document.getElementById('existingCustomer');
-    const newCustomerRadio = document.getElementById('newCustomer');
-    if (existingCustomerRadio) {
-        existingCustomerRadio.addEventListener('change', toggleCustomerForm);
-    }
-    if (newCustomerRadio) {
-        newCustomerRadio.addEventListener('change', toggleCustomerForm);
-    }
-    
-    // Customer search
-    const customerSearchInput = document.getElementById('customerSearch');
-    if (customerSearchInput) {
-        customerSearchInput.addEventListener('input', function() {
-            searchCustomers(this.value);
-        });
-    }
-    
     // Documents validation
     const idImageInput = document.getElementById('idImage');
     if (idImageInput) {
@@ -425,49 +399,20 @@ function validateCurrentStep() {
 
 function validateStep1() {
     console.log('🔍 Validating Step 1...');
-    
-    // التحقق من نوع العميل المختار
-    const existingOption = document.getElementById('existingCustomer');
-    const existingCustomerId = document.getElementById('existingCustomerId');
-    
+    const required = ['customerName', 'confirmName', 'emiratesId', 'dateOfBirth', 'nationality', 'mobileNumber', 'requestType'];
     let isValid = true;
     
-    if (existingOption && existingOption.checked) {
-        // عميل موجود - التحقق من اختيار العميل ونوع الطلب فقط
-        console.log('🔍 Validating existing customer...');
-        
-        if (!existingCustomerId || !existingCustomerId.value) {
-            console.log('❌ No existing customer selected');
-            showAlert('يرجى اختيار عميل من القائمة', 'warning');
-            isValid = false;
-        }
-        
-        // التحقق من نوع الطلب للعميل الموجود
-        const requestTypeExisting = document.getElementById('requestTypeExisting');
-        if (!requestTypeExisting || !requestTypeExisting.value) {
-            console.log('❌ No request type selected for existing customer');
-            if (requestTypeExisting) requestTypeExisting.classList.add('is-invalid');
+    // التحقق من الحقول المطلوبة
+    required.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (!field || !field.value.trim()) {
+            console.log(`❌ Missing field: ${fieldId}`);
+            if (field) field.classList.add('is-invalid');
             isValid = false;
         } else {
-            requestTypeExisting.classList.remove('is-invalid');
+            field.classList.remove('is-invalid');
         }
-        
-    } else {
-        // عميل جديد - التحقق من جميع الحقول المطلوبة
-        console.log('🔍 Validating new customer...');
-        const required = ['customerName', 'confirmName', 'emiratesId', 'dateOfBirth', 'nationality', 'mobileNumber', 'requestType'];
-        
-        required.forEach(fieldId => {
-            const field = document.getElementById(fieldId);
-            if (!field || !field.value.trim()) {
-                console.log(`❌ Missing field: ${fieldId}`);
-                if (field) field.classList.add('is-invalid');
-                isValid = false;
-            } else {
-                field.classList.remove('is-invalid');
-            }
-        });
-    }
+    });
     
     // التحقق من تاريخ الاستحقاق (إذا تم إدخاله)
     const dueDateInput = document.getElementById('dueDate');
@@ -622,8 +567,6 @@ function toggleCustomerForm() {
 }
 
 function selectExistingCustomer(id, name, emirates_id, phone, email) {
-    console.log('👤 Selecting existing customer:', name);
-    
     const hiddenInput = document.getElementById('existingCustomerId');
     const alertDiv = document.getElementById('selectedCustomerAlert');
     const nameSpan = document.getElementById('selectedCustomerName');
@@ -637,43 +580,6 @@ function selectExistingCustomer(id, name, emirates_id, phone, email) {
         item.classList.remove('active');
     });
     event.target.closest('.list-group-item')?.classList.add('active');
-    
-    // Hide search results
-    const searchResults = document.getElementById('customerSearchResults');
-    if (searchResults) {
-        searchResults.style.display = 'none';
-    }
-    
-    // Clear search input
-    const searchInput = document.getElementById('customerSearch');
-    if (searchInput) {
-        searchInput.value = '';
-    }
-    
-    showAlert(`تم اختيار العميل: ${name}`, 'success');
-}
-
-// Customer search functionality
-function searchCustomers(query) {
-    console.log('🔍 Searching customers:', query);
-    
-    if (!query || query.length < 2) {
-        // Show all customers if query is too short
-        document.querySelectorAll('#customerSearchResults .list-group-item').forEach(item => {
-            item.style.display = '';
-        });
-        return;
-    }
-    
-    const searchTerm = query.toLowerCase();
-    document.querySelectorAll('#customerSearchResults .list-group-item').forEach(item => {
-        const text = item.textContent.toLowerCase();
-        if (text.includes(searchTerm)) {
-            item.style.display = '';
-        } else {
-            item.style.display = 'none';
-        }
-    });
 }
 
 // ============ VALIDATION HELPERS (Essential for UX) ============
@@ -1013,35 +919,4 @@ function setupFormSubmission() {
     } else {
         console.error('❌ Form not found!');
     }
-});
-
-// ============ UTILITY FUNCTIONS ============
-
-function showAlert(message, type = 'info') {
-    // Remove existing alerts
-    const existingAlerts = document.querySelectorAll('.dynamic-alert');
-    existingAlerts.forEach(alert => alert.remove());
-
-    // Create new alert
-    const alert = document.createElement('div');
-    alert.className = `alert alert-${type} alert-dismissible fade show dynamic-alert`;
-    alert.style.position = 'fixed';
-    alert.style.top = '20px';
-    alert.style.right = '20px';
-    alert.style.zIndex = '9999';
-    alert.style.minWidth = '300px';
-    
-    alert.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
-
-    document.body.appendChild(alert);
-
-    // Auto remove after 3 seconds
-    setTimeout(() => {
-        if (alert.parentNode) {
-            alert.remove();
-        }
-    }, 3000);
 }

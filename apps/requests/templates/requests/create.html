@@ -136,32 +136,6 @@
                                             تم اختيار العميل: <strong id="selectedCustomerName"></strong>
                                         </div>
                                         <input type="hidden" name="existing_customer_id" id="existingCustomerId">
-                                        
-                                        <!-- نوع الطلب للعميل الموجود -->
-                                        <div class="mt-3">
-                                            <label class="form-label">نوع الطلب <span class="text-danger">*</span></label>
-                                            <select class="form-control" id="requestTypeExisting" name="request_type_id_existing">
-                                                <option value="">اختر نوع الطلب</option>
-                                                {% if request_types %}
-                                                    {% regroup request_types by category as category_groups %}
-                                                    {% for category in category_groups %}
-                                                    <optgroup label="{{ category.grouper|title }}">
-                                                        {% for type in category.list %}
-                                                        <option value="{{ type.id }}" data-price="{{ type.default_price }}">
-                                                            {{ type.name_arabic }} - {{ type.default_price }} درهم
-                                                        </option>
-                                                        {% endfor %}
-                                                    </optgroup>
-                                                    {% endfor %}
-                                                {% else %}
-                                                    <option value="" disabled>لا توجد أنواع متاحة</option>
-                                                {% endif %}
-                                            </select>
-                                            <div class="form-text">
-                                                <i class="fas fa-info-circle me-1"></i>
-                                                اختر نوع الخدمة المطلوبة
-                                            </div>
-                                        </div>
                                     </div>
                                 </div>
 

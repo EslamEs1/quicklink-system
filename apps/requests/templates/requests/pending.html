@@ -208,15 +208,21 @@
                                     </td>
                                     <td>
                                         <div class="btn-group" role="group">
-                                            <button class="btn btn-action btn-view" onclick="viewPendingRequest({{ req.id }})" title="عرض التفاصيل">
+                                            <a href="{% url 'requests:detail' req.id %}" class="btn btn-action btn-view" title="عرض التفاصيل">
                                                 <i class="fas fa-eye"></i>
-                                            </button>
-                                            <button class="btn btn-action btn-success" onclick="approveRequest({{ req.id }})" title="موافقة">
-                                                <i class="fas fa-check"></i>
-                                            </button>
-                                            <button class="btn btn-action btn-delete" onclick="rejectRequest({{ req.id }})" title="رفض">
-                                                <i class="fas fa-times"></i>
-                                            </button>
+                                            </a>
+                                            <form method="post" action="{% url 'requests:approve' req.id %}" style="display: inline;">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-action btn-success" title="موافقة">
+                                                    <i class="fas fa-check"></i>
+                                                </button>
+                                            </form>
+                                            <form method="post" action="{% url 'requests:reject' req.id %}" style="display: inline;">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-action btn-danger" title="رفض">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </form>
                                             {% if not req.assigned_to %}
                                                 <button class="btn btn-action btn-warning" onclick="assignRequest({{ req.id }})" title="تخصيص لي">
                                                     <i class="fas fa-user-plus"></i>
