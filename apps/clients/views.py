@@ -207,8 +207,8 @@ def delete(request, pk):
     if request.method == 'POST':
         customer_name = customer.full_name
         
-        # التحقق من وجود طلبات مرتبطة بالعميل
-        requests_count = customer.requests.count()
+        # التحقق من وجود طلبات نشطة مرتبطة بالعميل (غير محذوفة)
+        requests_count = customer.requests.filter(is_deleted=False).count()
         if requests_count > 0:
             messages.error(request, f'❌ لا يمكن حذف العميل "{customer_name}" لأنه لديه {requests_count} طلب(ات) مرتبط(ة). يرجى حذف الطلبات أولاً أو استخدام التعديل بدلاً من الحذف.')
             return redirect('clients:detail', pk=pk)
@@ -220,10 +220,12 @@ def delete(request, pk):
         return redirect('clients:list')
     
     # GET request - عرض صفحة تأكيد الحذف
+    # التحقق من الطلبات النشطة فقط (غير محذوفة)
+    requests_count = customer.requests.filter(is_deleted=False).count()
     context = {
         'page_title': f'حذف العميل: {customer.full_name}',
         'customer': customer,
-        'requests_count': customer.requests.count(),
+        'requests_count': requests_count,
     }
     return render(request, 'clients/delete_confirm.html', context)
 
