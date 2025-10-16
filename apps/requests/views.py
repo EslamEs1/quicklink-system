@@ -212,6 +212,7 @@ def create(request):
     # GET request - جلب قائمة العملاء للاختيار
     customers = Customer.objects.filter(is_active=True).order_by('-updated_at')[:50]
     templates = Template.objects.filter(is_active=True, is_published=True).order_by('template_type', 'name')
+    print(f"DEBUG: Found {templates.count()} existing templates")
     
     # إنشاء قوالب تجريبية إذا لم توجد
     if not templates.exists():
@@ -255,6 +256,7 @@ def create(request):
         
         # إعادة جلب القوالب
         templates = Template.objects.filter(is_active=True, is_published=True).order_by('template_type', 'name')
+        print(f"DEBUG: Created {templates.count()} templates after creation")
     
     # جلب أنواع الطلبات من Database (ديناميكي 100%)
     from apps.requests.models import RequestType
