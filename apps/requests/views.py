@@ -397,6 +397,7 @@ def list(request):
     status_filter = request.GET.get('status')
     search_query = request.GET.get('q')
     date_filter = request.GET.get('date')
+    customer_id = request.GET.get('customer_id')  # فلتر العميل
     
     # Query
     requests_list = Request.objects.filter(is_deleted=False).select_related(
@@ -414,6 +415,13 @@ def list(request):
     
     if date_filter:
         requests_list = requests_list.filter(created_at__date=date_filter)
+    
+    # فلتر العميل
+    if customer_id:
+        try:
+            requests_list = requests_list.filter(customer_id=customer_id)
+        except ValueError:
+            pass  # تجاهل customer_id غير صالح
     
     requests_list = requests_list.order_by('-created_at')
     
@@ -441,13 +449,24 @@ def list(request):
         total=Sum('amount')
     )['total'] or 0
     
+    # معلومات العميل المحدد (إذا كان هناك فلتر)
+    selected_customer = None
+    if customer_id:
+        try:
+            from apps.clients.models import Customer
+            selected_customer = Customer.objects.get(id=customer_id)
+        except Customer.DoesNotExist:
+            pass
+    
     context = {
-        'page_title': 'جميع الطلبات',
+        'page_title': f'طلبات العميل: {selected_customer.full_name}' if selected_customer else 'جميع الطلبات',
         'page_obj': page_obj,
         'total_count': total_count,
         'pending_count': pending_count,
         'completed_count': completed_count,
         'total_revenue': total_revenue,
+        'selected_customer': selected_customer,
+        'customer_id': customer_id,
     }
     return render(request, 'requests/list.html', context)
 

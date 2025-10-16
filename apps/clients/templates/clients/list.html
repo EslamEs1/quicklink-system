@@ -190,7 +190,7 @@
                                                 <a href="{% url 'clients:edit' customer.id %}" class="btn btn-action btn-edit" title="تعديل">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
-                                                <a href="{% url 'clients:detail' customer.id %}#requests" class="btn btn-action btn-info" title="طلبات العميل">
+                                                <a href="{% url 'requests:list' %}?customer_id={{ customer.id }}" class="btn btn-action btn-info" title="طلبات العميل">
                                                     <i class="fas fa-list"></i>
                                                 </a>
                                                 <a href="{% url 'requests:create' %}?customer_id={{ customer.id }}" class="btn btn-action btn-success" title="طلب جديد">
