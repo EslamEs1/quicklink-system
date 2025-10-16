@@ -216,9 +216,43 @@ def delete(request, pk):
         # حذف نهائي للطلبات المحذوفة (soft deleted) أولاً لتجنب ProtectedError
         deleted_requests = customer.requests.filter(is_deleted=True)
         if deleted_requests.exists():
+            # حذف المدفوعات والمرفقات المرتبطة بالطلبات المحذوفة أولاً
+            from apps.payments.models import Payment
+            from apps.core_utils.models import Attachment
+            
+            deleted_count = 0
+            payments_deleted = 0
+            attachments_deleted = 0
+            
+            for deleted_request in deleted_requests:
+                # حذف المدفوعات المرتبطة بالطلب
+                payments = Payment.objects.filter(request=deleted_request)
+                if payments.exists():
+                    payments_deleted += payments.count()
+                    payments.delete()
+                    print(f"✅ Deleted {payments.count()} payment(s) for request {deleted_request.reference_number}")
+                
+                # حذف المرفقات المرتبطة بالطلب
+                attachments = Attachment.objects.filter(request=deleted_request)
+                if attachments.exists():
+                    attachments_deleted += attachments.count()
+                    attachments.delete()
+                    print(f"✅ Deleted {attachments.count()} attachment(s) for request {deleted_request.reference_number}")
+                
+                deleted_count += 1
+            
             # حذف نهائي للطلبات المحذوفة
             deleted_requests.delete()
-            messages.info(request, f'تم حذف {deleted_requests.count()} طلب محذوف نهائياً.')
+            
+            # رسالة مفصلة عن ما تم حذفه
+            cleanup_message = f'تم حذف {deleted_count} طلب محذوف نهائياً'
+            if payments_deleted > 0:
+                cleanup_message += f' مع {payments_deleted} دفعة'
+            if attachments_deleted > 0:
+                cleanup_message += f' و {attachments_deleted} مرفق'
+            cleanup_message += '.'
+            
+            messages.info(request, cleanup_message)
         
         # حذف نهائي للعميل
         customer.delete()
