@@ -53,6 +53,17 @@ function initializeForm() {
     // Setup real-time validation for file inputs
     setupFileInputListeners();
     
+    // Debug: Check template dropdown
+    const templateSelect = document.getElementById('templateSelect');
+    if (templateSelect) {
+        console.log('📋 Template dropdown found with', templateSelect.options.length, 'options');
+        for (let i = 0; i < templateSelect.options.length; i++) {
+            console.log(`  ${i}: "${templateSelect.options[i].text}" (value: "${templateSelect.options[i].value}")`);
+        }
+    } else {
+        console.log('❌ Template dropdown NOT found!');
+    }
+    
     console.log('✅ Form initialized');
 }
 
@@ -492,6 +503,14 @@ function validateStep2() {
     console.log('📋 Template select element:', templateSelect);
     console.log('📋 Template select value:', templateSelect ? templateSelect.value : 'null');
     console.log('📋 Template select options:', templateSelect ? templateSelect.options.length : 'null');
+    
+    // Debug: Show all options
+    if (templateSelect && templateSelect.options) {
+        console.log('📋 All template options:');
+        for (let i = 0; i < templateSelect.options.length; i++) {
+            console.log(`  ${i}: "${templateSelect.options[i].text}" (value: "${templateSelect.options[i].value}")`);
+        }
+    }
     
     if (!templateSelect || !templateSelect.value) {
         console.log('❌ No template selected');

@@ -496,6 +496,7 @@
                                         <select class="form-control" id="templateSelect" name="template_id" required>
                                             <option value="">اختر القالب المناسب</option>
                                             {% if templates %}
+                                                <!-- Debug: Found {{ templates|length }} templates -->
                                                 {% for template in templates %}
                                                 <option value="{{ template.id }}" data-type="{{ template.template_type }}" data-version="{{ template.version }}">
                                                     {{ template.name }} - الإصدار {{ template.version }} 
@@ -503,6 +504,7 @@
                                                 </option>
                                                 {% endfor %}
                                             {% else %}
+                                                <!-- Debug: No templates found -->
                                                 <option value="" disabled>لا توجد قوالب متاحة</option>
                                             {% endif %}
                                         </select>
