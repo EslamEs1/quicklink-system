@@ -50,13 +50,19 @@
                                 <li><strong>الاسم:</strong> {{ customer.full_name }}</li>
                                 <li><strong>رقم الهوية:</strong> {{ customer.masked_emirates_id }}</li>
                                 <li><strong>الجوال:</strong> {{ customer.masked_phone }}</li>
+                                {% if customer.email %}
+                                <li><strong>البريد الإلكتروني:</strong> {{ customer.email }}</li>
+                                {% endif %}
                                 <li><strong>الجنسية:</strong> {{ customer.nationality }}</li>
+                                <li><strong>تاريخ الميلاد:</strong> {{ customer.date_of_birth|date:"Y-m-d" }}</li>
+                                <li><strong>الجنس:</strong> {{ customer.get_gender_display }}</li>
                             </ul>
                         </div>
                         <div class="col-md-6">
-                            <h6 class="text-primary">الإحصائيات:</h6>
+                            <h6 class="text-primary">الإحصائيات والحالة:</h6>
                             <ul class="list-unstyled">
-                                <li><strong>تاريخ التسجيل:</strong> {{ customer.created_at|date:"Y-m-d" }}</li>
+                                <li><strong>تاريخ التسجيل:</strong> {{ customer.created_at|date:"Y-m-d H:i" }}</li>
+                                <li><strong>آخر تحديث:</strong> {{ customer.updated_at|date:"Y-m-d H:i" }}</li>
                                 <li><strong>عدد الطلبات:</strong> {{ requests_count }}</li>
                                 <li><strong>الحالة:</strong> 
                                     {% if customer.is_active %}
@@ -72,6 +78,11 @@
                                         <span class="badge bg-warning">غير موثق</span>
                                     {% endif %}
                                 </li>
+                                {% if customer.is_birthday_today %}
+                                <li><strong>عيد الميلاد:</strong> 
+                                    <span class="badge bg-info">🎂 اليوم!</span>
+                                </li>
+                                {% endif %}
                             </ul>
                         </div>
                     </div>
@@ -83,19 +94,51 @@
                         <p class="mb-2">هذا العميل لديه <strong>{{ requests_count }} طلب(ات)</strong> مرتبط(ة) به.</p>
                         <p class="mb-0">لا يمكن حذف العميل إلا بعد حذف جميع الطلبات المرتبطة به أولاً.</p>
                     </div>
+
+                    <!-- Requests List -->
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            <h6 class="mb-0">الطلبات المرتبطة:</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                {% for request in customer.requests.all|slice:":10" %}
+                                <div class="col-md-6 mb-2">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <span class="fw-bold">{{ request.reference_number }}</span>
+                                            <br>
+                                            <small class="text-muted">{{ request.get_request_type_display|default:request.request_type.name_arabic }}</small>
+                                            <br>
+                                            <span class="badge bg-{{ request.get_status_color }}">{{ request.get_status_display }}</span>
+                                        </div>
+                                        <a href="{% url 'requests:detail' request.id %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                                {% if requests_count > 10 %}
+                                <div class="col-12">
+                                    <p class="text-muted text-center">... و {{ requests_count|add:"-10" }} طلب آخر</p>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
                     {% endif %}
 
                     <!-- Actions -->
-                    <div class="d-flex gap-2">
+                    <div class="d-flex gap-2 mt-4">
                         {% if requests_count > 0 %}
                             <!-- Cannot Delete -->
                             <button type="button" class="btn btn-danger" disabled>
                                 <i class="fas fa-trash me-1"></i>
                                 لا يمكن الحذف (يوجد طلبات)
                             </button>
-                            <a href="{% url 'clients:detail' customer.pk %}" class="btn btn-primary">
-                                <i class="fas fa-eye me-1"></i>
-                                عرض الطلبات
+                            <a href="{% url 'requests:list' %}?customer={{ customer.id }}" class="btn btn-primary">
+                                <i class="fas fa-list me-1"></i>
+                                عرض الطلبات المرتبطة
                             </a>
                         {% else %}
                             <!-- Can Delete -->
