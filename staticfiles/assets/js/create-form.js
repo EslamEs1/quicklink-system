@@ -73,6 +73,7 @@ function setupFileInputListeners() {
         additionalDocsInput.addEventListener('change', function() {
             console.log('📁 Additional docs input changed');
             handleAdditionalDocsUpload();
+            validateAdditionalDocsUpload();
         });
     }
     
@@ -177,6 +178,7 @@ function getFileIcon(filename) {
 function validateIdImageUpload() {
     const idImageInput = document.getElementById('idImage');
     const idImageUpload = document.getElementById('idImageUpload');
+    const checkIdImage = document.getElementById('checkIdImage');
     
     if (!idImageInput || !idImageUpload) return;
     
@@ -189,6 +191,12 @@ function validateIdImageUpload() {
         idImageUpload.style.borderColor = '#28a745';
         idImageUpload.style.borderWidth = '2px';
         idImageUpload.style.borderStyle = 'solid';
+        
+        // Update checklist
+        if (checkIdImage) {
+            checkIdImage.checked = true;
+            checkIdImage.disabled = false;
+        }
         
         // Remove error message
         const errorMsg = document.getElementById('idImageError');
@@ -205,9 +213,36 @@ function validateIdImageUpload() {
         idImageUpload.style.borderWidth = '2px';
         idImageUpload.style.borderStyle = 'solid';
         
+        // Update checklist
+        if (checkIdImage) {
+            checkIdImage.checked = false;
+            checkIdImage.disabled = true;
+        }
+        
         // Add error message
         const errorMsg = document.getElementById('idImageError') || createErrorMessage('idImageUpload', 'يرجى رفع صورة الهوية الإماراتية');
     }
+    
+    // Update progress bar
+    updateProgressBar();
+}
+
+// Validate additional documents upload
+function validateAdditionalDocsUpload() {
+    const additionalDocsInput = document.getElementById('additionalDocs');
+    const checkAdditionalDocs = document.getElementById('checkAdditionalDocs');
+    
+    if (!additionalDocsInput) return;
+    
+    const hasFiles = additionalDocsInput.files && additionalDocsInput.files.length > 0;
+    
+    if (checkAdditionalDocs) {
+        checkAdditionalDocs.checked = true; // Always checked as it's optional
+        checkAdditionalDocs.disabled = false;
+    }
+    
+    // Update progress bar
+    updateProgressBar();
 }
 
 // ============ STEP NAVIGATION ============
