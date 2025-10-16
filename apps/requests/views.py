@@ -167,6 +167,21 @@ def create(request):
                 new_request.template = template
                 new_request.save()
             
+            # التحقق من وجود قالب مناسب بعد الاختيار التلقائي
+            if not new_request.template_selected and not template_id:
+                messages.error(request, 
+                    '⚠️ لم يتم العثور على قالب قانوني مناسب لهذا النوع من الطلبات. '
+                    'الرجاء مراجعة المشرف لإضافة قالب جديد أو اختيار قالب يدوياً.'
+                )
+                # حذف الطلب إذا لم يتم العثور على قالب
+                new_request.delete()
+                return render(request, 'requests/create.html', {
+                    'page_title': 'إنشاء طلب جديد',
+                    'templates': Template.objects.filter(is_active=True, is_published=True).order_by('template_type', 'name'),
+                    'customers': Customer.objects.filter(is_active=True).order_by('-updated_at')[:50],
+                    'request_types': RequestType.objects.filter(is_active=True).select_related('category').order_by('category__display_order', 'display_order'),
+                })
+            
             # معالجة الدفع
             if payment_method == 'cash':
                 receipt_number = request.POST.get('receiptNumber', '')
@@ -180,10 +195,17 @@ def create(request):
                 )
             
             # رسالة نجاح
+            template_info = ""
+            if new_request.template:
+                if template_id:
+                    template_info = f" مع القالب المحدد: {new_request.template.name}"
+                else:
+                    template_info = f" مع القالب المحدد تلقائياً: {new_request.template.name}"
+            
             if customer_created:
-                messages.success(request, f'✅ تم إنشاء ملف العميل "{customer.full_name}" والطلب بنجاح! الرقم المرجعي: {new_request.reference_number}')
+                messages.success(request, f'✅ تم إنشاء ملف العميل "{customer.full_name}" والطلب بنجاح! الرقم المرجعي: {new_request.reference_number}{template_info}')
             else:
-                messages.success(request, f'✅ تم إنشاء الطلب بنجاح للعميل "{customer.full_name}"! الرقم المرجعي: {new_request.reference_number}')
+                messages.success(request, f'✅ تم إنشاء الطلب بنجاح للعميل "{customer.full_name}"! الرقم المرجعي: {new_request.reference_number}{template_info}')
             
             # إعادة التوجيه إلى صفحة تفاصيل الطلب
             return redirect('requests:detail', pk=new_request.pk)

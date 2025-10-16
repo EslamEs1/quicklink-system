@@ -351,7 +351,69 @@ class Request(models.Model):
             
             self.reference_number = f'QL-{year}-{new_num:03d}'
         
+        # اختيار القالب تلقائياً إذا لم يكن محدد
+        self._auto_select_template()
+        
         super().save(*args, **kwargs)
+    
+    def _auto_select_template(self):
+        """اختيار القالب القانوني تلقائياً بناءً على نوع الطلب والعميل"""
+        # فقط عند إنشاء طلب جديد أو تغيير نوع الطلب
+        if not self.template and self.request_type:
+            from django.db import models
+            
+            customer_type = None
+            if self.customer:
+                # محاولة تحديد نوع العميل من الاسم أو البيانات
+                customer_name = self.customer.full_name.lower()
+                if any(word in customer_name for word in ['شركة', 'مؤسسة', 'مجموعة', 'استثمار', 'تطوير']):
+                    customer_type = 'company'
+                elif any(word in customer_name for word in ['فرد', 'شخص']):
+                    customer_type = 'individual'
+            
+            # البحث عن القالب المناسب
+            template_query = Template.objects.filter(
+                is_active=True,
+                is_published=True
+            )
+            
+            # البحث بناءً على فئة نوع الطلب
+            if self.request_type.category:
+                template_query = template_query.filter(
+                    models.Q(template_type__name_arabic__icontains=self.request_type.category.name_arabic) |
+                    models.Q(template_type__code__icontains=self.request_type.category.code)
+                )
+            
+            # البحث بناءً على اسم نوع الطلب
+            template_query = template_query.filter(
+                models.Q(name__icontains=self.request_type.name_arabic) |
+                models.Q(name_english__icontains=self.request_type.name_english)
+            )
+            
+            # إذا كان هناك نوع عميل معين، نستخدمه كعامل إضافي
+            if customer_type == 'company':
+                template_query = template_query.filter(
+                    models.Q(name__icontains='شركة') |
+                    models.Q(name__icontains='مؤسسة') |
+                    models.Q(name__english__icontains='company')
+                )
+            elif customer_type == 'individual':
+                template_query = template_query.filter(
+                    models.Q(name__icontains='فرد') |
+                    models.Q(name__icontains='شخص') |
+                    models.Q(name__english__icontains='individual')
+                )
+            
+            # اختيار أول قالب مناسب
+            selected_template = template_query.first()
+            
+            if selected_template:
+                self.template = selected_template
+                self.template_selected = True
+                print(f"DEBUG: Auto-selected template '{selected_template.name}' for request type '{self.request_type.name_arabic}'")
+            else:
+                self.template_selected = False
+                print(f"DEBUG: No suitable template found for request type '{self.request_type.name_arabic}'")
     
     @property
     def is_overdue(self):

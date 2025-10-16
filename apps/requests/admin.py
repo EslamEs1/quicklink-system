@@ -10,10 +10,11 @@ class RequestAdmin(admin.ModelAdmin):
     list_filter = ['status', 'priority', 'is_paid', 'request_type', 'created_at']
     search_fields = ['reference_number', 'customer__full_name', 'description']
     readonly_fields = ['reference_number', 'created_at', 'updated_at', 'days_pending', 'is_overdue']
+    actions = ['auto_select_template']
     
     fieldsets = (
         ('معلومات أساسية', {
-            'fields': ('reference_number', 'customer', 'request_type', 'template')
+            'fields': ('reference_number', 'customer', 'request_type', 'template', 'template_selected')
         }),
         ('الحالة', {
             'fields': ('status', 'priority', 'is_overdue', 'days_pending')
@@ -47,6 +48,22 @@ class RequestAdmin(admin.ModelAdmin):
         qs = super().get_queryset(request)
         # لا نعرض المحذوفات في Admin
         return qs.filter(is_deleted=False)
+    
+    def auto_select_template(self, request, queryset):
+        """اختيار القالب تلقائياً للطلبات المحددة"""
+        updated_count = 0
+        for request_obj in queryset:
+            if request_obj.request_type and not request_obj.template:
+                request_obj._auto_select_template()
+                request_obj.save()
+                updated_count += 1
+        
+        if updated_count > 0:
+            self.message_user(request, f'✅ تم اختيار القوالب تلقائياً لـ {updated_count} طلب.')
+        else:
+            self.message_user(request, 'ℹ️ لا توجد طلبات تحتاج لاختيار قالب تلقائي.')
+    
+    auto_select_template.short_description = "اختيار القالب تلقائياً"
 
 
 @admin.register(Template)
