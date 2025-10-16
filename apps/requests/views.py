@@ -132,7 +132,6 @@ def create(request):
             
             # الحصول على نوع الطلب
             request_type_id = request.POST.get('request_type_id')
-            template_id = request.POST.get('template_id')
             payment_method = request.POST.get('paymentMethod', 'paytabs')
             
             # التحقق من وجود نوع الطلب
@@ -162,14 +161,8 @@ def create(request):
                 created_by=request.user if request.user.is_authenticated else None,
             )
             
-            # ربط القالب إذا تم اختياره يدوياً
-            if template_id:
-                template = get_object_or_404(Template, pk=template_id)
-                new_request.template = template
-                new_request.save()
-            
             # التحقق من وجود قالب مناسب بعد الاختيار التلقائي
-            if not new_request.template_selected and not template_id:
+            if not new_request.template_selected:
                 messages.error(request, 
                     '⚠️ لم يتم العثور على قالب قانوني مناسب لهذا النوع من الطلبات. '
                     'الرجاء مراجعة المشرف لإضافة قالب جديد أو اختيار قالب يدوياً.'
@@ -199,10 +192,7 @@ def create(request):
             # رسالة نجاح مع تفاصيل القالب والسعر
             template_info = ""
             if new_request.template:
-                if template_id:
-                    template_info = f" مع القالب المحدد: {new_request.template.name}"
-                else:
-                    template_info = f" مع القالب المحدد تلقائياً: {new_request.template.name}"
+                template_info = f" مع القالب المحدد تلقائياً: {new_request.template.name}"
             
             # معلومات السعر
             price_info = f" - السعر: {new_request.total_amount:.2f} درهم"

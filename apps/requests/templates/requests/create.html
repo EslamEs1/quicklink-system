@@ -2,6 +2,8 @@
 {% load static %}
 
 {% block content %}
+<!-- Include messages component -->
+{% include 'message.html' %}
 <!-- Progress Steps -->
                 <div class="row mb-4">
                     <div class="col-12">
@@ -17,7 +19,7 @@
                                     <div class="col-md-3 text-center">
                                         <div class="step-item">
                                             <div class="step-number">2</div>
-                                            <div class="step-title">اختيار القالب</div>
+                                            <div class="step-title">رفع المستندات</div>
                                         </div>
                                     </div>
                                     <div class="col-md-3 text-center">
@@ -368,22 +370,12 @@
                                             </div>
                                         </div>
 
-                                        <!-- Step 1.5 Checks -->
-                                        <div id="step1_5Checks" class="d-none">
+                                        <!-- Step 2 Checks -->
+                                        <div id="step2Checks" class="d-none">
                                             <div class="form-check mb-2">
                                                 <input class="form-check-input" type="checkbox" id="checkDocuments" disabled>
                                                 <label class="form-check-label" for="checkDocuments">
                                                     <small>✓ رفع المستندات المطلوبة</small>
-                                                </label>
-                                            </div>
-                                        </div>
-
-                                        <!-- Step 2 Checks -->
-                                        <div id="step2Checks" class="d-none">
-                                            <div class="form-check mb-2">
-                                                <input class="form-check-input" type="checkbox" id="checkTemplate" disabled>
-                                                <label class="form-check-label" for="checkTemplate">
-                                                    <small>✓ اختيار القالب القانوني</small>
                                                 </label>
                                             </div>
                                         </div>
@@ -422,8 +414,8 @@
                         </div>
                     </div>
 
-                    <!-- Step 1.5: Document Upload -->
-                    <div class="step-content d-none" id="step1_5">
+                    <!-- Step 2: Document Upload -->
+                    <div class="step-content d-none" id="step2">
                         <div class="card shadow-custom">
                             <div class="card-header">
                                 <h5 class="mb-0">
@@ -480,58 +472,6 @@
                         </div>
                     </div>
 
-                    <!-- Step 2: Template Selection -->
-                    <div class="step-content d-none" id="step2">
-                        <div class="card shadow-custom">
-                            <div class="card-header">
-                                <h5 class="mb-0">
-                                    <i class="fas fa-file-alt me-2"></i>
-                                    اختيار القالب القانوني
-                                </h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-12 mb-3">
-                                        <label class="form-label">اختيار القالب القانوني <span class="text-info">(اختياري - سيتم الاختيار تلقائياً)</span></label>
-                                        <select class="form-control" id="templateSelect" name="template_id">
-                                            <option value="">اختر القالب المناسب</option>
-                                            {% if templates %}
-                                                <!-- Debug: Found {{ templates|length }} templates -->
-                                                {% for template in templates %}
-                                                <option value="{{ template.id }}" data-type="{{ template.template_type }}" data-version="{{ template.version }}">
-                                                    {{ template.name }} - الإصدار {{ template.version }} 
-                                                    {% if template.is_published %}<span class="text-success">(نشط)</span>{% endif %}
-                                                </option>
-                                                {% endfor %}
-                                            {% else %}
-                                                <!-- Debug: No templates found -->
-                                                <option value="" disabled>لا توجد قوالب متاحة</option>
-                                            {% endif %}
-                                        </select>
-                                        <div class="form-text text-info">
-                                            <i class="fas fa-info-circle"></i>
-                                            سيتم اختيار القالب القانوني المناسب تلقائياً بناءً على نوع الطلب. يمكنك اختيار قالب مختلف إذا أردت.
-                                        </div>
-                                        {% if not templates %}
-                                        <div class="alert alert-warning mt-2">
-                                            <i class="fas fa-exclamation-triangle me-2"></i>
-                                            لا توجد قوالب متاحة. يرجى إضافة قوالب من 
-                                            <a href="{% url 'requests:templates_list' %}" class="alert-link">صفحة القوالب</a>
-                                        </div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-
-                                <!-- Template Preview -->
-                                <div class="template-preview" id="templatePreview">
-                                    <div class="alert alert-info">
-                                        <i class="fas fa-info-circle me-2"></i>
-                                        اختر نوع التفويض لعرض القالب
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
 
                     <!-- Step 3: Review -->
                     <div class="step-content d-none" id="step3">

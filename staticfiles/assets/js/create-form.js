@@ -4,7 +4,7 @@
  */
 
 let currentStep = 1;
-const totalSteps = 5; // Step 1, 1.5, 2, 3, 4
+const totalSteps = 4; // Step 1, 2, 3, 4
 
 // Initialize form when page loads
 document.addEventListener('DOMContentLoaded', function() {
@@ -213,19 +213,11 @@ function changeStep(direction) {
     }
     
     if (direction > 0) {
-        if (currentStep === 1) {
-            currentStep = 1.5; // Go to document upload step
-        } else if (currentStep === 1.5) {
-            currentStep = 2; // Go to template selection
-        } else if (currentStep < totalSteps) {
+        if (currentStep < totalSteps) {
             currentStep++;
         }
     } else if (direction < 0) {
-        if (currentStep === 2) {
-            currentStep = 1.5; // Go back to document upload
-        } else if (currentStep === 1.5) {
-            currentStep = 1; // Go back to customer data
-        } else if (currentStep > 1) {
+        if (currentStep > 1) {
             currentStep--;
         }
     }
@@ -247,9 +239,7 @@ function updateStepDisplay() {
     const steps = document.querySelectorAll('.step-content');
     steps.forEach((step, index) => {
         const stepNumber = index + 1;
-        // Step 1.5 is index 1 (second element)
-        const isCurrentStep = (currentStep === 1.5 && stepNumber === 2) || 
-                             (currentStep !== 1.5 && stepNumber === currentStep);
+        const isCurrentStep = stepNumber === currentStep;
         step.classList.toggle('d-none', !isCurrentStep);
     });
     
@@ -257,9 +247,7 @@ function updateStepDisplay() {
     const stepNumbers = document.querySelectorAll('.step-number');
     stepNumbers.forEach((number, index) => {
         const stepNumber = index + 1;
-        const isCompleted = (currentStep > 1.5 && stepNumber <= 2) || 
-                           (currentStep === 1.5 && stepNumber <= 2) ||
-                           (currentStep < 1.5 && stepNumber <= currentStep);
+        const isCompleted = stepNumber <= currentStep;
         
         if (isCompleted) {
             number.classList.add('bg-primary', 'text-white');
@@ -319,10 +307,10 @@ function setupValidation() {
         dobInput.addEventListener('change', validateDateOfBirth);
     }
     
-    // Template selection (simplified)
-    const templateSelect = document.getElementById('templateSelect');
-    if (templateSelect) {
-        templateSelect.addEventListener('change', checkTemplateSelection);
+    // Documents validation
+    const idImageInput = document.getElementById('idImage');
+    if (idImageInput) {
+        idImageInput.addEventListener('change', checkDocumentsUpload);
     }
     
     // Payment methods (essential for UX)
@@ -349,8 +337,6 @@ function validateCurrentStep() {
     switch (currentStep) {
         case 1:
             return validateStep1();
-        case 1.5:
-            return validateStep1_5();
         case 2:
             return validateStep2();
         case 3:
@@ -383,8 +369,8 @@ function validateStep1() {
     return isValid;
 }
 
-function validateStep1_5() {
-    console.log('🔍 Validating Step 1.5 (Documents)...');
+function validateStep2() {
+    console.log('🔍 Validating Step 2 (Documents)...');
     
     // التحقق من رفع صورة الهوية الإماراتية (إجباري)
     const idImageInput = document.getElementById('idImage');
@@ -399,16 +385,10 @@ function validateStep1_5() {
         validateIdImageUpload();
     }
     
-    console.log(`✅ Step 1.5 validation: ${isValid ? 'PASSED' : 'FAILED'}`);
+    console.log(`✅ Step 2 validation: ${isValid ? 'PASSED' : 'FAILED'}`);
     return isValid;
 }
 
-function validateStep2() {
-    console.log('🔍 Validating Step 2...');
-    // Template selection is now optional - system will auto-select
-    console.log('✅ Step 2 validation: PASSED - Template will be auto-selected by system');
-    return true;
-}
 
 function validateStep4() {
     console.log('🔍 Validating Step 4...');
@@ -610,11 +590,11 @@ function validateDateOfBirth() {
     }
 }
 
-function checkTemplateSelection() {
-    const templateSelect = document.getElementById('templateSelect');
-    const checkbox = document.getElementById('checkTemplate');
+function checkDocumentsUpload() {
+    const idImageInput = document.getElementById('idImage');
+    const checkbox = document.getElementById('checkDocuments');
     
-    if (templateSelect && templateSelect.value && checkbox) {
+    if (idImageInput && idImageInput.files && idImageInput.files.length > 0 && checkbox) {
         checkbox.checked = true;
         checkbox.disabled = false;
         updateProgressBar();
@@ -662,12 +642,7 @@ function updateChecklistDisplay() {
     }
     
     // Show current step checks
-    let currentStepChecks;
-    if (currentStep === 1.5) {
-        currentStepChecks = document.getElementById('step1_5Checks');
-    } else {
-        currentStepChecks = document.getElementById(`step${currentStep}Checks`);
-    }
+    const currentStepChecks = document.getElementById(`step${currentStep}Checks`);
     
     if (currentStepChecks) {
         currentStepChecks.classList.remove('d-none');
@@ -738,18 +713,14 @@ function updateReviewData() {
         reviewType.textContent = requestTypeSelect.options[requestTypeSelect.selectedIndex]?.text || '-';
     }
     
-    // Handle template
-    const templateSelect = document.getElementById('templateSelect');
+    // Handle template (auto-selected by system)
     const reviewAuthType = document.getElementById('reviewAuthType');
     const reviewVersion = document.getElementById('reviewVersion');
-    if (templateSelect) {
-        if (reviewAuthType) {
-            reviewAuthType.textContent = templateSelect.value ? 
-                templateSelect.options[templateSelect.selectedIndex]?.text || '-' : 'لم يتم الاختيار';
-        }
-        if (reviewVersion) {
-            reviewVersion.textContent = templateSelect.options[templateSelect.selectedIndex]?.getAttribute('data-version') || '-';
-        }
+    if (reviewAuthType) {
+        reviewAuthType.textContent = 'سيتم اختياره تلقائياً';
+    }
+    if (reviewVersion) {
+        reviewVersion.textContent = 'تلقائي';
     }
     
     // Handle request date
