@@ -336,7 +336,7 @@ class Request(models.Model):
         return f"{self.reference_number} - {self.customer.full_name}"
     
     def save(self, *args, **kwargs):
-        # توليد رقم مرجعي تلقائياً
+        # 1. توليد رقم مرجعي تلقائياً (QL-YYYY-XXX)
         if not self.reference_number:
             year = datetime.now().year
             last_request = Request.objects.filter(
@@ -351,10 +351,18 @@ class Request(models.Model):
             
             self.reference_number = f'QL-{year}-{new_num:03d}'
         
-        # اختيار القالب تلقائياً إذا لم يكن محدد
+        # 2. تحديد السعر من نوع الطلب
+        if self.request_type and not self.total_amount:
+            self.total_amount = self.request_type.default_price
+        
+        # 3. اختيار القالب تلقائياً إذا لم يكن محدد
         self._auto_select_template()
         
         super().save(*args, **kwargs)
+        
+        # 4. زيادة عدد الاستخدامات في القالب بعد الحفظ
+        if self.template:
+            self.template.increment_usage()
     
     def _auto_select_template(self):
         """اختيار القالب القانوني تلقائياً بناءً على نوع الطلب والعميل"""
@@ -362,58 +370,98 @@ class Request(models.Model):
         if not self.template and self.request_type:
             from django.db import models
             
-            customer_type = None
-            if self.customer:
-                # محاولة تحديد نوع العميل من الاسم أو البيانات
-                customer_name = self.customer.full_name.lower()
-                if any(word in customer_name for word in ['شركة', 'مؤسسة', 'مجموعة', 'استثمار', 'تطوير']):
-                    customer_type = 'company'
-                elif any(word in customer_name for word in ['فرد', 'شخص']):
-                    customer_type = 'individual'
+            # 1. تحديد نوع العميل من الاسم
+            customer_type = self._determine_customer_type()
             
-            # البحث عن القالب المناسب
+            # 2. البحث عن القالب المناسب
             template_query = Template.objects.filter(
                 is_active=True,
                 is_published=True
             )
             
-            # البحث بناءً على فئة نوع الطلب
-            if self.request_type.category:
-                template_query = template_query.filter(
-                    models.Q(template_type__name_arabic__icontains=self.request_type.category.name_arabic) |
-                    models.Q(template_type__code__icontains=self.request_type.category.code)
-                )
+            # 3. البحث بناءً على نوع الطلب واسمه
+            request_name_words = [
+                self.request_type.name_arabic.lower(),
+                self.request_type.name_english.lower() if self.request_type.name_english else ''
+            ]
             
-            # البحث بناءً على اسم نوع الطلب
-            template_query = template_query.filter(
-                models.Q(name__icontains=self.request_type.name_arabic) |
-                models.Q(name_english__icontains=self.request_type.name_english)
-            )
+            # 4. البحث في أسماء القوالب
+            name_conditions = models.Q()
+            for word in request_name_words:
+                if word:
+                    name_conditions |= models.Q(name__icontains=word)
+                    name_conditions |= models.Q(name_english__icontains=word)
             
-            # إذا كان هناك نوع عميل معين، نستخدمه كعامل إضافي
-            if customer_type == 'company':
-                template_query = template_query.filter(
-                    models.Q(name__icontains='شركة') |
-                    models.Q(name__icontains='مؤسسة') |
-                    models.Q(name__english__icontains='company')
-                )
-            elif customer_type == 'individual':
-                template_query = template_query.filter(
-                    models.Q(name__icontains='فرد') |
-                    models.Q(name__icontains='شخص') |
-                    models.Q(name__english__icontains='individual')
-                )
+            if name_conditions:
+                template_query = template_query.filter(name_conditions)
             
-            # اختيار أول قالب مناسب
+            # 5. تصفية حسب نوع العميل
+            if customer_type:
+                customer_conditions = models.Q()
+                if customer_type == 'company':
+                    customer_conditions = models.Q(
+                        name__icontains='شركة'
+                    ) | models.Q(
+                        name__icontains='مؤسسة'
+                    ) | models.Q(
+                        name__english__icontains='company'
+                    ) | models.Q(
+                        name__english__icontains='corporate'
+                    )
+                elif customer_type == 'individual':
+                    customer_conditions = models.Q(
+                        name__icontains='فرد'
+                    ) | models.Q(
+                        name__icontains='شخص'
+                    ) | models.Q(
+                        name__english__icontains='individual'
+                    ) | models.Q(
+                        name__english__icontains='personal'
+                    )
+                
+                template_query = template_query.filter(customer_conditions)
+            
+            # 6. اختيار أول قالب مناسب
             selected_template = template_query.first()
             
             if selected_template:
                 self.template = selected_template
                 self.template_selected = True
-                print(f"DEBUG: Auto-selected template '{selected_template.name}' for request type '{self.request_type.name_arabic}'")
+                print(f"✅ Auto-selected template '{selected_template.name}' for request type '{self.request_type.name_arabic}' (customer: {customer_type or 'unknown'})")
             else:
                 self.template_selected = False
-                print(f"DEBUG: No suitable template found for request type '{self.request_type.name_arabic}'")
+                print(f"⚠️ No suitable template found for request type '{self.request_type.name_arabic}' (customer: {customer_type or 'unknown'})")
+    
+    def _determine_customer_type(self):
+        """تحديد نوع العميل بناءً على الاسم"""
+        if not self.customer:
+            return None
+        
+        customer_name = self.customer.full_name.lower()
+        
+        # كلمات تدل على الشركات
+        company_keywords = [
+            'llc', 'company', 'trading', 'corporation', 'corp', 'ltd', 'limited',
+            'شركة', 'مؤسسة', 'مجموعة', 'استثمار', 'تطوير', 'تجارة', 'تجاري',
+            'مؤسسة', 'شراكة', 'استثمارات', 'عقارات', 'إنشاءات'
+        ]
+        
+        # كلمات تدل على الأفراد
+        individual_keywords = [
+            'individual', 'personal', 'person', 'citizen',
+            'فرد', 'شخص', 'مواطن', 'مقيم'
+        ]
+        
+        # التحقق من كلمات الشركة
+        if any(keyword in customer_name for keyword in company_keywords):
+            return 'company'
+        
+        # التحقق من كلمات الأفراد
+        if any(keyword in customer_name for keyword in individual_keywords):
+            return 'individual'
+        
+        # إذا لم نجد كلمات محددة، نعتبره فرد
+        return 'individual'
     
     @property
     def is_overdue(self):

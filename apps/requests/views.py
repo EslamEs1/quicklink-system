@@ -135,33 +135,34 @@ def create(request):
             template_id = request.POST.get('template_id')
             payment_method = request.POST.get('paymentMethod', 'paytabs')
             
-            # حساب المبلغ من نوع الطلب
-            from apps.requests.models import RequestType
-            request_type_instance = None
-            total_amount = 0
+            # التحقق من وجود نوع الطلب
+            if not request_type_id:
+                messages.error(request, 'يرجى اختيار نوع الطلب')
+                return render(request, 'requests/create.html', {
+                    'page_title': 'إنشاء طلب جديد',
+                    'templates': Template.objects.filter(is_active=True, is_published=True).order_by('template_type', 'name'),
+                    'customers': Customer.objects.filter(is_active=True).order_by('-updated_at')[:50],
+                    'request_types': RequestType.objects.filter(is_active=True).select_related('category').order_by('category__display_order', 'display_order'),
+                })
             
-            if request_type_id:
-                request_type_instance = get_object_or_404(RequestType, pk=request_type_id)
-                base_price = float(request_type_instance.default_price)
-                tax = base_price * 0.05  # 5% ضريبة
-                total_amount = base_price + tax
+            request_type_instance = get_object_or_404(RequestType, pk=request_type_id)
             
             # الحصول على الأولوية وتاريخ الاستحقاق
             priority = request.POST.get('priority', 'medium')
             due_date = request.POST.get('due_date', None)
             
-            # إنشاء الطلب
+            # إنشاء الطلب (السعر سيتم تحديده تلقائياً في save())
             new_request = Request.objects.create(
                 customer=customer,
-                request_type=request_type_instance,  # ForeignKey للنوع
+                request_type=request_type_instance,
                 priority=priority,
                 due_date=due_date if due_date else None,
-                total_amount=total_amount,
+                payment_method=payment_method,
                 description=request.POST.get('description', ''),
                 created_by=request.user if request.user.is_authenticated else None,
             )
             
-            # ربط القالب إذا تم اختياره
+            # ربط القالب إذا تم اختياره يدوياً
             if template_id:
                 template = get_object_or_404(Template, pk=template_id)
                 new_request.template = template
@@ -186,15 +187,16 @@ def create(request):
             if payment_method == 'cash':
                 receipt_number = request.POST.get('receiptNumber', '')
                 # يمكن إنشاء سجل دفع هنا
+                from apps.payments.models import Payment
                 Payment.objects.create(
                     request=new_request,
-                    amount=total_amount,
+                    amount=new_request.total_amount,  # استخدام السعر من الطلب
                     payment_method='cash',
                     receipt_number=receipt_number,
                     status='pending'
                 )
             
-            # رسالة نجاح
+            # رسالة نجاح مع تفاصيل القالب والسعر
             template_info = ""
             if new_request.template:
                 if template_id:
@@ -202,10 +204,13 @@ def create(request):
                 else:
                     template_info = f" مع القالب المحدد تلقائياً: {new_request.template.name}"
             
+            # معلومات السعر
+            price_info = f" - السعر: {new_request.total_amount:.2f} درهم"
+            
             if customer_created:
-                messages.success(request, f'✅ تم إنشاء ملف العميل "{customer.full_name}" والطلب بنجاح! الرقم المرجعي: {new_request.reference_number}{template_info}')
+                messages.success(request, f'✅ تم إنشاء ملف العميل "{customer.full_name}" والطلب بنجاح! الرقم المرجعي: {new_request.reference_number}{template_info}{price_info}')
             else:
-                messages.success(request, f'✅ تم إنشاء الطلب بنجاح للعميل "{customer.full_name}"! الرقم المرجعي: {new_request.reference_number}{template_info}')
+                messages.success(request, f'✅ تم إنشاء الطلب بنجاح للعميل "{customer.full_name}"! الرقم المرجعي: {new_request.reference_number}{template_info}{price_info}')
             
             # إعادة التوجيه إلى صفحة تفاصيل الطلب
             return redirect('requests:detail', pk=new_request.pk)

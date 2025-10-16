@@ -10,8 +10,8 @@
                 </h2>
                 <div class="btn-group" role="group">
                     <a href="{% url 'requests:template_create' %}" class="btn btn-primary">
-                        <i class="fas fa-plus me-1"></i>
-                        إضافة قالب جديد
+                    <i class="fas fa-plus me-1"></i>
+                    إضافة قالب جديد
                     </a>
                     <a href="{% url 'requests:template_types_list' %}" class="btn btn-outline-secondary">
                         <i class="fas fa-list-ul me-1"></i>
@@ -200,7 +200,7 @@
                                     {% csrf_token %}
                                     <button type="submit" class="btn btn-outline-success btn-sm" title="تفعيل">
                                         <i class="fas fa-play"></i>
-                                    </button>
+                                </button>
                                 </form>
                                 {% endif %}
                                 {% if template.requests.count == 0 %}
