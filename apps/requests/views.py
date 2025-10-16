@@ -1326,3 +1326,76 @@ def template_type_delete(request, pk):
         'templates_count': template_type.templates.count(),
     }
     return render(request, 'requests/template_type_delete_confirm.html', context)
+
+
+# @login_required
+def approve(request, pk):
+    """الموافقة على طلب"""
+    req = get_object_or_404(Request, pk=pk, is_deleted=False)
+    
+    if request.method == 'POST':
+        try:
+            # تحديث حالة الطلب
+            req.status = 'approved'
+            req.approved_by = request.user if request.user.is_authenticated else None
+            req.approved_at = datetime.now()
+            req.save()
+            
+            # تسجيل في سجل التدقيق
+            from apps.audit.models import AuditLog
+            AuditLog.objects.create(
+                user=request.user if request.user.is_authenticated else None,
+                action='approve',
+                model_name='request',
+                object_id=str(req.id),
+                object_repr=req.reference_number,
+                description=f'تمت الموافقة على الطلب {req.reference_number}',
+            )
+            
+            messages.success(request, f'✅ تمت الموافقة على الطلب {req.reference_number} بنجاح')
+            return redirect('requests:pending')
+            
+        except Exception as e:
+            messages.error(request, f'❌ حدث خطأ أثناء الموافقة على الطلب: {str(e)}')
+            return redirect('requests:detail', pk=pk)
+    
+    # إذا لم يكن POST، توجيه للصفحة المعلقة
+    return redirect('requests:pending')
+
+
+# @login_required
+def reject(request, pk):
+    """رفض طلب"""
+    req = get_object_or_404(Request, pk=pk, is_deleted=False)
+    
+    if request.method == 'POST':
+        rejection_reason = request.POST.get('rejection_reason', 'لم يذكر سبب')
+        
+        try:
+            # تحديث حالة الطلب
+            req.status = 'rejected'
+            req.rejected_by = request.user if request.user.is_authenticated else None
+            req.rejected_at = datetime.now()
+            req.rejection_reason = rejection_reason
+            req.save()
+            
+            # تسجيل في سجل التدقيق
+            from apps.audit.models import AuditLog
+            AuditLog.objects.create(
+                user=request.user if request.user.is_authenticated else None,
+                action='reject',
+                model_name='request',
+                object_id=str(req.id),
+                object_repr=req.reference_number,
+                description=f'تم رفض الطلب {req.reference_number}. السبب: {rejection_reason}',
+            )
+            
+            messages.warning(request, f'❌ تم رفض الطلب {req.reference_number}')
+            return redirect('requests:pending')
+            
+        except Exception as e:
+            messages.error(request, f'❌ حدث خطأ أثناء رفض الطلب: {str(e)}')
+            return redirect('requests:detail', pk=pk)
+    
+    # إذا لم يكن POST، توجيه للصفحة المعلقة
+    return redirect('requests:pending')
