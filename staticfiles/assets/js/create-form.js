@@ -511,28 +511,33 @@ function validateStep2() {
         }
     }
     
-    if (!templateSelect || !templateSelect.value) {
-        console.log('❌ No template selected');
-        if (templateSelect) {
-            templateSelect.classList.add('is-invalid');
-            templateSelect.classList.remove('is-valid');
-            
-            // إضافة رسالة خطأ واضحة
-            const errorMsg = document.getElementById('templateSelectError') || createErrorMessage('templateSelect', 'يرجى اختيار قالب قانوني من القائمة أعلاه');
+    // Template selection is now optional - system will auto-select
+    // We only validate if a template is manually selected
+    if (templateSelect && templateSelect.value) {
+        console.log('✅ Template manually selected:', templateSelect.options[templateSelect.selectedIndex].text);
+        templateSelect.classList.remove('is-invalid');
+        templateSelect.classList.add('is-valid');
+        
+        // إخفاء رسالة الخطأ
+        const errorMsg = document.getElementById('templateSelectError');
+        if (errorMsg) {
+            errorMsg.remove();
         }
-        return false;
+    } else {
+        console.log('ℹ️ No template manually selected - system will auto-select');
+        if (templateSelect) {
+            templateSelect.classList.remove('is-invalid');
+            templateSelect.classList.remove('is-valid');
+        }
+        
+        // إخفاء رسالة الخطأ إذا كانت موجودة
+        const errorMsg = document.getElementById('templateSelectError');
+        if (errorMsg) {
+            errorMsg.remove();
+        }
     }
     
-    templateSelect.classList.remove('is-invalid');
-    templateSelect.classList.add('is-valid');
-    
-    // إخفاء رسالة الخطأ
-    const errorMsg = document.getElementById('templateSelectError');
-    if (errorMsg) {
-        errorMsg.remove();
-    }
-    
-    console.log('✅ Step 2 validation: PASSED - Selected template:', templateSelect.options[templateSelect.selectedIndex].text);
+    console.log('✅ Step 2 validation: PASSED - Template will be auto-selected by system');
     return true;
 }
 
