@@ -41,7 +41,7 @@
                 </div>
 
                 <!-- Main Form -->
-                <form id="createRequestForm" method="post" action="{% url 'requests:create' %}" class="needs-validation" novalidate>
+                <form id="createRequestForm" method="post" action="{% url 'requests:create' %}" enctype="multipart/form-data" class="needs-validation" novalidate>
                     {% csrf_token %}
                     <!-- Step 1: Customer Information -->
                     <div class="step-content" id="step1">

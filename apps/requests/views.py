@@ -190,6 +190,40 @@ def create(request):
                     'request_types': RequestType.objects.filter(is_active=True).select_related('category').order_by('category__display_order', 'display_order'),
                 })
             
+            # معالجة المرفقات
+            from apps.core_utils.models import Attachment
+            import os
+            
+            # حفظ صورة الهوية
+            if request.FILES.get('idImage'):
+                id_image = request.FILES['idImage']
+                attachment = Attachment.objects.create(
+                    request=new_request,
+                    file=id_image,
+                    file_name=id_image.name,
+                    file_size=id_image.size,
+                    file_type=id_image.content_type,
+                    category='identity',
+                    description='صورة الهوية الإماراتية',
+                    uploaded_by=request.user if request.user.is_authenticated else None
+                )
+                print(f"✅ Saved ID image: {attachment.file_name}")
+            
+            # حفظ المستندات الإضافية
+            additional_docs = request.FILES.getlist('additional_docs')
+            for doc in additional_docs:
+                attachment = Attachment.objects.create(
+                    request=new_request,
+                    file=doc,
+                    file_name=doc.name,
+                    file_size=doc.size,
+                    file_type=doc.content_type,
+                    category='other',
+                    description=f'مستند إضافي: {doc.name}',
+                    uploaded_by=request.user if request.user.is_authenticated else None
+                )
+                print(f"✅ Saved additional document: {attachment.file_name}")
+            
             # معالجة الدفع
             if payment_method == 'cash':
                 receipt_number = request.POST.get('receiptNumber', '')
