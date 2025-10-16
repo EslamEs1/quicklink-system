@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Include messages component -->
+{% include 'message.html' %}
+<!-- Page Title -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-0">
+            <i class="fas fa-credit-card me-2 text-success"></i>
+            معالجة الدفعة
+        </h2>
+        <p class="text-muted mb-0">معالجة دفعة جديدة للطلب: {{ request.reference_number }}</p>
+    </div>
+    <div>
+        <a href="{% url 'requests:detail' request.id %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-right me-1"></i>
+            رجوع للطلب
+        </a>
+    </div>
+</div>
+
+<!-- Request Information -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="fas fa-info-circle text-primary me-2"></i>
+            معلومات الطلب
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="text-muted mb-1">الرقم المرجعي</label>
+                <p class="fw-bold mb-0">{{ request.reference_number }}</p>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="text-muted mb-1">اسم العميل</label>
+                <p class="fw-bold mb-0">{{ request.customer.full_name }}</p>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="text-muted mb-1">نوع الخدمة</label>
+                <p class="fw-bold mb-0">
+                    {% if request.request_type %}
+                        {{ request.request_type.name_arabic }}
+                    {% else %}
+                        غير محدد
+                    {% endif %}
+                </p>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="text-muted mb-1">المبلغ المطلوب</label>
+                <p class="fw-bold mb-0 text-success">{{ request.total_amount|default:"0" }} درهم</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Payment Processing Form -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="fas fa-credit-card text-success me-2"></i>
+            تفاصيل الدفعة
+        </h5>
+    </div>
+    <div class="card-body">
+        <form method="post" action="{% url 'payments:process' %}">
+            {% csrf_token %}
+            <input type="hidden" name="request_id" value="{{ request.id }}">
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">المبلغ</label>
+                    <div class="input-group">
+                        <input type="number" class="form-control" name="amount" value="{{ request.total_amount|default:0 }}" step="0.01" min="0" required>
+                        <span class="input-group-text">درهم</span>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">طريقة الدفع</label>
+                    <select class="form-control" name="payment_method" required>
+                        <option value="">اختر طريقة الدفع</option>
+                        <option value="paytabs">PayTabs</option>
+                        <option value="stripe">Stripe</option>
+                        <option value="cash">نقدي</option>
+                        <option value="bank_transfer">تحويل بنكي</option>
+                    </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">رقم المعاملة</label>
+                    <input type="text" class="form-control" name="transaction_id" placeholder="رقم المعاملة من بوابة الدفع">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">رقم الإيصال</label>
+                    <input type="text" class="form-control" name="receipt_number" placeholder="رقم الإيصال">
+                </div>
+                <div class="col-md-12 mb-3">
+                    <label class="form-label">ملاحظات الدفعة</label>
+                    <textarea class="form-control" name="notes" rows="3" placeholder="ملاحظات إضافية حول الدفعة"></textarea>
+                </div>
+            </div>
+            
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>ملاحظة:</strong> سيتم إنشاء سجل دفعة جديد لهذا الطلب. تأكد من صحة جميع البيانات قبل المتابعة.
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <button type="submit" class="btn btn-success w-100">
+                        <i class="fas fa-check me-2"></i>
+                        تأكيد الدفعة
+                    </button>
+                </div>
+                <div class="col-md-6">
+                    <a href="{% url 'requests:detail' request.id %}" class="btn btn-outline-secondary w-100">
+                        <i class="fas fa-times me-2"></i>
+                        إلغاء
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock content %}

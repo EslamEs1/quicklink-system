@@ -75,3 +75,80 @@ def list(request):
         'gateway_percentages': gateway_percentages,
     }
     return render(request, 'payments/list.html', context)
+
+
+# @login_required
+def process_payment(request):
+    """معالجة دفعة جديدة"""
+    if request.method == 'POST':
+        # معالجة النموذج
+        request_id = request.POST.get('request_id')
+        amount = request.POST.get('amount')
+        payment_method = request.POST.get('payment_method')
+        transaction_id = request.POST.get('transaction_id', '')
+        receipt_number = request.POST.get('receipt_number', '')
+        notes = request.POST.get('notes', '')
+        
+        try:
+            from apps.requests.models import Request
+            req = Request.objects.get(id=request_id, is_deleted=False)
+            
+            # التحقق من وجود دفعة سابقة
+            existing_payment = Payment.objects.filter(request=req).first()
+            if existing_payment:
+                messages.error(request, f'يوجد دفعة سابقة للطلب {req.reference_number} بحالة: {existing_payment.get_status_display}')
+                return redirect('payments:list')
+            
+            # إنشاء الدفعة الجديدة
+            payment = Payment.objects.create(
+                request=req,
+                amount=amount,
+                payment_method=payment_method,
+                transaction_id=transaction_id,
+                receipt_number=receipt_number,
+                status='paid',  # افتراضياً مدفوعة
+                notes=notes,
+                processed_by=request.user if request.user.is_authenticated else None,
+            )
+            
+            # تحديث حالة الطلب
+            req.status = 'paid'
+            req.save()
+            
+            messages.success(request, f'تم معالجة الدفعة بنجاح للطلب {req.reference_number}')
+            return redirect('payments:list')
+            
+        except Request.DoesNotExist:
+            messages.error(request, 'الطلب المطلوب غير موجود أو تم حذفه')
+            return redirect('requests:list')
+        except Exception as e:
+            messages.error(request, f'حدث خطأ أثناء معالجة الدفعة: {str(e)}')
+            return redirect('payments:list')
+    
+    # GET request - عرض النموذج
+    request_id = request.GET.get('request_id')
+    
+    if request_id:
+        try:
+            from apps.requests.models import Request
+            req = Request.objects.get(id=request_id, is_deleted=False)
+            
+            # التحقق من وجود دفعة سابقة
+            existing_payment = Payment.objects.filter(request=req).first()
+            if existing_payment:
+                messages.info(request, f'يوجد دفعة سابقة للطلب {req.reference_number} بحالة: {existing_payment.get_status_display}')
+                return redirect('payments:list')
+            
+            context = {
+                'page_title': f'معالجة دفعة - {req.reference_number}',
+                'request': req,
+                'request_id': request_id,
+            }
+            return render(request, 'payments/process.html', context)
+            
+        except Request.DoesNotExist:
+            messages.error(request, 'الطلب المطلوب غير موجود أو تم حذفه')
+            return redirect('requests:list')
+    
+    # إذا لم يتم تحديد طلب، عرض قائمة المدفوعات
+    return redirect('payments:list')
