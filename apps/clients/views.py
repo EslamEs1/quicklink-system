@@ -208,10 +208,17 @@ def delete(request, pk):
         customer_name = customer.full_name
         
         # التحقق من وجود طلبات نشطة مرتبطة بالعميل (غير محذوفة)
-        requests_count = customer.requests.filter(is_deleted=False).count()
-        if requests_count > 0:
-            messages.error(request, f'❌ لا يمكن حذف العميل "{customer_name}" لأنه لديه {requests_count} طلب(ات) مرتبط(ة). يرجى حذف الطلبات أولاً أو استخدام التعديل بدلاً من الحذف.')
+        active_requests_count = customer.requests.filter(is_deleted=False).count()
+        if active_requests_count > 0:
+            messages.error(request, f'❌ لا يمكن حذف العميل "{customer_name}" لأنه لديه {active_requests_count} طلب(ات) نشط(ة). يرجى حذف الطلبات أولاً أو استخدام التعديل بدلاً من الحذف.')
             return redirect('clients:detail', pk=pk)
+        
+        # حذف نهائي للطلبات المحذوفة (soft deleted) أولاً لتجنب ProtectedError
+        deleted_requests = customer.requests.filter(is_deleted=True)
+        if deleted_requests.exists():
+            # حذف نهائي للطلبات المحذوفة
+            deleted_requests.delete()
+            messages.info(request, f'تم حذف {deleted_requests.count()} طلب محذوف نهائياً.')
         
         # حذف نهائي للعميل
         customer.delete()
