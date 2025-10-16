@@ -90,12 +90,11 @@ function setupFileInputListeners() {
         });
     }
     
-    // Template selection input
+    // Template selection input (validation handled in setupValidation)
     const templateSelect = document.getElementById('templateSelect');
     if (templateSelect) {
         templateSelect.addEventListener('change', function() {
             console.log('📋 Template selection changed');
-            validateTemplateSelection();
         });
     }
     
@@ -750,6 +749,9 @@ function checkTemplateSelection() {
         checkbox.checked = false;
         checkbox.disabled = true;
     }
+    
+    // Also call validation for visual feedback
+    validateTemplateSelection();
 }
 
 // ============ IMAGE UPLOAD ============

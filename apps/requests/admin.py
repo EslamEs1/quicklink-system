@@ -14,7 +14,7 @@ class RequestAdmin(admin.ModelAdmin):
     
     fieldsets = (
         ('معلومات أساسية', {
-            'fields': ('reference_number', 'customer', 'request_type', 'template', 'template_selected')
+            'fields': ('reference_number', 'customer', 'request_type', 'template')
         }),
         ('الحالة', {
             'fields': ('status', 'priority', 'is_overdue', 'days_pending')
