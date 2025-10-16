@@ -364,6 +364,24 @@ function setupValidation() {
         });
     }
     
+    // Customer form toggle
+    const existingCustomerRadio = document.getElementById('existingCustomer');
+    const newCustomerRadio = document.getElementById('newCustomer');
+    if (existingCustomerRadio) {
+        existingCustomerRadio.addEventListener('change', toggleCustomerForm);
+    }
+    if (newCustomerRadio) {
+        newCustomerRadio.addEventListener('change', toggleCustomerForm);
+    }
+    
+    // Customer search
+    const customerSearchInput = document.getElementById('customerSearch');
+    if (customerSearchInput) {
+        customerSearchInput.addEventListener('input', function() {
+            searchCustomers(this.value);
+        });
+    }
+    
     // Documents validation
     const idImageInput = document.getElementById('idImage');
     if (idImageInput) {
@@ -604,6 +622,8 @@ function toggleCustomerForm() {
 }
 
 function selectExistingCustomer(id, name, emirates_id, phone, email) {
+    console.log('👤 Selecting existing customer:', name);
+    
     const hiddenInput = document.getElementById('existingCustomerId');
     const alertDiv = document.getElementById('selectedCustomerAlert');
     const nameSpan = document.getElementById('selectedCustomerName');
@@ -617,6 +637,43 @@ function selectExistingCustomer(id, name, emirates_id, phone, email) {
         item.classList.remove('active');
     });
     event.target.closest('.list-group-item')?.classList.add('active');
+    
+    // Hide search results
+    const searchResults = document.getElementById('customerSearchResults');
+    if (searchResults) {
+        searchResults.style.display = 'none';
+    }
+    
+    // Clear search input
+    const searchInput = document.getElementById('customerSearch');
+    if (searchInput) {
+        searchInput.value = '';
+    }
+    
+    showAlert(`تم اختيار العميل: ${name}`, 'success');
+}
+
+// Customer search functionality
+function searchCustomers(query) {
+    console.log('🔍 Searching customers:', query);
+    
+    if (!query || query.length < 2) {
+        // Show all customers if query is too short
+        document.querySelectorAll('#customerSearchResults .list-group-item').forEach(item => {
+            item.style.display = '';
+        });
+        return;
+    }
+    
+    const searchTerm = query.toLowerCase();
+    document.querySelectorAll('#customerSearchResults .list-group-item').forEach(item => {
+        const text = item.textContent.toLowerCase();
+        if (text.includes(searchTerm)) {
+            item.style.display = '';
+        } else {
+            item.style.display = 'none';
+        }
+    });
 }
 
 // ============ VALIDATION HELPERS (Essential for UX) ============
