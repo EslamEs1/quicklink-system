@@ -194,12 +194,9 @@
                                                 <a href="{% url 'requests:create' %}?customer_id={{ customer.id }}" class="btn btn-action btn-success" title="طلب جديد">
                                                     <i class="fas fa-plus"></i>
                                                 </a>
-                                                <form method="post" action="{% url 'clients:delete' customer.id %}" style="display: inline;">
-                                                    {% csrf_token %}
-                                                    <button type="submit" class="btn btn-action btn-danger" title="حذف العميل">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </form>
+                                                <a href="{% url 'clients:delete' customer.id %}" class="btn btn-action btn-danger" title="حذف العميل">
+                                                    <i class="fas fa-trash"></i>
+                                                </a>
                                             </div>
                                         </td>
                                     </tr>
