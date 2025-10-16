@@ -42,4 +42,9 @@ urlpatterns = [
     path('requests/categories/<int:pk>/edit/', views.category_edit, name='category_edit'),
     path('requests/categories/<int:pk>/toggle/', views.category_toggle, name='category_toggle'),
     path('requests/categories/<int:pk>/delete/', views.category_delete, name='category_delete'),
+    
+    # API endpoints for sidebar counts
+    path('api/pending-requests-count/', views.pending_requests_count_api, name='pending_requests_count_api'),
+    path('api/notifications-count/', views.notifications_count_api, name='notifications_count_api'),
+    path('api/chat-count/', views.chat_count_api, name='chat_count_api'),
 ]

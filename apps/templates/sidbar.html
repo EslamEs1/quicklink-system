@@ -13,50 +13,50 @@
         <!-- Navigation Menu -->
         <ul class="nav flex-column">
             <li class="nav-item">
-                <a class="nav-link active" href="{% url 'requests:dashboard' %}">
+                <a class="nav-link{% if request.resolver_match.url_name == 'dashboard' %} active{% endif %}" href="{% url 'requests:dashboard' %}">
                     <i class="fas fa-tachometer-alt me-2"></i>
                     لوحة التحكم
                 </a>
             </li>
             
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'requests:list' %}">
+                <a class="nav-link{% if request.resolver_match.url_name == 'list' %} active{% endif %}" href="{% url 'requests:list' %}">
                     <i class="fas fa-list me-2"></i>
                     جميع الطلبات
                 </a>
             </li>
             
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'requests:pending' %}">
+                <a class="nav-link{% if request.resolver_match.url_name == 'pending' %} active{% endif %}" href="{% url 'requests:pending' %}">
                     <i class="fas fa-clock me-2"></i>
                     الطلبات المعلقة
-                    <span class="badge bg-warning text-dark ms-2">5</span>
+                    <span class="badge bg-warning text-dark ms-2" id="pendingRequestsCount">0</span>
                 </a>
             </li>
             
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'clients:list' %}">
+                <a class="nav-link{% if request.resolver_match.app_name == 'clients' and request.resolver_match.url_name == 'list' %} active{% endif %}" href="{% url 'clients:list' %}">
                     <i class="fas fa-users me-2"></i>
                     قاعدة العملاء
                 </a>
             </li>
             
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'requests:templates_list' %}">
+                <a class="nav-link{% if request.resolver_match.url_name == 'templates_list' %} active{% endif %}" href="{% url 'requests:templates_list' %}">
                     <i class="fas fa-file-alt me-2"></i>
                     القوالب القانونية
                 </a>
             </li>
             
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'payments:list' %}">
+                <a class="nav-link{% if request.resolver_match.app_name == 'payments' and request.resolver_match.url_name == 'list' %} active{% endif %}" href="{% url 'payments:list' %}">
                     <i class="fas fa-credit-card me-2"></i>
                     المدفوعات
                 </a>
             </li>
             
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'reports:dashboard' %}">
+                <a class="nav-link{% if request.resolver_match.app_name == 'reports' and request.resolver_match.url_name == 'dashboard' %} active{% endif %}" href="{% url 'reports:dashboard' %}">
                     <i class="fas fa-chart-bar me-2"></i>
                     التقارير
                 </a>
@@ -67,44 +67,44 @@
             </li>
             
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'audit:trail' %}">
+                <a class="nav-link{% if request.resolver_match.app_name == 'audit' and request.resolver_match.url_name == 'trail' %} active{% endif %}" href="{% url 'audit:trail' %}">
                     <i class="fas fa-history me-2"></i>
                     سجل التدقيق
                 </a>
             </li>
             
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'notifications:list' %}">
+                <a class="nav-link{% if request.resolver_match.app_name == 'notifications' and request.resolver_match.url_name == 'list' %} active{% endif %}" href="{% url 'notifications:list' %}">
                     <i class="fas fa-bell me-2"></i>
                     التنبيهات
-                    <span class="badge bg-danger ms-2">3</span>
+                    <span class="badge bg-danger ms-2" id="notificationsCount">0</span>
                 </a>
             </li>
             
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'chat:room' %}">
+                <a class="nav-link{% if request.resolver_match.app_name == 'chat' and request.resolver_match.url_name == 'room' %} active{% endif %}" href="{% url 'chat:room' %}">
                     <i class="fab fa-whatsapp me-2"></i>
                     المحادثات
-                    <span class="badge bg-success ms-2">2</span>
+                    <span class="badge bg-success ms-2" id="chatCount">0</span>
                 </a>
             </li>
             
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'settings_app:users' %}">
+                <a class="nav-link{% if request.resolver_match.app_name == 'settings_app' and request.resolver_match.url_name == 'users' %} active{% endif %}" href="{% url 'settings_app:users' %}">
                     <i class="fas fa-users-cog me-2"></i>
                     إدارة المستخدمين
                 </a>
             </li>
             
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'core_utils:backup' %}">
+                <a class="nav-link{% if request.resolver_match.app_name == 'core_utils' and request.resolver_match.url_name == 'backup' %} active{% endif %}" href="{% url 'core_utils:backup' %}">
                     <i class="fas fa-cloud-upload-alt me-2"></i>
                     النسخ الاحتياطي
                 </a>
             </li>
             
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'settings_app:general' %}">
+                <a class="nav-link{% if request.resolver_match.app_name == 'settings_app' and request.resolver_match.url_name == 'general' %} active{% endif %}" href="{% url 'settings_app:general' %}">
                     <i class="fas fa-cog me-2"></i>
                     الإعدادات
                 </a>
@@ -125,3 +125,79 @@
         </div>
     </div>
 </div>
+
+<!-- JavaScript for Dynamic Counts -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Update pending requests count
+    updatePendingRequestsCount();
+    
+    // Update notifications count
+    updateNotificationsCount();
+    
+    // Update chat count
+    updateChatCount();
+    
+    // Update counts every 30 seconds
+    setInterval(function() {
+        updatePendingRequestsCount();
+        updateNotificationsCount();
+        updateChatCount();
+    }, 30000);
+});
+
+function updatePendingRequestsCount() {
+    fetch('/api/pending-requests-count/')
+        .then(response => response.json())
+        .then(data => {
+            const countElement = document.getElementById('pendingRequestsCount');
+            if (countElement) {
+                countElement.textContent = data.count || 0;
+                
+                // Update badge color based on count
+                countElement.className = 'badge ms-2';
+                if (data.count > 5) {
+                    countElement.classList.add('bg-danger', 'text-white');
+                } else if (data.count > 0) {
+                    countElement.classList.add('bg-warning', 'text-dark');
+                } else {
+                    countElement.classList.add('bg-secondary', 'text-white');
+                }
+            }
+        })
+        .catch(error => {
+            console.log('Error updating pending requests count:', error);
+            // Keep default count on error
+        });
+}
+
+function updateNotificationsCount() {
+    fetch('/api/notifications-count/')
+        .then(response => response.json())
+        .then(data => {
+            const countElement = document.getElementById('notificationsCount');
+            if (countElement) {
+                countElement.textContent = data.count || 0;
+                countElement.style.display = data.count > 0 ? 'inline' : 'none';
+            }
+        })
+        .catch(error => {
+            console.log('Error updating notifications count:', error);
+        });
+}
+
+function updateChatCount() {
+    fetch('/api/chat-count/')
+        .then(response => response.json())
+        .then(data => {
+            const countElement = document.getElementById('chatCount');
+            if (countElement) {
+                countElement.textContent = data.count || 0;
+                countElement.style.display = data.count > 0 ? 'inline' : 'none';
+            }
+        })
+        .catch(error => {
+            console.log('Error updating chat count:', error);
+        });
+}
+</script>

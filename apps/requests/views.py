@@ -3,6 +3,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db import models
+from django.http import JsonResponse
 from .models import Request, Template, RequestType
 from apps.clients.models import Customer
 from apps.payments.models import Payment
@@ -61,6 +62,39 @@ def dashboard(request):
         'recent_notifications': recent_notifications,
     }
     return render(request, 'requests/dashboard.html', context)
+
+
+# API Views for Sidebar Counts
+def pending_requests_count_api(request):
+    """API endpoint for pending requests count"""
+    try:
+        count = Request.objects.filter(
+            status__in=['new', 'in_review', 'pending_payment'],
+            is_deleted=False
+        ).count()
+        return JsonResponse({'count': count})
+    except Exception as e:
+        return JsonResponse({'count': 0, 'error': str(e)})
+
+
+def notifications_count_api(request):
+    """API endpoint for notifications count"""
+    try:
+        from apps.notifications.models import Notification
+        count = Notification.objects.filter(is_read=False).count()
+        return JsonResponse({'count': count})
+    except Exception as e:
+        return JsonResponse({'count': 0, 'error': str(e)})
+
+
+def chat_count_api(request):
+    """API endpoint for chat messages count"""
+    try:
+        from apps.chat.models import Message
+        count = Message.objects.filter(is_read=False).count()
+        return JsonResponse({'count': count})
+    except Exception as e:
+        return JsonResponse({'count': 0, 'error': str(e)})
 
 
 # @login_required
