@@ -206,6 +206,7 @@ def create(request):
                 due_date=due_date if due_date else None,
                 payment_method=payment_method,
                 description=request.POST.get('description', ''),
+                notes=request.POST.get('notes', ''),  # إضافة حقل الملاحظات
                 created_by=request.user if request.user.is_authenticated else None,
             )
             
