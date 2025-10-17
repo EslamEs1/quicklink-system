@@ -48,7 +48,7 @@
                         <div class="row">
                             <div class="col-lg-8">
                                 <!-- Notice for existing customers -->
-                                <div class="alert alert-info mb-4">
+                                <div class="alert alert-info mb-4 permanent-notice">
                                     <i class="fas fa-info-circle me-2"></i>
                                     <strong>ملاحظة:</strong> هذه الصفحة لإنشاء طلبات العملاء الجدد فقط. 
                                     للعملاء الموجودين، استخدم زر "طلب جديد" من صفحة 
@@ -622,12 +622,54 @@
         display: flex;
         gap: 0.25rem;
     }
+    
+    /* Permanent Notice Styles */
+    .permanent-notice {
+        position: relative !important;
+        z-index: 1 !important;
+    }
+    
+    .permanent-notice .progress {
+        display: none !important;
+    }
 </style>
 {% endblock %}
 
 {% block extra_js %}
     <!-- Optimized Form JavaScript -->
     <script src="{% static 'assets/js/create-form.js' %}"></script>
+    
+    <script>
+    // Prevent permanent notice from being auto-dismissed
+    document.addEventListener('DOMContentLoaded', function() {
+        // Override the auto-dismiss for permanent notices
+        const permanentNotice = document.querySelector('.permanent-notice');
+        if (permanentNotice) {
+            // Remove any auto-dismiss functionality
+            permanentNotice.classList.remove('alert-dismissible');
+            
+            // Remove progress bar if exists
+            const progressBar = permanentNotice.querySelector('.progress');
+            if (progressBar) {
+                progressBar.remove();
+            }
+            
+            // Prevent click to dismiss
+            permanentNotice.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        }
+        
+        // Override the global alert dismiss for permanent notices
+        const originalRemove = Element.prototype.remove;
+        Element.prototype.remove = function() {
+            if (this.classList && this.classList.contains('permanent-notice')) {
+                return; // Don't remove permanent notices
+            }
+            return originalRemove.call(this);
+        };
+    });
+    </script>
     
 {% endblock %}
 {% endblock content %}
