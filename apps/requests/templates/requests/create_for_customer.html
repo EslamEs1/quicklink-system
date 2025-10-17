@@ -294,16 +294,42 @@
                 <div class="row">
                     <!-- Emirates ID Image -->
                     <div class="col-md-6 mb-4">
-                        <label class="form-label">صورة الهوية الإماراتية <span class="text-danger">*</span></label>
-                        <div class="upload-area" id="idImageUpload">
-                            <input type="file" class="form-control" id="idImage" name="idImage" 
-                                   accept="image/*" required>
-                            <div class="upload-preview mt-2" id="idImagePreview"></div>
-                        </div>
-                        <div class="form-text">
-                            <i class="fas fa-camera me-1"></i>
-                            يرجى رفع صورة واضحة للهوية الإماراتية (JPG, PNG)
-                        </div>
+                        {% if customer.id_image %}
+                            <!-- العميل لديه صورة هوية -->
+                            <label class="form-label">صورة الهوية الإماراتية</label>
+                            <div class="alert alert-success">
+                                <i class="fas fa-check-circle me-2"></i>
+                                <strong>صورة الهوية متوفرة:</strong> العميل لديه صورة هوية محفوظة في النظام
+                            </div>
+                            <div class="text-center">
+                                <img src="{{ customer.id_image.url }}" alt="صورة الهوية" 
+                                     class="img-thumbnail" style="max-width: 200px; max-height: 200px;">
+                                <p class="text-muted mt-2">
+                                    <small>يمكنك رفع صورة جديدة إذا لزم الأمر</small>
+                                </p>
+                            </div>
+                            <div class="upload-area mt-3">
+                                <input type="file" class="form-control" id="idImage" name="idImage" 
+                                       accept="image/*">
+                                <div class="upload-preview mt-2" id="idImagePreview"></div>
+                            </div>
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>
+                                رفع صورة جديدة (اختياري) - سيتم استبدال الصورة الحالية
+                            </div>
+                        {% else %}
+                            <!-- العميل لا يملك صورة هوية -->
+                            <label class="form-label">صورة الهوية الإماراتية <span class="text-danger">*</span></label>
+                            <div class="upload-area" id="idImageUpload">
+                                <input type="file" class="form-control" id="idImage" name="idImage" 
+                                       accept="image/*" required>
+                                <div class="upload-preview mt-2" id="idImagePreview"></div>
+                            </div>
+                            <div class="form-text">
+                                <i class="fas fa-camera me-1"></i>
+                                يرجى رفع صورة واضحة للهوية الإماراتية (JPG, PNG)
+                            </div>
+                        {% endif %}
                     </div>
                     
                     <!-- Additional Documents -->
@@ -581,6 +607,12 @@ function showStep(step) {
     document.getElementById('prevBtn').style.display = step > 1 ? 'inline-block' : 'none';
     document.getElementById('nextBtn').style.display = step < totalSteps ? 'inline-block' : 'none';
     document.getElementById('submitBtn').style.display = step === totalSteps ? 'inline-block' : 'none';
+    
+    // If it's the last step and form is valid, show submit button
+    if (step === totalSteps && validateCurrentStep()) {
+        document.getElementById('submitBtn').style.display = 'inline-block';
+        document.getElementById('nextBtn').style.display = 'none';
+    }
 }
 
 function validateCurrentStep() {
@@ -610,12 +642,17 @@ function validateStep1() {
 }
 
 function validateStep2() {
-    const idImage = document.getElementById('idImage').files.length > 0;
+    const idImageInput = document.getElementById('idImage');
+    const hasExistingImage = {{ customer.id_image|yesno:"true,false" }};
+    const hasNewImage = idImageInput.files.length > 0;
     
-    document.getElementById('checkIdImage').checked = idImage;
+    // Valid if customer has existing image OR new image uploaded
+    const isValid = hasExistingImage || hasNewImage;
+    
+    document.getElementById('checkIdImage').checked = isValid;
     document.getElementById('checkAdditionalDocs').checked = true; // Optional
     
-    return idImage;
+    return isValid;
 }
 
 function validateStep3() {
