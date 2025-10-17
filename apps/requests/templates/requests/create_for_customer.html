@@ -615,7 +615,13 @@ function showStep(step) {
     if (prevBtn) prevBtn.style.display = step > 1 ? 'inline-block' : 'none';
     if (nextBtn) nextBtn.style.display = step < totalSteps ? 'inline-block' : 'none';
     if (submitBtn) {
-        submitBtn.style.display = step === totalSteps ? 'inline-block' : 'none';
+        // Force show submit button on step 3 regardless of validation
+        if (step === 3) {
+            submitBtn.style.display = 'inline-block';
+            submitBtn.classList.remove('d-none');
+        } else {
+            submitBtn.style.display = 'none';
+        }
         console.log(`Submit button display set to: ${submitBtn.style.display} for step ${step}`);
     }
 }
