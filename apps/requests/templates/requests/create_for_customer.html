@@ -560,22 +560,31 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function changeStep(direction) {
+    console.log(`changeStep called: direction=${direction}, currentStep=${currentStep}, totalSteps=${totalSteps}`);
+    
     if (direction === 1) {
         // Next step
+        console.log(`Attempting to go to next step from ${currentStep}`);
         if (validateCurrentStep()) {
             currentStep++;
+            console.log(`Moving to step ${currentStep}`);
             showStep(currentStep);
             updateProgress();
+        } else {
+            console.log(`Validation failed for step ${currentStep}`);
         }
     } else {
         // Previous step
         currentStep--;
+        console.log(`Going to previous step: ${currentStep}`);
         showStep(currentStep);
         updateProgress();
     }
 }
 
 function showStep(step) {
+    console.log(`showStep called with step: ${step}, totalSteps: ${totalSteps}`);
+    
     // Hide all steps
     document.querySelectorAll('.step-content').forEach(el => {
         el.classList.add('d-none');
@@ -597,21 +606,39 @@ function showStep(step) {
     updateChecklist(step);
     
     // Update navigation buttons
-    document.getElementById('prevBtn').style.display = step > 1 ? 'inline-block' : 'none';
-    document.getElementById('nextBtn').style.display = step < totalSteps ? 'inline-block' : 'none';
-    document.getElementById('submitBtn').style.display = step === totalSteps ? 'inline-block' : 'none';
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const submitBtn = document.getElementById('submitBtn');
     
+    console.log('Button elements found:', {prevBtn, nextBtn, submitBtn});
+    
+    if (prevBtn) prevBtn.style.display = step > 1 ? 'inline-block' : 'none';
+    if (nextBtn) nextBtn.style.display = step < totalSteps ? 'inline-block' : 'none';
+    if (submitBtn) {
+        submitBtn.style.display = step === totalSteps ? 'inline-block' : 'none';
+        console.log(`Submit button display set to: ${submitBtn.style.display} for step ${step}`);
+    }
 }
 
 function validateCurrentStep() {
+    console.log(`validateCurrentStep called for step ${currentStep}`);
+    let result = false;
+    
     switch (currentStep) {
         case 1:
-            return validateStep1();
+            result = validateStep1();
+            console.log(`Step 1 validation result: ${result}`);
+            return result;
         case 2:
-            return validateStep2();
+            result = validateStep2();
+            console.log(`Step 2 validation result: ${result}`);
+            return result;
         case 3:
-            return validateStep3();
+            result = validateStep3();
+            console.log(`Step 3 validation result: ${result}`);
+            return result;
         default:
+            console.log(`Unknown step: ${currentStep}`);
             return false;
     }
 }
