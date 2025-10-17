@@ -112,7 +112,7 @@
                             <i class="fas fa-tasks icon-large text-info"></i>
                             <div class="stats-number">
                                 {% if requests_stats.total > 0 %}
-                                    {{ requests_stats.completed|mul:100|div:requests_stats.total|floatformat:1|default:"0" }}%
+                                    {% widthratio requests_stats.completed requests_stats.total 100 %}%
                                 {% else %}
                                     0%
                                 {% endif %}
@@ -258,9 +258,8 @@
                             <h6>معدل إتمام الطلبات</h6>
                             <div class="progress mb-2">
                                 {% if requests_stats.total > 0 %}
-                                    {% with completion_rate=requests_stats.completed|mul:100|div:requests_stats.total %}
-                                    <div class="progress-bar bg-success" role="progressbar" style="width: {{ completion_rate }}%">{{ completion_rate|floatformat:1 }}%</div>
-                                    {% endwith %}
+                                    {% widthratio requests_stats.completed requests_stats.total 100 as completion_rate %}
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: {{ completion_rate }}%">{{ completion_rate }}%</div>
                                 {% else %}
                                     <div class="progress-bar bg-secondary" role="progressbar" style="width: 0%">0%</div>
                                 {% endif %}
@@ -271,9 +270,8 @@
                             <h6>الطلبات الجديدة</h6>
                             <div class="progress mb-2">
                                 {% if requests_stats.total > 0 %}
-                                    {% with new_rate=requests_stats.new|mul:100|div:requests_stats.total %}
-                                    <div class="progress-bar bg-primary" role="progressbar" style="width: {{ new_rate }}%">{{ new_rate|floatformat:1 }}%</div>
-                                    {% endwith %}
+                                    {% widthratio requests_stats.new requests_stats.total 100 as new_rate %}
+                                    <div class="progress-bar bg-primary" role="progressbar" style="width: {{ new_rate }}%">{{ new_rate }}%</div>
                                 {% else %}
                                     <div class="progress-bar bg-secondary" role="progressbar" style="width: 0%">0%</div>
                                 {% endif %}
@@ -284,9 +282,8 @@
                             <h6>طلبات قيد المراجعة</h6>
                             <div class="progress mb-2">
                                 {% if requests_stats.total > 0 %}
-                                    {% with review_rate=requests_stats.in_review|mul:100|div:requests_stats.total %}
-                                    <div class="progress-bar bg-warning" role="progressbar" style="width: {{ review_rate }}%">{{ review_rate|floatformat:1 }}%</div>
-                                    {% endwith %}
+                                    {% widthratio requests_stats.in_review requests_stats.total 100 as review_rate %}
+                                    <div class="progress-bar bg-warning" role="progressbar" style="width: {{ review_rate }}%">{{ review_rate }}%</div>
                                 {% else %}
                                     <div class="progress-bar bg-secondary" role="progressbar" style="width: 0%">0%</div>
                                 {% endif %}
@@ -297,9 +294,8 @@
                             <h6>العملاء الموثقون</h6>
                             <div class="progress mb-2">
                                 {% if customers_stats.total > 0 %}
-                                    {% with verified_rate=customers_stats.verified|mul:100|div:customers_stats.total %}
-                                    <div class="progress-bar bg-info" role="progressbar" style="width: {{ verified_rate }}%">{{ verified_rate|floatformat:1 }}%</div>
-                                    {% endwith %}
+                                    {% widthratio customers_stats.verified customers_stats.total 100 as verified_rate %}
+                                    <div class="progress-bar bg-info" role="progressbar" style="width: {{ verified_rate }}%">{{ verified_rate }}%</div>
                                 {% else %}
                                     <div class="progress-bar bg-secondary" role="progressbar" style="width: 0%">0%</div>
                                 {% endif %}
