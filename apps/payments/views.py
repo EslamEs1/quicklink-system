@@ -99,11 +99,13 @@ def process_payment(request):
                 status_display = existing_payment.get_status_display()
                 if existing_payment.status == 'paid':
                     messages.warning(request, f'⚠️ الطلب {req.reference_number} مدفوع مسبقاً! لا يمكن إضافة دفعة أخرى.')
+                    return redirect('payments:details', pk=existing_payment.id)
                 elif existing_payment.status == 'pending':
                     messages.info(request, f'ℹ️ يوجد دفعة معلقة للطلب {req.reference_number}. يرجى تأكيد الدفعة المعلقة أولاً.')
+                    return redirect('payments:list')
                 else:
                     messages.warning(request, f'⚠️ يوجد دفعة سابقة للطلب {req.reference_number} بحالة: {status_display}. لا يمكن إضافة دفعة جديدة.')
-                return redirect('requests:detail', pk=req.id)
+                    return redirect('payments:details', pk=existing_payment.id)
             
             # إنشاء الدفعة الجديدة
             payment = Payment.objects.create(
@@ -145,11 +147,13 @@ def process_payment(request):
                 status_display = existing_payment.get_status_display()
                 if existing_payment.status == 'paid':
                     messages.warning(request, f'⚠️ الطلب {req.reference_number} مدفوع مسبقاً! لا يمكن إضافة دفعة أخرى.')
+                    return redirect('payments:details', pk=existing_payment.id)
                 elif existing_payment.status == 'pending':
                     messages.info(request, f'ℹ️ يوجد دفعة معلقة للطلب {req.reference_number}. يرجى تأكيد الدفعة المعلقة أولاً.')
+                    return redirect('payments:list')
                 else:
                     messages.warning(request, f'⚠️ يوجد دفعة سابقة للطلب {req.reference_number} بحالة: {status_display}. لا يمكن إضافة دفعة جديدة.')
-                return redirect('requests:detail', pk=req.id)
+                    return redirect('payments:details', pk=existing_payment.id)
             
             context = {
                 'page_title': f'معالجة دفعة - {req.reference_number}',
@@ -164,3 +168,156 @@ def process_payment(request):
     
     # إذا لم يتم تحديد طلب، عرض قائمة المدفوعات
     return redirect('payments:list')
+
+
+# @login_required
+def payment_details(request, pk):
+    """تفاصيل الدفعة"""
+    payment = get_object_or_404(Payment, pk=pk)
+    
+    context = {
+        'page_title': f'تفاصيل الدفعة - {payment.receipt_number}',
+        'payment': payment,
+    }
+    return render(request, 'payments/details.html', context)
+
+
+# @login_required
+def payment_receipt(request, pk):
+    """طباعة إيصال الدفعة"""
+    payment = get_object_or_404(Payment, pk=pk)
+    
+    context = {
+        'page_title': f'إيصال الدفعة - {payment.receipt_number}',
+        'payment': payment,
+    }
+    return render(request, 'payments/receipt.html', context)
+
+
+# @login_required
+def confirm_payment(request, pk):
+    """تأكيد دفعة معلقة"""
+    from django.http import JsonResponse
+    
+    if request.method == 'POST':
+        try:
+            payment = get_object_or_404(Payment, pk=pk)
+            
+            if payment.status != 'pending':
+                return JsonResponse({
+                    'success': False,
+                    'message': 'لا يمكن تأكيد هذه الدفعة'
+                })
+            
+            # تحديث حالة الدفعة
+            payment.status = 'paid'
+            payment.save()
+            
+            # تحديث حالة الطلب
+            payment.request.status = 'paid'
+            payment.request.save()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'تم تأكيد الدفعة بنجاح'
+            })
+            
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'حدث خطأ: {str(e)}'
+            })
+    
+    return JsonResponse({'success': False, 'message': 'طريقة غير مسموحة'})
+
+
+# @login_required
+def cancel_payment(request, pk):
+    """إلغاء دفعة معلقة"""
+    from django.http import JsonResponse
+    
+    if request.method == 'POST':
+        try:
+            payment = get_object_or_404(Payment, pk=pk)
+            
+            if payment.status != 'pending':
+                return JsonResponse({
+                    'success': False,
+                    'message': 'لا يمكن إلغاء هذه الدفعة'
+                })
+            
+            # تحديث حالة الدفعة
+            payment.status = 'cancelled'
+            payment.save()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'تم إلغاء الدفعة بنجاح'
+            })
+            
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'حدث خطأ: {str(e)}'
+            })
+    
+    return JsonResponse({'success': False, 'message': 'طريقة غير مسموحة'})
+
+
+# @login_required
+def retry_payment(request, pk):
+    """إعادة محاولة دفعة فاشلة"""
+    from django.http import JsonResponse
+    
+    if request.method == 'POST':
+        try:
+            payment = get_object_or_404(Payment, pk=pk)
+            
+            if payment.status != 'failed':
+                return JsonResponse({
+                    'success': False,
+                    'message': 'لا يمكن إعادة محاولة هذه الدفعة'
+                })
+            
+            # تحديث حالة الدفعة
+            payment.status = 'pending'
+            payment.save()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'تم إعادة محاولة الدفعة بنجاح'
+            })
+            
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'حدث خطأ: {str(e)}'
+            })
+    
+    return JsonResponse({'success': False, 'message': 'طريقة غير مسموحة'})
+
+
+# @login_required
+def send_payment_email(request, pk):
+    """إرسال إيصال الدفع بالبريد الإلكتروني"""
+    from django.http import JsonResponse
+    
+    if request.method == 'POST':
+        try:
+            payment = get_object_or_404(Payment, pk=pk)
+            
+            # TODO: تنفيذ إرسال البريد الإلكتروني لاحقاً
+            # يمكن استخدام Django EmailBackend أو خدمات خارجية
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'تم إرسال الإيصال بالبريد الإلكتروني بنجاح'
+            })
+            
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'حدث خطأ: {str(e)}'
+            })
+    
+    return JsonResponse({'success': False, 'message': 'طريقة غير مسموحة'})

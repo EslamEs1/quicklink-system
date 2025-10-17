@@ -208,11 +208,6 @@
                                                     <i class="fas fa-credit-card"></i>
                                                 </a>
                                             {% endif %}
-                                            {% if req.status == 'new' or req.status == 'in_review' %}
-                                                <button class="btn btn-action btn-danger" onclick="rejectRequest({{ req.id }})" title="رفض الطلب">
-                                                    <i class="fas fa-times"></i>
-                                                </button>
-                                            {% endif %}
                                             <a href="{% url 'chat:room' %}?customer_id={{ req.customer.id }}" class="btn btn-action btn-warning" title="اتصال WhatsApp">
                                                 <i class="fas fa-phone"></i>
                                             </a>
@@ -244,23 +239,9 @@
 {% endblock content %}
 
 {% block extra_js %}
-<!-- CSRF Token -->
-{% csrf_token %}
 <script>
 // Initialize filters when page loads
 document.addEventListener('DOMContentLoaded', function() {
-    // Add CSRF token if not exists
-    if (!document.querySelector('[name=csrfmiddlewaretoken]')) {
-        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-        if (csrfToken) {
-            const csrfInput = document.createElement('input');
-            csrfInput.type = 'hidden';
-            csrfInput.name = 'csrfmiddlewaretoken';
-            csrfInput.value = csrfToken;
-            document.body.appendChild(csrfInput);
-        }
-    }
-    
     // Initialize customer filter if present
     initializeCustomerFilter();
     
@@ -350,31 +331,6 @@ function printRequests() {
     printWindow.print();
     
     showAlert('تم إرسال البيانات للطباعة', 'info');
-}
-
-// Reject request function
-function rejectRequest(requestId) {
-    if (confirm('هل أنت متأكد من رفض هذا الطلب؟ سيتم تغيير حالة الطلب إلى "مرفوض".')) {
-        fetch(`/requests/${requestId}/reject/`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-                'Content-Type': 'application/json',
-            },
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showAlert('تم رفض الطلب بنجاح!', 'success');
-                setTimeout(() => window.location.reload(), 1500);
-            } else {
-                showAlert('حدث خطأ أثناء رفض الطلب', 'error');
-            }
-        })
-        .catch(error => {
-            showAlert('حدث خطأ أثناء رفض الطلب', 'error');
-        });
-    }
 }
 
 // Show alert function

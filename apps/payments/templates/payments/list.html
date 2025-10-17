@@ -283,7 +283,7 @@
                                     <td>{{ payment.created_at|date:"d يناير Y - H:i" }}</td>
                                     <td>
                                         <div class="btn-group" role="group">
-                                            <button class="btn btn-action btn-view" onclick="viewPaymentDetails({{ payment.id }}, {{ payment.request.id }})" title="التفاصيل">
+                                            <button class="btn btn-action btn-view" onclick="viewPaymentDetails({{ payment.id }})" title="التفاصيل">
                                                 <i class="fas fa-eye"></i>
                                             </button>
                                             {% if payment.status == 'paid' %}
@@ -328,9 +328,74 @@
 
             <!-- Pagination -->
             {% include 'pagination.html' %}
-{% endblock content %}
 
-{% block extra_js %}
+<!-- Confirmation Modals -->
+<div class="modal fade" id="confirmPaymentModal" tabindex="-1" aria-labelledby="confirmPaymentModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmPaymentModalLabel">تأكيد الدفعة</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>هل تريد تأكيد هذه الدفعة المعلقة؟</p>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    سيتم تحديث حالة الطلب إلى "مدفوع" بعد التأكيد.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <button type="button" class="btn btn-success" id="confirmPaymentBtn">تأكيد الدفعة</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="cancelPaymentModal" tabindex="-1" aria-labelledby="cancelPaymentModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cancelPaymentModalLabel">إلغاء الدفعة</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>هل تريد إلغاء هذه الدفعة المعلقة؟</p>
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    لا يمكن التراجع عن هذا الإجراء.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <button type="button" class="btn btn-danger" id="cancelPaymentBtn">إلغاء الدفعة</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="retryPaymentModal" tabindex="-1" aria-labelledby="retryPaymentModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="retryPaymentModalLabel">إعادة محاولة الدفعة</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>هل تريد إعادة محاولة هذه الدفعة الفاشلة؟</p>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    سيتم إعادة معالجة الدفعة مع نفس البيانات.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <button type="button" class="btn btn-warning" id="retryPaymentBtn">إعادة المحاولة</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 // Payment List Functions
 function processNewPayment() {
@@ -375,11 +440,9 @@ function applyPaymentFilters() {
     }
 }
 
-function viewPaymentDetails(paymentId, requestId) {
+function viewPaymentDetails(paymentId) {
     // Show payment details modal or redirect to details page
-    // For now, redirect to the payment's request details
-    // You can create a dedicated payment details page later
-    window.location.href = `/requests/${requestId}/`;
+    window.location.href = `/payments/${paymentId}/details/`;
 }
 
 function printReceipt(paymentId) {
@@ -411,84 +474,105 @@ function sendPaymentEmail(paymentId) {
     }
 }
 
+let currentPaymentId = null;
+
 function confirmPayment(paymentId) {
-    // Confirm pending payment
-    if (confirm('هل تريد تأكيد هذه الدفعة المعلقة؟')) {
-        fetch(`/payments/${paymentId}/confirm/`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-                'Content-Type': 'application/json',
-            },
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showAlert('تم تأكيد الدفعة بنجاح!', 'success');
-                setTimeout(() => window.location.reload(), 1500);
-            } else {
-                showAlert('حدث خطأ أثناء تأكيد الدفعة', 'error');
-            }
-        })
-        .catch(error => {
-            showAlert('حدث خطأ أثناء تأكيد الدفعة', 'error');
-        });
-    }
+    currentPaymentId = paymentId;
+    const modal = new bootstrap.Modal(document.getElementById('confirmPaymentModal'));
+    modal.show();
 }
 
 function cancelPayment(paymentId) {
-    // Cancel pending payment
-    if (confirm('هل تريد إلغاء هذه الدفعة المعلقة؟')) {
-        fetch(`/payments/${paymentId}/cancel/`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-                'Content-Type': 'application/json',
-            },
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showAlert('تم إلغاء الدفعة بنجاح!', 'success');
-                setTimeout(() => window.location.reload(), 1500);
-            } else {
-                showAlert('حدث خطأ أثناء إلغاء الدفعة', 'error');
-            }
-        })
-        .catch(error => {
-            showAlert('حدث خطأ أثناء إلغاء الدفعة', 'error');
-        });
-    }
+    currentPaymentId = paymentId;
+    const modal = new bootstrap.Modal(document.getElementById('cancelPaymentModal'));
+    modal.show();
 }
 
 function retryPayment(paymentId) {
-    // Retry failed payment
-    if (confirm('هل تريد إعادة محاولة هذه الدفعة الفاشلة؟')) {
-        fetch(`/payments/${paymentId}/retry/`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-                'Content-Type': 'application/json',
-            },
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showAlert('تم إعادة محاولة الدفعة بنجاح!', 'success');
-                setTimeout(() => window.location.reload(), 1500);
-            } else {
-                showAlert('حدث خطأ أثناء إعادة محاولة الدفعة', 'error');
-            }
-        })
-        .catch(error => {
-            showAlert('حدث خطأ أثناء إعادة محاولة الدفعة', 'error');
-        });
-    }
+    currentPaymentId = paymentId;
+    const modal = new bootstrap.Modal(document.getElementById('retryPaymentModal'));
+    modal.show();
 }
 
 function contactCustomer(customerId) {
     // Contact customer (redirect to customer details or WhatsApp)
     window.location.href = `/clients/${customerId}/`;
+}
+
+// Actual payment operations
+function performConfirmPayment(paymentId) {
+    fetch(`/payments/${paymentId}/confirm/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert('✅ تم تأكيد الدفعة بنجاح!', 'success');
+            setTimeout(() => window.location.reload(), 1500);
+        } else {
+            showAlert('❌ حدث خطأ أثناء تأكيد الدفعة', 'error');
+        }
+    })
+    .catch(error => {
+        showAlert('❌ حدث خطأ أثناء تأكيد الدفعة', 'error');
+    });
+    
+    // Close modal
+    bootstrap.Modal.getInstance(document.getElementById('confirmPaymentModal')).hide();
+}
+
+function performCancelPayment(paymentId) {
+    fetch(`/payments/${paymentId}/cancel/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert('✅ تم إلغاء الدفعة بنجاح!', 'success');
+            setTimeout(() => window.location.reload(), 1500);
+        } else {
+            showAlert('❌ حدث خطأ أثناء إلغاء الدفعة', 'error');
+        }
+    })
+    .catch(error => {
+        showAlert('❌ حدث خطأ أثناء إلغاء الدفعة', 'error');
+    });
+    
+    // Close modal
+    bootstrap.Modal.getInstance(document.getElementById('cancelPaymentModal')).hide();
+}
+
+function performRetryPayment(paymentId) {
+    fetch(`/payments/${paymentId}/retry/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert('✅ تم إعادة محاولة الدفعة بنجاح!', 'success');
+            setTimeout(() => window.location.reload(), 1500);
+        } else {
+            showAlert('❌ حدث خطأ أثناء إعادة محاولة الدفعة', 'error');
+        }
+    })
+    .catch(error => {
+        showAlert('❌ حدث خطأ أثناء إعادة محاولة الدفعة', 'error');
+    });
+    
+    // Close modal
+    bootstrap.Modal.getInstance(document.getElementById('retryPaymentModal')).hide();
 }
 
 function exportPaymentsToExcel() {
@@ -579,6 +663,25 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
+    
+    // Modal event listeners
+    document.getElementById('confirmPaymentBtn').addEventListener('click', function() {
+        if (currentPaymentId) {
+            performConfirmPayment(currentPaymentId);
+        }
+    });
+    
+    document.getElementById('cancelPaymentBtn').addEventListener('click', function() {
+        if (currentPaymentId) {
+            performCancelPayment(currentPaymentId);
+        }
+    });
+    
+    document.getElementById('retryPaymentBtn').addEventListener('click', function() {
+        if (currentPaymentId) {
+            performRetryPayment(currentPaymentId);
+        }
+    });
 });
 
 // Debounce function for search input
@@ -594,4 +697,4 @@ function debounce(func, wait) {
     };
 }
 </script>
-{% endblock extra_js %}
+{% endblock content %}
