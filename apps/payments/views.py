@@ -65,6 +65,31 @@ def list(request):
                 'total': stat['total']
             }
     
+    # إحصائيات المدفوعات الشهرية (آخر 6 أشهر)
+    from datetime import datetime, timedelta
+    from django.db.models.functions import TruncMonth
+    
+    monthly_stats = Payment.objects.filter(
+        status='paid',
+        created_at__gte=datetime.now() - timedelta(days=180)  # آخر 6 أشهر
+    ).annotate(
+        month=TruncMonth('created_at')
+    ).values('month').annotate(
+        total_amount=Sum('amount'),
+        payment_count=Count('id')
+    ).order_by('month')
+    
+    # تحضير البيانات للشارت
+    chart_labels = []
+    chart_amounts = []
+    chart_counts = []
+    
+    for stat in monthly_stats:
+        month_name = stat['month'].strftime('%B %Y')
+        chart_labels.append(month_name)
+        chart_amounts.append(float(stat['total_amount'] or 0))
+        chart_counts.append(stat['payment_count'] or 0)
+    
     context = {
         'page_title': 'إدارة المدفوعات',
         'payments': payments,
@@ -73,6 +98,9 @@ def list(request):
         'pending_count': pending_count,
         'failed_count': failed_count,
         'gateway_percentages': gateway_percentages,
+        'chart_labels': chart_labels,
+        'chart_amounts': chart_amounts,
+        'chart_counts': chart_counts,
     }
     return render(request, 'payments/list.html', context)
 

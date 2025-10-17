@@ -119,12 +119,28 @@
                             </h5>
                         </div>
                         <div class="card-body">
-                            <div class="chart-placeholder">
-                                <div class="text-center py-5">
-                                    <i class="fas fa-chart-line text-muted" style="font-size: 4rem;"></i>
-                                    <h5 class="text-muted mt-3">رسم بياني للمدفوعات</h5>
-                                    <p class="text-muted">سيتم عرض الرسم البياني هنا</p>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <div class="btn-group" role="group">
+                                        <button type="button" class="btn btn-sm btn-outline-primary active" id="amountChartBtn" onclick="showAmountChart()">
+                                            <i class="fas fa-dollar-sign me-1"></i>
+                                            المبالغ
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" id="countChartBtn" onclick="showCountChart()">
+                                            <i class="fas fa-chart-bar me-1"></i>
+                                            عدد المدفوعات
+                                        </button>
+                                    </div>
                                 </div>
+                                <div class="col-md-6 text-end">
+                                    <small class="text-muted">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        آخر 6 أشهر
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="chart-container" style="position: relative; height: 300px;">
+                                <canvas id="monthlyPaymentsChart"></canvas>
                             </div>
                         </div>
                     </div>
@@ -568,6 +584,122 @@
                     clearTimeout(timeout);
                     timeout = setTimeout(later, wait);
                 };
+            }
+
+            // Chart data from Django
+            const chartLabels = {{ chart_labels|safe }};
+            const chartAmounts = {{ chart_amounts|safe }};
+            const chartCounts = {{ chart_counts|safe }};
+            
+            let monthlyChart = null;
+
+            // Initialize chart when page loads
+            document.addEventListener('DOMContentLoaded', function() {
+                initializeChart();
+            });
+
+            function initializeChart() {
+                const ctx = document.getElementById('monthlyPaymentsChart').getContext('2d');
+                
+                // Destroy existing chart if it exists
+                if (monthlyChart) {
+                    monthlyChart.destroy();
+                }
+                
+                monthlyChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: chartLabels,
+                        datasets: [{
+                            label: 'المبالغ (درهم)',
+                            data: chartAmounts,
+                            borderColor: 'rgb(75, 192, 192)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            yAxisID: 'y'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'إحصائيات المدفوعات الشهرية',
+                                font: {
+                                    size: 16,
+                                    weight: 'bold'
+                                }
+                            },
+                            legend: {
+                                display: true,
+                                position: 'top'
+                            }
+                        },
+                        scales: {
+                            x: {
+                                display: true,
+                                title: {
+                                    display: true,
+                                    text: 'الشهر'
+                                }
+                            },
+                            y: {
+                                type: 'linear',
+                                display: true,
+                                position: 'left',
+                                title: {
+                                    display: true,
+                                    text: 'المبلغ (درهم)'
+                                },
+                                ticks: {
+                                    callback: function(value) {
+                                        return value.toLocaleString() + ' درهم';
+                                    }
+                                }
+                            }
+                        },
+                        interaction: {
+                            intersect: false,
+                            mode: 'index'
+                        }
+                    }
+                });
+            }
+
+            function showAmountChart() {
+                // Update button states
+                document.getElementById('amountChartBtn').className = 'btn btn-sm btn-primary';
+                document.getElementById('countChartBtn').className = 'btn btn-sm btn-outline-secondary';
+                
+                // Update chart data
+                monthlyChart.data.datasets[0].data = chartAmounts;
+                monthlyChart.data.datasets[0].label = 'المبالغ (درهم)';
+                monthlyChart.data.datasets[0].borderColor = 'rgb(75, 192, 192)';
+                monthlyChart.data.datasets[0].backgroundColor = 'rgba(75, 192, 192, 0.1)';
+                monthlyChart.options.scales.y.title.text = 'المبلغ (درهم)';
+                monthlyChart.options.scales.y.ticks.callback = function(value) {
+                    return value.toLocaleString() + ' درهم';
+                };
+                monthlyChart.update();
+            }
+
+            function showCountChart() {
+                // Update button states
+                document.getElementById('amountChartBtn').className = 'btn btn-sm btn-outline-primary';
+                document.getElementById('countChartBtn').className = 'btn btn-sm btn-secondary';
+                
+                // Update chart data
+                monthlyChart.data.datasets[0].data = chartCounts;
+                monthlyChart.data.datasets[0].label = 'عدد المدفوعات';
+                monthlyChart.data.datasets[0].borderColor = 'rgb(255, 99, 132)';
+                monthlyChart.data.datasets[0].backgroundColor = 'rgba(255, 99, 132, 0.1)';
+                monthlyChart.options.scales.y.title.text = 'عدد المدفوعات';
+                monthlyChart.options.scales.y.ticks.callback = function(value) {
+                    return value + ' دفعة';
+                };
+                monthlyChart.update();
             }
             </script>
             {% endblock content %}
