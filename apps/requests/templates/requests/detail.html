@@ -201,19 +201,26 @@
                             <label class="text-muted mb-1">المبلغ المطلوب</label>
                             <p class="fw-bold mb-0 text-success">{{ request.total_amount|default:"0" }} درهم</p>
                         </div>
-                        {% if request.notes %}
+                        <!-- ملاحظات الطلب - تظهر دائماً -->
                         <div class="col-md-12 mb-3">
                             <label class="text-muted mb-1">ملاحظات الطلب</label>
-                            <div class="alert alert-info mb-0">
+                            {% if request.notes %}
+                            <div class="alert alert-info mb-0" style="display: block !important;">
                                 <i class="fas fa-sticky-note me-2"></i>
                                 {{ request.notes }}
                             </div>
+                            {% else %}
+                            <div class="alert alert-light mb-0" style="display: block !important;">
+                                <i class="fas fa-info-circle me-2"></i>
+                                لا توجد ملاحظات
+                            </div>
+                            {% endif %}
                         </div>
-                        {% endif %}
                         
+                        <!-- حالة الموافقة - تظهر دائماً إذا كانت موجودة -->
                         {% if request.approved_by %}
-                        <div class="col-md-12">
-                            <div class="alert alert-success mb-0">
+                        <div class="col-md-12 mb-3">
+                            <div class="alert alert-success mb-0" style="display: block !important;">
                                 <i class="fas fa-check-circle me-2"></i>
                                 <strong>تمت الموافقة:</strong> بواسطة {{ request.approved_by.get_full_name|default:request.approved_by.username }} 
                                 في {{ request.approved_at|date:"d يناير Y - h:i A" }}
@@ -221,9 +228,10 @@
                         </div>
                         {% endif %}
                         
+                        <!-- حالة الرفض - تظهر دائماً إذا كانت موجودة -->
                         {% if request.rejected_by %}
-                        <div class="col-md-12">
-                            <div class="alert alert-danger mb-0">
+                        <div class="col-md-12 mb-3">
+                            <div class="alert alert-danger mb-0" style="display: block !important;">
                                 <i class="fas fa-times-circle me-2"></i>
                                 <strong>تم الرفض:</strong> بواسطة {{ request.rejected_by.get_full_name|default:request.rejected_by.username }} 
                                 في {{ request.rejected_at|date:"d يناير Y - h:i A" }}
