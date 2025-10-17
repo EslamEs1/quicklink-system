@@ -236,12 +236,20 @@
 
             <!-- Pagination -->
             {% include 'pagination.html' %}
+{% endblock content %}
 
+{% block extra_js %}
 <script>
-// JavaScript inside content block
+// Initialize filters when page loads
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize filters
+    // Initialize customer filter if present
+    initializeCustomerFilter();
+    
+    // Initialize all filters
     initializeFilters();
+    
+    // Apply initial filters
+    applyFilters();
 });
 
 // Clear all filters function
@@ -250,6 +258,11 @@ function clearFilters() {
     document.getElementById('searchInput').value = '';
     document.getElementById('statusFilter').value = 'all';
     document.getElementById('dateFilter').value = '';
+    
+    // Reset current filters
+    currentFilters.search = '';
+    currentFilters.status = 'all';
+    currentFilters.date = '';
     
     // Apply cleared filters
     applyFilters();
@@ -339,56 +352,5 @@ function showAlert(message, type) {
         }
     }, 3000);
 }
-
-// Initialize filters function
-function initializeFilters() {
-    // Add event listeners for filter inputs
-    const filterInputs = ['searchInput', 'statusFilter', 'dateFilter'];
-    
-    filterInputs.forEach(inputId => {
-        const input = document.getElementById(inputId);
-        if (input) {
-            if (input.type === 'text') {
-                input.addEventListener('input', debounce(applyFilters, 500));
-            } else {
-                input.addEventListener('change', applyFilters);
-            }
-        }
-    });
-}
-
-// Apply filters function
-function applyFilters() {
-    const search = document.getElementById('searchInput').value;
-    const status = document.getElementById('statusFilter').value;
-    const date = document.getElementById('dateFilter').value;
-    
-    let url = window.location.pathname + '?';
-    const params = [];
-    
-    if (search) params.push('q=' + encodeURIComponent(search));
-    if (status !== 'all') params.push('status=' + encodeURIComponent(status));
-    if (date) params.push('date=' + encodeURIComponent(date));
-    
-    if (params.length > 0) {
-        url += params.join('&');
-        window.location.href = url;
-    } else {
-        window.location.reload();
-    }
-}
-
-// Debounce function for search input
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
 </script>
-{% endblock content %}
+{% endblock %}
