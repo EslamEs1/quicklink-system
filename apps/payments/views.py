@@ -96,8 +96,14 @@ def process_payment(request):
             # التحقق من وجود دفعة سابقة
             existing_payment = Payment.objects.filter(request=req).first()
             if existing_payment:
-                messages.error(request, f'يوجد دفعة سابقة للطلب {req.reference_number} بحالة: {existing_payment.get_status_display}')
-                return redirect('payments:list')
+                status_display = existing_payment.get_status_display()
+                if existing_payment.status == 'paid':
+                    messages.warning(request, f'⚠️ الطلب {req.reference_number} مدفوع مسبقاً! لا يمكن إضافة دفعة أخرى.')
+                elif existing_payment.status == 'pending':
+                    messages.info(request, f'ℹ️ يوجد دفعة معلقة للطلب {req.reference_number}. يرجى تأكيد الدفعة المعلقة أولاً.')
+                else:
+                    messages.warning(request, f'⚠️ يوجد دفعة سابقة للطلب {req.reference_number} بحالة: {status_display}. لا يمكن إضافة دفعة جديدة.')
+                return redirect('requests:detail', pk=req.id)
             
             # إنشاء الدفعة الجديدة
             payment = Payment.objects.create(
@@ -115,15 +121,15 @@ def process_payment(request):
             req.status = 'paid'
             req.save()
             
-            messages.success(request, f'تم معالجة الدفعة بنجاح للطلب {req.reference_number}')
-            return redirect('payments:list')
+            messages.success(request, f'✅ تم معالجة الدفعة بنجاح للطلب {req.reference_number}! تم تحديث حالة الطلب إلى "مدفوع".')
+            return redirect('requests:detail', pk=req.id)
             
         except Request.DoesNotExist:
-            messages.error(request, 'الطلب المطلوب غير موجود أو تم حذفه')
+            messages.error(request, '❌ الطلب المطلوب غير موجود أو تم حذفه من النظام.')
             return redirect('requests:list')
         except Exception as e:
-            messages.error(request, f'حدث خطأ أثناء معالجة الدفعة: {str(e)}')
-            return redirect('payments:list')
+            messages.error(request, f'❌ حدث خطأ أثناء معالجة الدفعة: {str(e)}. يرجى المحاولة مرة أخرى أو مراجعة المشرف.')
+            return redirect('requests:detail', pk=req.id if 'req' in locals() else None)
     
     # GET request - عرض النموذج
     request_id = request.GET.get('request_id')
@@ -136,8 +142,14 @@ def process_payment(request):
             # التحقق من وجود دفعة سابقة
             existing_payment = Payment.objects.filter(request=req).first()
             if existing_payment:
-                messages.info(request, f'يوجد دفعة سابقة للطلب {req.reference_number} بحالة: {existing_payment.get_status_display}')
-                return redirect('payments:list')
+                status_display = existing_payment.get_status_display()
+                if existing_payment.status == 'paid':
+                    messages.warning(request, f'⚠️ الطلب {req.reference_number} مدفوع مسبقاً! لا يمكن إضافة دفعة أخرى.')
+                elif existing_payment.status == 'pending':
+                    messages.info(request, f'ℹ️ يوجد دفعة معلقة للطلب {req.reference_number}. يرجى تأكيد الدفعة المعلقة أولاً.')
+                else:
+                    messages.warning(request, f'⚠️ يوجد دفعة سابقة للطلب {req.reference_number} بحالة: {status_display}. لا يمكن إضافة دفعة جديدة.')
+                return redirect('requests:detail', pk=req.id)
             
             context = {
                 'page_title': f'معالجة دفعة - {req.reference_number}',
@@ -147,7 +159,7 @@ def process_payment(request):
             return render(request, 'payments/process.html', context)
             
         except Request.DoesNotExist:
-            messages.error(request, 'الطلب المطلوب غير موجود أو تم حذفه')
+            messages.error(request, '❌ الطلب المطلوب غير موجود أو تم حذفه من النظام.')
             return redirect('requests:list')
     
     # إذا لم يتم تحديد طلب، عرض قائمة المدفوعات
