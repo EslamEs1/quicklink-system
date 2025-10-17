@@ -201,38 +201,30 @@
                             <label class="text-muted mb-1">المبلغ المطلوب</label>
                             <p class="fw-bold mb-0 text-success">{{ request.total_amount|default:"0" }} درهم</p>
                         </div>
-                        <!-- ملاحظات الطلب - تظهر دائماً -->
+                        {% if request.notes %}
                         <div class="col-md-12 mb-3">
                             <label class="text-muted mb-1">ملاحظات الطلب</label>
-                            {% if request.notes %}
-                            <div class="alert alert-info mb-0" style="display: block !important;">
-                                <i class="fas fa-sticky-note me-2"></i>
+                            <div class="notes-container mb-0">
+                                <i class="fas fa-sticky-note me-2 text-info"></i>
                                 {{ request.notes }}
                             </div>
-                            {% else %}
-                            <div class="alert alert-light mb-0" style="display: block !important;">
-                                <i class="fas fa-info-circle me-2"></i>
-                                لا توجد ملاحظات
-                            </div>
-                            {% endif %}
                         </div>
+                        {% endif %}
                         
-                        <!-- حالة الموافقة - تظهر دائماً إذا كانت موجودة -->
                         {% if request.approved_by %}
-                        <div class="col-md-12 mb-3">
-                            <div class="alert alert-success mb-0" style="display: block !important;">
-                                <i class="fas fa-check-circle me-2"></i>
+                        <div class="col-md-12">
+                            <div class="approval-container mb-0">
+                                <i class="fas fa-check-circle me-2 text-success"></i>
                                 <strong>تمت الموافقة:</strong> بواسطة {{ request.approved_by.get_full_name|default:request.approved_by.username }} 
                                 في {{ request.approved_at|date:"d يناير Y - h:i A" }}
                             </div>
                         </div>
                         {% endif %}
                         
-                        <!-- حالة الرفض - تظهر دائماً إذا كانت موجودة -->
                         {% if request.rejected_by %}
-                        <div class="col-md-12 mb-3">
-                            <div class="alert alert-danger mb-0" style="display: block !important;">
-                                <i class="fas fa-times-circle me-2"></i>
+                        <div class="col-md-12">
+                            <div class="rejection-container mb-0">
+                                <i class="fas fa-times-circle me-2 text-danger"></i>
                                 <strong>تم الرفض:</strong> بواسطة {{ request.rejected_by.get_full_name|default:request.rejected_by.username }} 
                                 في {{ request.rejected_at|date:"d يناير Y - h:i A" }}
                                 <br>
@@ -446,3 +438,53 @@
                 </div>
             </div>
 {% endblock content %}
+
+{% block extra_css %}
+<style>
+/* Custom containers for request details - no auto-dismiss */
+.notes-container {
+    background-color: #e3f2fd;
+    border: 1px solid #bbdefb;
+    border-radius: 0.375rem;
+    padding: 1rem;
+    color: #0d47a1;
+    font-weight: 500;
+}
+
+.approval-container {
+    background-color: #e8f5e8;
+    border: 1px solid #c8e6c9;
+    border-radius: 0.375rem;
+    padding: 1rem;
+    color: #2e7d32;
+    font-weight: 500;
+}
+
+.rejection-container {
+    background-color: #ffebee;
+    border: 1px solid #ffcdd2;
+    border-radius: 0.375rem;
+    padding: 1rem;
+    color: #c62828;
+    font-weight: 500;
+}
+
+/* Ensure these containers are not affected by message auto-dismiss */
+.notes-container,
+.approval-container,
+.rejection-container {
+    position: static !important;
+    animation: none !important;
+    transition: none !important;
+}
+
+/* Hover effects */
+.notes-container:hover,
+.approval-container:hover,
+.rejection-container:hover {
+    transform: none !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s ease;
+}
+</style>
+{% endblock %}

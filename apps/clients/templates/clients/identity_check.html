@@ -177,20 +177,20 @@
                                         <div class="btn-group" role="group">
                                             {% if conflict.status != 'resolved' %}
                                                 <a href="{% url 'clients:detail' conflict.customer1.id %}" class="btn btn-sm btn-outline-primary" title="مراجعة العميل الأول">
-                                                    <i class="fas fa-user"></i> 1
+                                                <i class="fas fa-user"></i> 1
                                                 </a>
                                                 <a href="{% url 'clients:detail' conflict.customer2.id %}" class="btn btn-sm btn-outline-primary" title="مراجعة العميل الثاني">
-                                                    <i class="fas fa-user"></i> 2
+                                                <i class="fas fa-user"></i> 2
                                                 </a>
                                                 <form method="post" action="{% url 'clients:resolve_conflict' conflict.id %}" style="display: inline;">
                                                     {% csrf_token %}
                                                     <button type="submit" class="btn btn-sm btn-outline-success" title="حل التعارض">
-                                                        <i class="fas fa-check"></i>
-                                                    </button>
+                                                <i class="fas fa-check"></i>
+                                            </button>
                                                 </form>
                                             {% else %}
                                                 <a href="{% url 'clients:conflict_detail' conflict.id %}" class="btn btn-sm btn-outline-info" title="عرض الحل">
-                                                    <i class="fas fa-eye"></i>
+                                                <i class="fas fa-eye"></i>
                                                 </a>
                                             {% endif %}
                                         </div>
