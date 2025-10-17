@@ -154,8 +154,13 @@
                                         <td>
                                             <span class="status-badge 
                                                 {% if req.status == 'new' %}status-new
-                                                {% elif req.status == 'in_review' %}status-inprogress
-                                                {% elif req.status == 'completed' or req.status == 'paid' %}status-completed
+                                                {% elif req.status == 'in_review' %}status-inreview
+                                                {% elif req.status == 'approved' %}status-approved
+                                                {% elif req.status == 'completed' %}status-completed
+                                                {% elif req.status == 'paid' %}status-paid
+                                                {% elif req.status == 'rejected' %}status-rejected
+                                                {% elif req.status == 'cancelled' %}status-cancelled
+                                                {% elif req.status == 'pending_payment' %}status-pending_payment
                                                 {% else %}status-cancelled{% endif %}">
                                                 {{ req.get_status_display }}
                                             </span>
