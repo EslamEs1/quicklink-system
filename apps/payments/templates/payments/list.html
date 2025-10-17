@@ -448,9 +448,9 @@ function retryPayment(paymentId) {
 
 // Contact customer function
 function contactCustomer(customerId) {
-    // Redirect to chat or contact page
-    showAlert('فتح صفحة التواصل مع العميل', 'info');
-    // window.location.href = '{% url "chat" %}?customer=' + customerId;
+    // For now, show alert - you can implement chat or contact functionality later
+    showAlert('فتح صفحة التواصل مع العميل رقم: ' + customerId, 'info');
+    // Future implementation: window.location.href = '/chat/?customer=' + customerId;
 }
 
 // Export payments to Excel function
