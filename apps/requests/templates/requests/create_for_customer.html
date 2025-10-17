@@ -516,6 +516,9 @@ let currentStep = 1;
 const totalSteps = 3;
 
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, initializing form...');
+    console.log(`totalSteps: ${totalSteps}, currentStep: ${currentStep}`);
+    
     // Set today's date as default
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('requestDate').value = today;
@@ -527,6 +530,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Update progress
     updateProgress();
+    
+    // Initial validation for step 3
+    validateStep3();
     
     // Request type change handler
     document.getElementById('requestType').addEventListener('change', function() {
@@ -560,15 +566,22 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function changeStep(direction) {
+    console.log(`changeStep called with direction: ${direction}, currentStep: ${currentStep}`);
+    
     if (direction === 1) {
         // Next step
+        console.log(`Attempting to go to next step from ${currentStep}`);
         if (validateCurrentStep()) {
             currentStep++;
+            console.log(`Moving to step ${currentStep}`);
             showStep(currentStep);
             updateProgress();
+        } else {
+            console.log(`Validation failed for step ${currentStep}, staying on current step`);
         }
     } else {
         // Previous step
+        console.log(`Going to previous step from ${currentStep}`);
         currentStep--;
         showStep(currentStep);
         updateProgress();
@@ -600,6 +613,11 @@ function showStep(step) {
     document.getElementById('prevBtn').style.display = step > 1 ? 'inline-block' : 'none';
     document.getElementById('nextBtn').style.display = step < totalSteps ? 'inline-block' : 'none';
     document.getElementById('submitBtn').style.display = step === totalSteps ? 'inline-block' : 'none';
+    
+    // Debug: Log current step and button states
+    console.log(`Current step: ${step}, totalSteps: ${totalSteps}`);
+    console.log(`Next button display: ${document.getElementById('nextBtn').style.display}`);
+    console.log(`Submit button display: ${document.getElementById('submitBtn').style.display}`);
 }
 
 function validateCurrentStep() {
@@ -667,12 +685,16 @@ function validateStep3() {
     const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
     let isValid = paymentMethod !== '';
     
+    console.log(`Payment method: ${paymentMethod}`);
+    
     if (paymentMethod === 'cash') {
         const receiptNumber = document.getElementById('receiptNumber').value.trim();
         isValid = receiptNumber !== '';
+        console.log(`Receipt number: ${receiptNumber}, isValid: ${isValid}`);
     }
     
     document.getElementById('checkPayment').checked = isValid;
+    console.log(`Step 3 validation result: ${isValid}`);
     
     return isValid;
 }
