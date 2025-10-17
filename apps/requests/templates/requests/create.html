@@ -60,7 +60,8 @@
                                             <div class="col-md-6 mb-3">
                                                 <div class="form-check">
                                                     <input class="form-check-input" type="radio" name="customerOption" 
-                                                           id="existingCustomer" value="existing" onchange="toggleCustomerForm()">
+                                                           id="existingCustomer" value="existing" 
+                                                           {% if selected_customer %}checked{% endif %} onchange="toggleCustomerForm()">
                                                     <label class="form-check-label" for="existingCustomer">
                                                         <i class="fas fa-user-check text-success me-1"></i>
                                                         <strong>اختيار عميل موجود</strong>
@@ -71,7 +72,8 @@
                                             <div class="col-md-6 mb-3">
                                                 <div class="form-check">
                                                     <input class="form-check-input" type="radio" name="customerOption" 
-                                                           id="newCustomer" value="new" checked onchange="toggleCustomerForm()">
+                                                           id="newCustomer" value="new" 
+                                                           {% if not selected_customer %}checked{% endif %} onchange="toggleCustomerForm()">
                                                     <label class="form-check-label" for="newCustomer">
                                                         <i class="fas fa-user-plus text-primary me-1"></i>
                                                         <strong>إضافة عميل جديد</strong>
@@ -83,8 +85,53 @@
                                     </div>
                                 </div>
 
+                                <!-- العميل المحدد مسبقاً -->
+                                {% if selected_customer %}
+                                <div class="card shadow-custom mb-4" id="preSelectedCustomerSection">
+                                    <div class="card-header bg-success text-white">
+                                        <h5 class="mb-0">
+                                            <i class="fas fa-user-check me-2"></i>
+                                            العميل المحدد مسبقاً
+                                        </h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="alert alert-success">
+                                            <i class="fas fa-check-circle me-2"></i>
+                                            <strong>تم اختيار العميل تلقائياً:</strong>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-8">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="avatar-circle me-3 bg-success">
+                                                        <i class="fas fa-user"></i>
+                                                    </div>
+                                                    <div>
+                                                        <h6 class="mb-1">{{ selected_customer.full_name }}</h6>
+                                                        <p class="text-muted mb-1">
+                                                            <i class="fas fa-id-card me-1"></i>{{ selected_customer.masked_emirates_id }}
+                                                            <span class="mx-2">|</span>
+                                                            <i class="fas fa-phone me-1"></i>{{ selected_customer.masked_phone }}
+                                                        </p>
+                                                        <small class="text-success">
+                                                            <i class="fas fa-calendar me-1"></i>
+                                                            آخر تحديث: {{ selected_customer.updated_at|date:"d M Y" }}
+                                                        </small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 text-end">
+                                                <span class="badge bg-info fs-6">{{ selected_customer.requests.count }} طلبات سابقة</span>
+                                                <br>
+                                                <small class="text-muted">يمكنك تغيير العميل من الخيارات أدناه</small>
+                                            </div>
+                                        </div>
+                                        <input type="hidden" name="existing_customer_id" id="existingCustomerId" value="{{ selected_customer.id }}">
+                                    </div>
+                                </div>
+                                {% endif %}
+
                                 <!-- اختيار عميل موجود -->
-                                <div class="card shadow-custom mb-4 d-none" id="existingCustomerSection">
+                                <div class="card shadow-custom mb-4 {% if selected_customer %}d-none{% endif %}" id="existingCustomerSection">
                                     <div class="card-header">
                                         <h5 class="mb-0">
                                             <i class="fas fa-search me-2"></i>

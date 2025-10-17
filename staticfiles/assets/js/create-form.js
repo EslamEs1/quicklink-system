@@ -19,6 +19,15 @@ document.addEventListener('DOMContentLoaded', function() {
 function initializeForm() {
     console.log('🔧 Initializing form...');
     
+    // Check if customer is pre-selected from URL
+    const selectedCustomerId = '{{ selected_customer_id|default:"" }}';
+    if (selectedCustomerId) {
+        console.log('👤 Pre-selected customer ID:', selectedCustomerId);
+        // Automatically select existing customer option
+        document.getElementById('existingCustomer').checked = true;
+        toggleCustomerForm();
+    }
+    
     // Set today's date
     const today = new Date();
     const dateInput = document.getElementById('requestDate');

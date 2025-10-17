@@ -313,6 +313,15 @@ def create(request):
     customers = Customer.objects.filter(is_active=True).order_by('-updated_at')[:50]
     templates = Template.objects.filter(is_active=True, is_published=True).order_by('template_type', 'name')
     
+    # التحقق من وجود customer_id في URL
+    selected_customer_id = request.GET.get('customer_id')
+    selected_customer = None
+    if selected_customer_id:
+        try:
+            selected_customer = Customer.objects.get(id=selected_customer_id, is_active=True)
+        except Customer.DoesNotExist:
+            selected_customer = None
+    
     # إنشاء قوالب تجريبية إذا لم توجد
     if not templates.exists():
         from apps.requests.models import TemplateType
@@ -368,6 +377,8 @@ def create(request):
         'customers': customers,
         'request_types': request_types,
         'reference_number': reference_number,  # Pass to template
+        'selected_customer': selected_customer,  # العميل المحدد من URL
+        'selected_customer_id': selected_customer_id,  # ID للاستخدام في JavaScript
     }
     return render(request, 'requests/create.html', context)
 
