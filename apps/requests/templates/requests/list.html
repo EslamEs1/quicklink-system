@@ -180,9 +180,13 @@
                                     <td>
                                         <span class="status-badge 
                                             {% if req.status == 'new' %}status-new
-                                            {% elif req.status == 'in_review' or req.status == 'processing' %}status-inprogress
-                                            {% elif req.status == 'completed' or req.status == 'paid' %}status-completed
-                                            {% elif req.status == 'cancelled' or req.status == 'rejected' %}status-cancelled
+                                            {% elif req.status == 'in_review' %}status-inreview
+                                            {% elif req.status == 'approved' %}status-approved
+                                            {% elif req.status == 'completed' %}status-completed
+                                            {% elif req.status == 'paid' %}status-paid
+                                            {% elif req.status == 'rejected' %}status-rejected
+                                            {% elif req.status == 'cancelled' %}status-cancelled
+                                            {% elif req.status == 'pending_payment' %}status-pending_payment
                                             {% else %}status-new{% endif %}">
                                             {{ req.get_status_display }}
                                         </span>
@@ -233,3 +237,120 @@
             <!-- Pagination -->
             {% include 'pagination.html' %}
 {% endblock content %}
+
+{% block extra_js %}
+<script>
+// Initialize filters when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize customer filter if present
+    initializeCustomerFilter();
+    
+    // Initialize all filters
+    initializeFilters();
+    
+    // Apply initial filters
+    applyFilters();
+});
+
+// Clear all filters function
+function clearFilters() {
+    // Clear input fields
+    document.getElementById('searchInput').value = '';
+    document.getElementById('statusFilter').value = 'all';
+    document.getElementById('dateFilter').value = '';
+    
+    // Reset current filters
+    currentFilters.search = '';
+    currentFilters.status = 'all';
+    currentFilters.date = '';
+    
+    // Apply cleared filters
+    applyFilters();
+    
+    // Show success message
+    showAlert('تم مسح جميع الفلاتر', 'success');
+}
+
+// Export to Excel function
+function exportToExcel() {
+    const table = document.getElementById('requestsTable');
+    const rows = Array.from(table.querySelectorAll('tr'));
+    
+    let csvContent = '';
+    rows.forEach(row => {
+        const cells = Array.from(row.querySelectorAll('td, th'));
+        const rowData = cells.map(cell => {
+            // Remove action buttons from export
+            if (cell.querySelector('.btn-group')) {
+                return '';
+            }
+            return cell.textContent.trim().replace(/"/g, '""');
+        }).filter(cell => cell !== '');
+        
+        csvContent += rowData.map(cell => `"${cell}"`).join(',') + '\n';
+    });
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'requests_export.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    showAlert('تم تصدير البيانات إلى Excel', 'success');
+}
+
+// Print function
+function printRequests() {
+    const table = document.getElementById('requestsTable');
+    const printWindow = window.open('', '_blank');
+    
+    printWindow.document.write(`
+        <html>
+            <head>
+                <title>طباعة الطلبات</title>
+                <style>
+                    body { font-family: Arial, sans-serif; direction: rtl; }
+                    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                    th, td { border: 1px solid #ddd; padding: 8px; text-align: right; }
+                    th { background-color: #f2f2f2; font-weight: bold; }
+                    .btn-group { display: none; }
+                </style>
+            </head>
+            <body>
+                <h2>قائمة الطلبات</h2>
+                ${table.outerHTML}
+            </body>
+        </html>
+    `);
+    
+    printWindow.document.close();
+    printWindow.print();
+    
+    showAlert('تم إرسال البيانات للطباعة', 'info');
+}
+
+// Show alert function
+function showAlert(message, type) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    const container = document.querySelector('.main-content');
+    container.insertBefore(alertDiv, container.firstChild);
+    
+    // Auto-dismiss after 3 seconds
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 3000);
+}
+</script>
+{% endblock %}
