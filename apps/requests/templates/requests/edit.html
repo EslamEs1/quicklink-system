@@ -124,6 +124,15 @@
                                 </div>
                             </div>
                             
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label">ملاحظات الطلب</label>
+                                <textarea class="form-control" name="notes" rows="3" 
+                                          placeholder="أي ملاحظات أو تفاصيل إضافية للطلب...">{{ request.notes|default:"" }}</textarea>
+                                <div class="form-text">
+                                    <i class="fas fa-sticky-note"></i> ملاحظات إضافية حول الطلب
+                                </div>
+                            </div>
+                            
                         </div>
                     </div>
                 </div>

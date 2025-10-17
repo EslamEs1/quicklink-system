@@ -201,12 +201,12 @@
                             <label class="text-muted mb-1">المبلغ المطلوب</label>
                             <p class="fw-bold mb-0 text-success">{{ request.total_amount|default:"0" }} درهم</p>
                         </div>
-                        {% if request.internal_notes %}
+                        {% if request.notes %}
                         <div class="col-md-12 mb-3">
-                            <label class="text-muted mb-1">ملاحظات داخلية</label>
-                            <div class="alert alert-secondary mb-0">
-                                <i class="fas fa-lock me-2"></i>
-                                {{ request.internal_notes }}
+                            <label class="text-muted mb-1">ملاحظات الطلب</label>
+                            <div class="alert alert-info mb-0">
+                                <i class="fas fa-sticky-note me-2"></i>
+                                {{ request.notes }}
                             </div>
                         </div>
                         {% endif %}
