@@ -408,20 +408,52 @@ function validateCurrentStep() {
 
 function validateStep1() {
     console.log('🔍 Validating Step 1...');
-    const required = ['customerName', 'confirmName', 'emiratesId', 'dateOfBirth', 'nationality', 'mobileNumber', 'requestType'];
+    
+    // التحقق من نوع العميل المحدد
+    const customerOption = document.querySelector('input[name="customerOption"]:checked');
+    const isExistingCustomer = customerOption && customerOption.value === 'existing';
+    const existingCustomerId = document.getElementById('existingCustomerId');
+    
     let isValid = true;
     
-    // التحقق من الحقول المطلوبة
-    required.forEach(fieldId => {
-        const field = document.getElementById(fieldId);
-        if (!field || !field.value.trim()) {
-            console.log(`❌ Missing field: ${fieldId}`);
-            if (field) field.classList.add('is-invalid');
+    if (isExistingCustomer && existingCustomerId && existingCustomerId.value) {
+        console.log('👤 Validating existing customer selection...');
+        
+        // التحقق من وجود العميل المحدد
+        if (!existingCustomerId.value.trim()) {
+            console.log('❌ No existing customer selected');
             isValid = false;
         } else {
-            field.classList.remove('is-invalid');
+            console.log('✅ Existing customer selected:', existingCustomerId.value);
         }
-    });
+        
+        // التحقق من نوع الطلب فقط (مطلوب في كلا الحالتين)
+        const requestTypeField = document.getElementById('requestType');
+        if (!requestTypeField || !requestTypeField.value.trim()) {
+            console.log('❌ Missing request type');
+            if (requestTypeField) requestTypeField.classList.add('is-invalid');
+            isValid = false;
+        } else {
+            if (requestTypeField) requestTypeField.classList.remove('is-invalid');
+        }
+        
+    } else {
+        console.log('👤 Validating new customer data...');
+        
+        // التحقق من جميع الحقول المطلوبة لعميل جديد
+        const required = ['customerName', 'confirmName', 'emiratesId', 'dateOfBirth', 'nationality', 'mobileNumber', 'requestType'];
+        
+        required.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (!field || !field.value.trim()) {
+                console.log(`❌ Missing field: ${fieldId}`);
+                if (field) field.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                if (field) field.classList.remove('is-invalid');
+            }
+        });
+    }
     
     // التحقق من تاريخ الاستحقاق (إذا تم إدخاله)
     const dueDateInput = document.getElementById('dueDate');
@@ -564,13 +596,22 @@ function validateStep4() {
 function toggleCustomerForm() {
     const existingOption = document.getElementById('existingCustomer');
     const existingSection = document.getElementById('existingCustomerSection');
+    const preSelectedSection = document.getElementById('preSelectedCustomerSection');
     const newSection = document.getElementById('newCustomerSection');
     
     if (existingOption && existingOption.checked) {
-        existingSection?.classList.remove('d-none');
+        // إظهار قسم العميل المحدد مسبقاً أو قسم البحث
+        if (preSelectedSection) {
+            preSelectedSection.classList.remove('d-none');
+            existingSection?.classList.add('d-none');
+        } else {
+            existingSection?.classList.remove('d-none');
+        }
         newSection?.classList.add('d-none');
     } else {
+        // إخفاء جميع أقسام العملاء الموجودين وإظهار قسم العميل الجديد
         existingSection?.classList.add('d-none');
+        preSelectedSection?.classList.add('d-none');
         newSection?.classList.remove('d-none');
     }
 }
@@ -810,22 +851,56 @@ function updateProgressBar() {
 // ============ REVIEW DATA ============
 
 function updateReviewData() {
-    const fields = {
-        'reviewName': 'customerName',
-        'reviewId': 'emiratesId',
-        'reviewBirth': 'dateOfBirth',
-        'reviewMobile': 'mobileNumber',
-        'reviewEmail': 'email',
-        'reviewReference': 'referenceNumber'
-    };
+    // التحقق من نوع العميل المحدد
+    const customerOption = document.querySelector('input[name="customerOption"]:checked');
+    const isExistingCustomer = customerOption && customerOption.value === 'existing';
+    const existingCustomerId = document.getElementById('existingCustomerId');
     
-    Object.entries(fields).forEach(([reviewId, inputId]) => {
-        const reviewElement = document.getElementById(reviewId);
-        const inputElement = document.getElementById(inputId);
-        if (reviewElement && inputElement) {
-            reviewElement.textContent = inputElement.value || '-';
+    if (isExistingCustomer && existingCustomerId && existingCustomerId.value) {
+        // عرض بيانات العميل المحدد مسبقاً
+        const preSelectedSection = document.getElementById('preSelectedCustomerSection');
+        if (preSelectedSection) {
+            const customerName = preSelectedSection.querySelector('h6').textContent;
+            const customerId = preSelectedSection.querySelector('p').textContent;
+            
+            const reviewName = document.getElementById('reviewName');
+            const reviewId = document.getElementById('reviewId');
+            
+            if (reviewName) reviewName.textContent = customerName;
+            if (reviewId) reviewId.textContent = customerId.split('|')[0].trim(); // رقم الهوية فقط
         }
-    });
+        
+        // عرض البيانات الأخرى من النموذج
+        const reviewMobile = document.getElementById('reviewMobile');
+        const reviewEmail = document.getElementById('reviewEmail');
+        const reviewReference = document.getElementById('reviewReference');
+        
+        if (reviewMobile) reviewMobile.textContent = '-'; // العميل المحدد لا يحتاج جوال جديد
+        if (reviewEmail) reviewEmail.textContent = '-'; // العميل المحدد لا يحتاج بريد جديد
+        if (reviewReference) {
+            const refInput = document.getElementById('referenceNumber');
+            reviewReference.textContent = refInput ? refInput.value : '-';
+        }
+        
+    } else {
+        // عرض بيانات العميل الجديد
+        const fields = {
+            'reviewName': 'customerName',
+            'reviewId': 'emiratesId',
+            'reviewBirth': 'dateOfBirth',
+            'reviewMobile': 'mobileNumber',
+            'reviewEmail': 'email',
+            'reviewReference': 'referenceNumber'
+        };
+        
+        Object.entries(fields).forEach(([reviewId, inputId]) => {
+            const reviewElement = document.getElementById(reviewId);
+            const inputElement = document.getElementById(inputId);
+            if (reviewElement && inputElement) {
+                reviewElement.textContent = inputElement.value || '-';
+            }
+        });
+    }
     
     // Handle nationality
     const nationalitySelect = document.getElementById('nationality');
