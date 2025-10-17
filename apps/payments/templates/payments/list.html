@@ -283,7 +283,7 @@
                                     <td>{{ payment.created_at|date:"d يناير Y - H:i" }}</td>
                                     <td>
                                         <div class="btn-group" role="group">
-                                            <button class="btn btn-action btn-view" onclick="viewPaymentDetails({{ payment.id }})" title="التفاصيل">
+                                            <button class="btn btn-action btn-view" onclick="viewPaymentDetails({{ payment.id }}, {{ payment.request.id }})" title="التفاصيل">
                                                 <i class="fas fa-eye"></i>
                                             </button>
                                             {% if payment.status == 'paid' %}
@@ -375,9 +375,11 @@ function applyPaymentFilters() {
     }
 }
 
-function viewPaymentDetails(paymentId) {
+function viewPaymentDetails(paymentId, requestId) {
     // Show payment details modal or redirect to details page
-    window.location.href = `/payments/${paymentId}/details/`;
+    // For now, redirect to the payment's request details
+    // You can create a dedicated payment details page later
+    window.location.href = `/requests/${requestId}/`;
 }
 
 function printReceipt(paymentId) {
