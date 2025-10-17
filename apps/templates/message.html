@@ -41,11 +41,7 @@
                     </button>
                 </div>
                 
-                <!-- Progress bar for auto-dismiss -->
-                <div class="progress mt-2" style="height: 3px;">
-                    <div class="progress-bar bg-{{ message.tags|default:'info' }}" role="progressbar" 
-                         style="width: 100%; animation: progressBar 5s linear forwards;"></div>
-                </div>
+                <!-- Progress bar removed - messages are now permanent -->
             </div>
         {% endfor %}
     {% endif %}
@@ -118,14 +114,7 @@
     }
 }
 
-@keyframes progressBar {
-    from {
-        width: 100%;
-    }
-    to {
-        width: 0%;
-    }
-}
+/* Progress bar animation removed - messages are now permanent */
 
 /* Responsive */
 @media (max-width: 768px) {
@@ -155,14 +144,21 @@
 </style>
 
 <script>
-// Auto-dismiss messages after 5 seconds
+// Messages are now permanent - no auto-dismiss
 document.addEventListener('DOMContentLoaded', function() {
     const alerts = document.querySelectorAll('.alert');
     
     alerts.forEach(function(alert) {
-        // Auto-dismiss after 5 seconds
-        setTimeout(function() {
-            if (alert && alert.parentNode) {
+        // Remove progress bar for permanent messages
+        const progressBar = alert.querySelector('.progress');
+        if (progressBar) {
+            progressBar.remove();
+        }
+        
+        // Only allow dismiss via close button
+        alert.addEventListener('click', function(e) {
+            if (e.target.classList.contains('btn-close') || e.target.closest('.btn-close')) {
+                // Allow close button to work
                 alert.style.animation = 'slideOutRight 0.3s ease-out forwards';
                 setTimeout(function() {
                     if (alert.parentNode) {
@@ -170,25 +166,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }, 300);
             }
-        }, 5000);
-        
-        // Add click to dismiss
-        alert.addEventListener('click', function(e) {
-            if (e.target.classList.contains('btn-close') || e.target.closest('.btn-close')) {
-                return; // Let the default dismiss work
-            }
-            // Click anywhere on alert to dismiss
-            alert.style.animation = 'slideOutRight 0.3s ease-out forwards';
-            setTimeout(function() {
-                if (alert.parentNode) {
-                    alert.remove();
-                }
-            }, 300);
+            // Prevent clicking anywhere else to dismiss
+            e.stopPropagation();
         });
     });
 });
 
-// Add slide out animation
+// Add slide out animation for close button only
 const style = document.createElement('style');
 style.textContent = `
     @keyframes slideOutRight {
