@@ -36,12 +36,12 @@ class Customer(models.Model):
     email = models.EmailField('البريد الإلكتروني', blank=True)
     address = models.TextField('العنوان', blank=True)
     
-    # صورة الهوية (تحفظ مع العميل)
-    id_image = models.ImageField('صورة الهوية الإماراتية', upload_to='customer_ids/', blank=True, null=True)
-    
     # معلومات إضافية
     occupation = models.CharField('المهنة', max_length=100, blank=True)
     company_name = models.CharField('اسم الشركة', max_length=200, blank=True)
+    
+    # صورة الهوية
+    id_image = models.ImageField('صورة الهوية', upload_to='customers/id_images/', blank=True, null=True)
     
     # Metadata
     created_at = models.DateTimeField('تاريخ الإنشاء', auto_now_add=True)

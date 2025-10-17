@@ -232,12 +232,6 @@ def create(request):
             # حفظ صورة الهوية
             if request.FILES.get('idImage'):
                 id_image = request.FILES['idImage']
-                
-                # حفظ صورة الهوية في ملف العميل
-                customer.id_image = id_image
-                customer.save()
-                
-                # إنشاء مرفق للطلب أيضاً
                 attachment = Attachment.objects.create(
                     request=new_request,
                     file=id_image,
@@ -1483,11 +1477,11 @@ def create_for_customer(request, customer_id):
             if request.FILES.get('idImage'):
                 id_image = request.FILES['idImage']
                 
-                # حفظ صورة الهوية في ملف العميل
+                # حفظ صورة الهوية مع العميل
                 customer.id_image = id_image
                 customer.save()
                 
-                # إنشاء مرفق للطلب أيضاً
+                # حفظ صورة الهوية كـ attachment للطلب
                 attachment = Attachment.objects.create(
                     request=new_request,
                     file=id_image,
