@@ -10,7 +10,8 @@ from apps.payments.models import Payment
 from datetime import datetime, date
 
 
-# @login_required
+@login_required
+@login_required
 def dashboard(request):
     """لوحة التحكم الرئيسية"""
     from django.db.models import Count, Q
@@ -65,6 +66,8 @@ def dashboard(request):
 
 
 # API Views for Sidebar Counts
+@login_required
+@login_required
 def pending_requests_count_api(request):
     """API endpoint for pending requests count"""
     try:
@@ -77,6 +80,7 @@ def pending_requests_count_api(request):
         return JsonResponse({'count': 0, 'error': str(e)})
 
 
+@login_required
 def notifications_count_api(request):
     """API endpoint for notifications count"""
     try:
@@ -87,6 +91,7 @@ def notifications_count_api(request):
         return JsonResponse({'count': 0, 'error': str(e)})
 
 
+@login_required
 def chat_count_api(request):
     """API endpoint for chat messages count"""
     try:
@@ -98,6 +103,7 @@ def chat_count_api(request):
 
 
 # @login_required
+@login_required
 def create(request):
     """إنشاء طلب جديد"""
     if request.method == 'POST':
@@ -372,6 +378,7 @@ def create(request):
     return render(request, 'requests/create.html', context)
 
 
+@login_required
 def _generate_reference_number():
     """Generate unique reference number (moved from JavaScript)"""
     from datetime import datetime
@@ -390,6 +397,7 @@ def _generate_reference_number():
 
 
 # @login_required
+@login_required
 def list(request):
     """جميع الطلبات"""
     from django.db.models import Sum
@@ -473,6 +481,7 @@ def list(request):
 
 
 # @login_required
+@login_required
 def detail(request, pk):
     """تفاصيل الطلب"""
     from apps.audit.models import AuditLog
@@ -506,6 +515,7 @@ def detail(request, pk):
 
 
 # @login_required
+@login_required
 def edit(request, pk):
     """تعديل طلب"""
     req = get_object_or_404(Request, pk=pk, is_deleted=False)
@@ -600,6 +610,7 @@ def edit(request, pk):
 
 
 # @login_required
+@login_required
 def approve(request, pk):
     """الموافقة على طلب"""
     req = get_object_or_404(Request, pk=pk, is_deleted=False)
@@ -615,6 +626,7 @@ def approve(request, pk):
 
 
 # @login_required
+@login_required
 def reject(request, pk):
     """رفض طلب"""
     req = get_object_or_404(Request, pk=pk, is_deleted=False)
@@ -630,6 +642,7 @@ def reject(request, pk):
 
 
 # @login_required
+@login_required
 def export_pdf(request, pk):
     """تصدير الطلب كـ PDF"""
     req = get_object_or_404(Request, pk=pk, is_deleted=False)
@@ -640,6 +653,7 @@ def export_pdf(request, pk):
 
 
 # @login_required
+@login_required
 def delete(request, pk):
     """حذف طلب (soft delete)"""
     req = get_object_or_404(Request, pk=pk, is_deleted=False)
@@ -674,6 +688,7 @@ def delete(request, pk):
 
 
 # @login_required
+@login_required
 def pending(request):
     """الطلبات المعلقة"""
     from django.utils import timezone
@@ -746,6 +761,7 @@ def pending(request):
 
 
 # @login_required
+@login_required
 def templates_list(request):
     """القوالب القانونية"""
     from django.db.models import Count
@@ -795,6 +811,7 @@ def templates_list(request):
 
 
 # @login_required
+@login_required
 def template_create(request):
     """إنشاء قالب قانوني جديد"""
     from apps.requests.models import TemplateType
@@ -854,6 +871,7 @@ def template_create(request):
 
 
 # @login_required
+@login_required
 def template_edit(request, pk):
     """تعديل قالب قانوني"""
     from apps.requests.models import TemplateType
@@ -905,6 +923,7 @@ def template_edit(request, pk):
 
 
 # @login_required
+@login_required
 def request_types_list(request):
     """قائمة أنواع الطلبات"""
     
@@ -927,6 +946,7 @@ def request_types_list(request):
 
 
 # @login_required
+@login_required
 def request_type_create(request):
     """إنشاء نوع طلب جديد"""
     from apps.requests.models import RequestCategory
@@ -969,6 +989,7 @@ def request_type_create(request):
 
 
 # @login_required
+@login_required
 def request_type_edit(request, pk):
     """تعديل نوع طلب"""
     request_type = get_object_or_404(RequestType, pk=pk)
@@ -995,6 +1016,7 @@ def request_type_edit(request, pk):
 
 
 # @login_required
+@login_required
 def request_type_toggle(request, pk):
     """تفعيل/تعطيل نوع طلب"""
     request_type = get_object_or_404(RequestType, pk=pk)
@@ -1011,6 +1033,7 @@ def request_type_toggle(request, pk):
 
 
 # @login_required
+@login_required
 def request_type_delete(request, pk):
     """حذف نوع طلب"""
     request_type = get_object_or_404(RequestType, pk=pk)
@@ -1039,6 +1062,7 @@ def request_type_delete(request, pk):
 
 
 # @login_required
+@login_required
 def categories_list(request):
     """قائمة فئات الطلبات"""
     from apps.requests.models import RequestCategory
@@ -1053,6 +1077,7 @@ def categories_list(request):
 
 
 # @login_required
+@login_required
 def category_create(request):
     """إنشاء فئة جديدة"""
     from apps.requests.models import RequestCategory
@@ -1085,6 +1110,7 @@ def category_create(request):
 
 
 # @login_required  
+@login_required
 def category_edit(request, pk):
     """تعديل فئة"""
     from apps.requests.models import RequestCategory
@@ -1111,6 +1137,7 @@ def category_edit(request, pk):
 
 
 # @login_required
+@login_required
 def category_toggle(request, pk):
     """تفعيل/تعطيل فئة"""
     from apps.requests.models import RequestCategory
@@ -1128,6 +1155,7 @@ def category_toggle(request, pk):
 
 
 # @login_required
+@login_required
 def category_delete(request, pk):
     """حذف فئة"""
     from apps.requests.models import RequestCategory
@@ -1156,6 +1184,7 @@ def category_delete(request, pk):
 
 
 # @login_required
+@login_required
 def template_toggle(request, pk):
     """تفعيل/تعطيل قالب"""
     template = get_object_or_404(Template, pk=pk)
@@ -1172,6 +1201,7 @@ def template_toggle(request, pk):
 
 
 # @login_required
+@login_required
 def template_delete(request, pk):
     """حذف قالب"""
     template = get_object_or_404(Template, pk=pk)
@@ -1200,6 +1230,7 @@ def template_delete(request, pk):
 
 
 # @login_required
+@login_required
 def template_types_list(request):
     """قائمة أنواع القوالب"""
     from apps.requests.models import TemplateType
@@ -1223,6 +1254,7 @@ def template_types_list(request):
 
 
 # @login_required
+@login_required
 def template_type_create(request):
     """إنشاء نوع قالب جديد"""
     from apps.requests.models import TemplateType
@@ -1257,6 +1289,7 @@ def template_type_create(request):
 
 
 # @login_required
+@login_required
 def template_type_edit(request, pk):
     """تعديل نوع قالب"""
     from apps.requests.models import TemplateType
@@ -1284,6 +1317,7 @@ def template_type_edit(request, pk):
 
 
 # @login_required
+@login_required
 def template_type_toggle(request, pk):
     """تفعيل/تعطيل نوع قالب"""
     from apps.requests.models import TemplateType
@@ -1301,6 +1335,7 @@ def template_type_toggle(request, pk):
 
 
 # @login_required
+@login_required
 def template_type_delete(request, pk):
     """حذف نوع قالب"""
     from apps.requests.models import TemplateType
@@ -1330,6 +1365,7 @@ def template_type_delete(request, pk):
 
 
 # @login_required
+@login_required
 def approve(request, pk):
     """الموافقة على طلب"""
     req = get_object_or_404(Request, pk=pk, is_deleted=False)
@@ -1365,6 +1401,7 @@ def approve(request, pk):
 
 
 # @login_required
+@login_required
 def reject(request, pk):
     """رفض طلب"""
     req = get_object_or_404(Request, pk=pk, is_deleted=False)
@@ -1403,6 +1440,7 @@ def reject(request, pk):
 
 
 # @login_required
+@login_required
 def create_for_customer(request, customer_id):
     """إنشاء طلب جديد للعميل الموجود"""
     customer = get_object_or_404(Customer, pk=customer_id, is_active=True)

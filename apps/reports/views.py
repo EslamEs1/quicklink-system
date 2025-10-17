@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 
 
 # @login_required
+@login_required
 def dashboard(request):
     """لوحة التقارير"""
     # الفلاتر

@@ -7,6 +7,7 @@ from .models import Customer, IdentityConflict
 
 
 # @login_required
+@login_required
 def list(request):
     """قائمة العملاء"""
     # الفلاتر
@@ -74,6 +75,7 @@ def list(request):
 
 
 # @login_required
+@login_required
 def detail(request, pk):
     """تفاصيل العميل"""
     customer = get_object_or_404(Customer, pk=pk)
@@ -117,6 +119,7 @@ def detail(request, pk):
 
 
 # @login_required
+@login_required
 def identity_check(request):
     """كشف التعارضات"""
     # الفلاتر
@@ -165,6 +168,7 @@ def identity_check(request):
 
 
 # @login_required
+@login_required
 def edit(request, pk):
     """تعديل بيانات العميل"""
     customer = get_object_or_404(Customer, pk=pk)
@@ -200,6 +204,7 @@ def edit(request, pk):
 
 
 # @login_required
+@login_required
 def delete(request, pk):
     """حذف عميل نهائي"""
     customer = get_object_or_404(Customer, pk=pk)
@@ -272,6 +277,7 @@ def delete(request, pk):
 
 
 # @login_required
+@login_required
 def export_customer(request, pk):
     """تصدير بيانات العميل"""
     customer = get_object_or_404(Customer, pk=pk)
@@ -281,6 +287,7 @@ def export_customer(request, pk):
 
 
 # @login_required
+@login_required
 def export_conflicts(request):
     """تصدير تقرير التعارضات"""
     # TODO: تنفيذ تصدير التقرير لاحقاً
@@ -289,6 +296,7 @@ def export_conflicts(request):
 
 
 # @login_required
+@login_required
 def resolve_conflict(request, pk):
     """حل تعارض"""
     conflict = get_object_or_404(IdentityConflict, pk=pk)
@@ -306,6 +314,7 @@ def resolve_conflict(request, pk):
 
 
 # @login_required
+@login_required
 def conflict_detail(request, pk):
     """تفاصيل التعارض"""
     conflict = get_object_or_404(IdentityConflict, pk=pk)
@@ -318,6 +327,7 @@ def conflict_detail(request, pk):
 
 
 # @login_required
+@login_required
 def add(request):
     """إضافة عميل جديد"""
     if request.method == 'POST':

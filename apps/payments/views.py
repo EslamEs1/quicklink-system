@@ -5,6 +5,7 @@ from .models import Payment
 
 
 # @login_required
+@login_required
 def list(request):
     """قائمة المدفوعات"""
     # الفلاتر
@@ -106,6 +107,7 @@ def list(request):
 
 
 # @login_required
+@login_required
 def process_payment(request):
     """معالجة دفعة جديدة"""
     if request.method == 'POST':
@@ -195,6 +197,7 @@ def process_payment(request):
 
 
 # @login_required
+@login_required
 def confirm_payment(request):
     """تأكيد دفعة معلقة"""
     if request.method == 'POST':
@@ -218,6 +221,7 @@ def confirm_payment(request):
 
 
 # @login_required
+@login_required
 def cancel_payment(request):
     """إلغاء دفعة معلقة"""
     if request.method == 'POST':
@@ -237,6 +241,7 @@ def cancel_payment(request):
 
 
 # @login_required
+@login_required
 def payment_details(request, payment_id):
     """تفاصيل الدفعة"""
     payment = get_object_or_404(Payment, id=payment_id)
@@ -249,6 +254,7 @@ def payment_details(request, payment_id):
 
 
 # @login_required
+@login_required
 def payment_receipt(request, payment_id):
     """طباعة إيصال الدفع"""
     payment = get_object_or_404(Payment, id=payment_id)
@@ -260,6 +266,7 @@ def payment_receipt(request, payment_id):
 
 
 # @login_required
+@login_required
 def send_payment_email(request, payment_id):
     """إرسال إيصال الدفع بالبريد الإلكتروني"""
     payment = get_object_or_404(Payment, id=payment_id)
@@ -277,6 +284,7 @@ def send_payment_email(request, payment_id):
 
 
 # @login_required
+@login_required
 def retry_payment(request, payment_id):
     """إعادة محاولة دفعة فاشلة"""
     payment = get_object_or_404(Payment, id=payment_id)
