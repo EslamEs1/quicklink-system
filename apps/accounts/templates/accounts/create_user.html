@@ -1,0 +1,251 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Include messages component -->
+{% include 'message.html' %}
+
+<!-- Page Title -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-0">
+            <i class="fas fa-user-plus me-2 text-success"></i>
+            إنشاء مستخدم جديد
+        </h2>
+        <p class="text-muted mb-0">إضافة مستخدم جديد للنظام</p>
+    </div>
+    <div>
+        <a href="{% url 'accounts:users' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-right me-1"></i>
+            العودة لقائمة المستخدمين
+        </a>
+    </div>
+</div>
+
+<!-- Create User Form -->
+<form method="post" class="needs-validation" novalidate>
+    {% csrf_token %}
+    
+    <div class="row">
+        <!-- Basic Information -->
+        <div class="col-lg-8">
+            <div class="card shadow-custom">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user me-2"></i>
+                        البيانات الأساسية
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Username -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">اسم المستخدم <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="username" required>
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>
+                                اسم المستخدم للدخول للنظام (بالإنجليزية)
+                            </div>
+                        </div>
+                        
+                        <!-- Email -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">البريد الإلكتروني <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" name="email" required>
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>
+                                البريد الإلكتروني الرسمي
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- First Name -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">الاسم الأول <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="first_name" required>
+                        </div>
+                        
+                        <!-- Last Name -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">الاسم الأخير <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="last_name" required>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Password -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">كلمة المرور <span class="text-danger">*</span></label>
+                            <input type="password" class="form-control" name="password" required>
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>
+                                يجب أن تكون كلمة المرور قوية وآمنة
+                            </div>
+                        </div>
+                        
+                        <!-- Role -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">الدور <span class="text-danger">*</span></label>
+                            <select class="form-control" name="role" required>
+                                <option value="">اختر الدور</option>
+                                <option value="admin">مشرف أعلى</option>
+                                <option value="manager">مدير</option>
+                                <option value="reviewer">مراجع</option>
+                                <option value="intake">جامع بيانات</option>
+                            </select>
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>
+                                يحدد صلاحيات المستخدم في النظام
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Information -->
+        <div class="col-lg-4">
+            <div class="card shadow-custom">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        معلومات إضافية
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Department -->
+                    <div class="mb-3">
+                        <label class="form-label">القسم</label>
+                        <select class="form-control" name="department">
+                            <option value="غير محدد">غير محدد</option>
+                            <option value="قسم الطلبات">قسم الطلبات</option>
+                            <option value="قسم العملاء">قسم العملاء</option>
+                            <option value="قسم المدفوعات">قسم المدفوعات</option>
+                            <option value="قسم التقارير">قسم التقارير</option>
+                            <option value="قسم الدعم الفني">قسم الدعم الفني</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Job Title -->
+                    <div class="mb-3">
+                        <label class="form-label">المسمى الوظيفي</label>
+                        <input type="text" class="form-control" name="job_title" placeholder="مثال: مطور برمجيات">
+                    </div>
+                    
+                    <!-- Phone -->
+                    <div class="mb-3">
+                        <label class="form-label">رقم الجوال</label>
+                        <input type="tel" class="form-control" name="phone" placeholder="+971-XX-XXX-XXXX">
+                    </div>
+
+                    <!-- Role Description -->
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-info-circle me-2"></i>وصف الأدوار:</h6>
+                        <ul class="mb-0 small">
+                            <li><strong>مشرف أعلى:</strong> صلاحيات كاملة</li>
+                            <li><strong>مدير:</strong> إدارة المستخدمين والطلبات</li>
+                            <li><strong>مراجع:</strong> مراجعة الطلبات والموافقة</li>
+                            <li><strong>جامع بيانات:</strong> إدخال البيانات والطلبات</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Submit Buttons -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow-custom">
+                <div class="card-body text-center">
+                    <button type="submit" class="btn btn-success me-2">
+                        <i class="fas fa-user-plus me-1"></i>
+                        إنشاء المستخدم
+                    </button>
+                    <a href="{% url 'accounts:users' %}" class="btn btn-secondary">
+                        <i class="fas fa-times me-1"></i>
+                        إلغاء
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+{% block extra_css %}
+<style>
+    .form-label {
+        font-weight: 600;
+        color: #495057;
+    }
+    .form-text {
+        font-size: 0.875rem;
+    }
+    .card-header h5 {
+        color: #495057;
+    }
+    .alert-info {
+        border-left: 4px solid #17a2b8;
+    }
+    .alert-info ul {
+        list-style-type: none;
+        padding-left: 0;
+    }
+    .alert-info li {
+        margin-bottom: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Form validation
+    const form = document.querySelector('.needs-validation');
+    form.addEventListener('submit', function(event) {
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+    });
+
+    // Password strength indicator
+    const passwordInput = document.querySelector('input[name="password"]');
+    passwordInput.addEventListener('input', function() {
+        const password = this.value;
+        const strength = getPasswordStrength(password);
+        
+        // Remove existing feedback
+        const existingFeedback = this.parentNode.querySelector('.password-strength');
+        if (existingFeedback) {
+            existingFeedback.remove();
+        }
+        
+        // Add new feedback
+        if (password.length > 0) {
+            const feedback = document.createElement('div');
+            feedback.className = 'password-strength mt-1';
+            feedback.innerHTML = `<small class="text-${strength.color}">
+                <i class="fas fa-${strength.icon}"></i> ${strength.text}
+            </small>`;
+            this.parentNode.appendChild(feedback);
+        }
+    });
+});
+
+function getPasswordStrength(password) {
+    if (password.length < 6) {
+        return { text: 'ضعيف جداً', color: 'danger', icon: 'times' };
+    } else if (password.length < 8) {
+        return { text: 'ضعيف', color: 'warning', icon: 'exclamation-triangle' };
+    } else if (password.length < 10) {
+        return { text: 'متوسط', color: 'info', icon: 'info-circle' };
+    } else {
+        return { text: 'قوي', color: 'success', icon: 'check' };
+    }
+}
+</script>
+{% endblock %}
+{% endblock content %}

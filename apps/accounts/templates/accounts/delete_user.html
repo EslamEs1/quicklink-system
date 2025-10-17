@@ -1,0 +1,259 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Include messages component -->
+{% include 'message.html' %}
+
+<!-- Page Title -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-0">
+            <i class="fas fa-user-times me-2 text-danger"></i>
+            حذف المستخدم
+        </h2>
+        <p class="text-muted mb-0">تأكيد حذف المستخدم: <strong>{{ delete_user.get_full_name|default:delete_user.username }}</strong></p>
+    </div>
+    <div>
+        <a href="{% url 'accounts:users' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-right me-1"></i>
+            العودة لقائمة المستخدمين
+        </a>
+    </div>
+</div>
+
+<!-- Warning Alert -->
+<div class="alert alert-danger">
+    <h5><i class="fas fa-exclamation-triangle me-2"></i>تحذير!</h5>
+    <p class="mb-0">
+        <strong>أنت على وشك حذف المستخدم نهائياً من النظام.</strong><br>
+        هذا الإجراء لا يمكن التراجع عنه وسيؤدي إلى حذف جميع البيانات المرتبطة بهذا المستخدم.
+    </p>
+</div>
+
+<!-- User Information -->
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow-custom">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-user me-2"></i>
+                    بيانات المستخدم المراد حذفه
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>المعلومات الأساسية:</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>اسم المستخدم:</strong></td>
+                                <td>{{ delete_user.username }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>الاسم الكامل:</strong></td>
+                                <td>{{ delete_user.get_full_name|default:"غير محدد" }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>البريد الإلكتروني:</strong></td>
+                                <td>{{ delete_user.email|default:"غير محدد" }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>الدور:</strong></td>
+                                <td>
+                                    <span class="badge bg-primary">
+                                        {{ delete_user.profile.get_role_display }}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>الحالة:</strong></td>
+                                <td>
+                                    {% if delete_user.is_active %}
+                                        <span class="badge bg-success">نشط</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">غير نشط</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>المعلومات الإضافية:</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>الرقم الوظيفي:</strong></td>
+                                <td>{{ delete_user.profile.employee_id }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>القسم:</strong></td>
+                                <td>{{ delete_user.profile.department|default:"غير محدد" }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>المسمى الوظيفي:</strong></td>
+                                <td>{{ delete_user.profile.job_title|default:"غير محدد" }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>رقم الجوال:</strong></td>
+                                <td>{{ delete_user.profile.phone|default:"غير محدد" }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>تاريخ الإنشاء:</strong></td>
+                                <td>{{ delete_user.date_joined|date:"Y-m-d" }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card shadow-custom">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-bar me-2"></i>
+                    إحصائيات المستخدم
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-3">
+                    <i class="fas fa-user fa-3x text-muted"></i>
+                </div>
+                
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="border-end">
+                            <h4 class="text-primary">{{ delete_user.profile.requests_handled }}</h4>
+                            <small class="text-muted">طلبات معالجة</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <h4 class="text-success">{{ delete_user.profile.customers_managed }}</h4>
+                        <small class="text-muted">عملاء متابعين</small>
+                    </div>
+                </div>
+
+                <hr>
+
+                <div class="alert alert-info">
+                    <h6><i class="fas fa-info-circle me-2"></i>ملاحظات مهمة:</h6>
+                    <ul class="mb-0 small">
+                        <li>سيتم حذف جميع البيانات المرتبطة</li>
+                        <li>لا يمكن استرداد البيانات بعد الحذف</li>
+                        <li>يُنصح بنقل المهام إلى مستخدم آخر</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow-custom border-danger">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    تأكيد الحذف
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="alert alert-warning">
+                        <h6><i class="fas fa-shield-alt me-2"></i>تأكيد إضافي مطلوب:</h6>
+                        <p class="mb-0">
+                            أكتب <strong>"حذف"</strong> في الحقل أدناه لتأكيد أنك تريد حذف المستخدم 
+                            <strong>{{ delete_user.get_full_name|default:delete_user.username }}</strong> نهائياً.
+                        </p>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">اكتب "حذف" للتأكيد:</label>
+                        <input type="text" class="form-control" id="confirmationText" placeholder="حذف" required>
+                    </div>
+
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-danger me-2" id="deleteBtn" disabled>
+                            <i class="fas fa-trash me-1"></i>
+                            حذف المستخدم نهائياً
+                        </button>
+                        <a href="{% url 'accounts:users' %}" class="btn btn-secondary">
+                            <i class="fas fa-times me-1"></i>
+                            إلغاء
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_css %}
+<style>
+    .alert-danger {
+        border-left: 4px solid #dc3545;
+    }
+    .alert-warning {
+        border-left: 4px solid #ffc107;
+    }
+    .alert-info {
+        border-left: 4px solid #17a2b8;
+    }
+    .table td {
+        border: none;
+        padding: 0.5rem 0.75rem;
+    }
+    .table td:first-child {
+        width: 40%;
+        font-weight: 600;
+        color: #495057;
+    }
+    .card.border-danger {
+        border: 2px solid #dc3545 !important;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const confirmationInput = document.getElementById('confirmationText');
+    const deleteBtn = document.getElementById('deleteBtn');
+    const userName = '{{ delete_user.get_full_name|default:delete_user.username }}';
+
+    confirmationInput.addEventListener('input', function() {
+        if (this.value.trim() === 'حذف') {
+            deleteBtn.disabled = false;
+            deleteBtn.classList.remove('btn-danger');
+            deleteBtn.classList.add('btn-danger');
+        } else {
+            deleteBtn.disabled = true;
+        }
+    });
+
+    // Form submission confirmation
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(event) {
+        if (confirmationInput.value.trim() !== 'حذف') {
+            event.preventDefault();
+            alert('يجب كتابة "حذف" للتأكيد');
+            return;
+        }
+
+        const finalConfirm = confirm(
+            `هل أنت متأكد من حذف المستخدم "${userName}" نهائياً؟\n\n` +
+            'هذا الإجراء لا يمكن التراجع عنه!'
+        );
+
+        if (!finalConfirm) {
+            event.preventDefault();
+        }
+    });
+});
+</script>
+{% endblock %}
+{% endblock content %}

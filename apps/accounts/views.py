@@ -5,7 +5,26 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.db.models import Q, Count
 from django.utils import timezone
+from functools import wraps
 from .models import UserProfile
+
+
+def role_required(allowed_roles):
+    """Decorator للتحقق من صلاحيات المستخدم"""
+    def decorator(view_func):
+        @wraps(view_func)
+        def wrapper(request, *args, **kwargs):
+            if not request.user.is_authenticated:
+                return redirect('accounts:login')
+            
+            user_role = getattr(request.user.profile, 'role', None)
+            if user_role not in allowed_roles:
+                messages.error(request, 'ليس لديك صلاحية للوصول لهذه الصفحة')
+                return redirect('requests:dashboard')
+            
+            return view_func(request, *args, **kwargs)
+        return wrapper
+    return decorator
 
 
 def login(request):
@@ -36,7 +55,7 @@ def logout_view(request):
     return redirect('accounts:login')
 
 
-# @login_required
+@login_required
 def profile(request):
     """الملف الشخصي"""
     if request.method == 'POST':
@@ -61,7 +80,8 @@ def profile(request):
     return render(request, 'accounts/profile.html', context)
 
 
-# @login_required
+@login_required
+@role_required(['admin', 'manager'])
 def users_list(request):
     """قائمة المستخدمين"""
     # الفلاتر
@@ -120,7 +140,8 @@ def users_list(request):
     return render(request, 'accounts/users.html', context)
 
 
-# @login_required
+@login_required
+@role_required(['admin'])
 def permissions_manage(request):
     """إدارة الصلاحيات"""
     # جلب جميع المستخدمين مع صلاحياتهم
@@ -141,3 +162,115 @@ def permissions_manage(request):
         'role_counts': role_counts,
     }
     return render(request, 'accounts/permissions.html', context)
+
+
+@login_required
+@role_required(['admin', 'manager'])
+def create_user(request):
+    """إنشاء مستخدم جديد"""
+    if request.method == 'POST':
+        try:
+            # إنشاء المستخدم
+            username = request.POST.get('username')
+            email = request.POST.get('email')
+            password = request.POST.get('password')
+            first_name = request.POST.get('first_name')
+            last_name = request.POST.get('last_name')
+            
+            # إنشاء User
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=password,
+                first_name=first_name,
+                last_name=last_name
+            )
+            
+            # تحديث Profile
+            if hasattr(user, 'profile'):
+                user.profile.department = request.POST.get('department', 'غير محدد')
+                user.profile.job_title = request.POST.get('job_title', 'غير محدد')
+                user.profile.phone = request.POST.get('phone', 'غير محدد')
+                user.profile.role = request.POST.get('role', 'intake')
+                user.profile.save()
+            
+            messages.success(request, f'تم إنشاء المستخدم {user.get_full_name()} بنجاح')
+            return redirect('accounts:users')
+            
+        except Exception as e:
+            messages.error(request, f'خطأ في إنشاء المستخدم: {str(e)}')
+    
+    context = {
+        'page_title': 'إنشاء مستخدم جديد',
+    }
+    return render(request, 'accounts/create_user.html', context)
+
+
+@login_required
+@role_required(['admin', 'manager'])
+def edit_user(request, user_id):
+    """تعديل مستخدم"""
+    user = get_object_or_404(User, pk=user_id)
+    
+    if request.method == 'POST':
+        try:
+            # تحديث بيانات User
+            user.first_name = request.POST.get('first_name', user.first_name)
+            user.last_name = request.POST.get('last_name', user.last_name)
+            user.email = request.POST.get('email', user.email)
+            user.is_active = 'is_active' in request.POST
+            
+            # تحديث كلمة المرور إذا تم إدخالها
+            new_password = request.POST.get('new_password')
+            if new_password:
+                user.set_password(new_password)
+            
+            user.save()
+            
+            # تحديث Profile
+            if hasattr(user, 'profile'):
+                user.profile.department = request.POST.get('department', user.profile.department)
+                user.profile.job_title = request.POST.get('job_title', user.profile.job_title)
+                user.profile.phone = request.POST.get('phone', user.profile.phone)
+                user.profile.role = request.POST.get('role', user.profile.role)
+                user.profile.is_active = user.is_active
+                user.profile.save()
+            
+            messages.success(request, f'تم تحديث بيانات المستخدم {user.get_full_name()} بنجاح')
+            return redirect('accounts:users')
+            
+        except Exception as e:
+            messages.error(request, f'خطأ في تحديث المستخدم: {str(e)}')
+    
+    context = {
+        'page_title': f'تعديل المستخدم: {user.get_full_name()}',
+        'edit_user': user,
+    }
+    return render(request, 'accounts/edit_user.html', context)
+
+
+@login_required
+@role_required(['admin'])
+def delete_user(request, user_id):
+    """حذف مستخدم"""
+    user = get_object_or_404(User, pk=user_id)
+    
+    # منع حذف المستخدم الحالي
+    if user == request.user:
+        messages.error(request, 'لا يمكنك حذف حسابك الخاص')
+        return redirect('accounts:users')
+    
+    if request.method == 'POST':
+        try:
+            username = user.get_full_name() or user.username
+            user.delete()
+            messages.success(request, f'تم حذف المستخدم {username} بنجاح')
+            return redirect('accounts:users')
+        except Exception as e:
+            messages.error(request, f'خطأ في حذف المستخدم: {str(e)}')
+    
+    context = {
+        'page_title': f'حذف المستخدم: {user.get_full_name()}',
+        'delete_user': user,
+    }
+    return render(request, 'accounts/delete_user.html', context)

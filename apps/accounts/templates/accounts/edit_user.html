@@ -1,0 +1,273 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Include messages component -->
+{% include 'message.html' %}
+
+<!-- Page Title -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-0">
+            <i class="fas fa-user-edit me-2 text-primary"></i>
+            تعديل المستخدم
+        </h2>
+        <p class="text-muted mb-0">تعديل بيانات المستخدم: <strong>{{ edit_user.get_full_name|default:edit_user.username }}</strong></p>
+    </div>
+    <div>
+        <a href="{% url 'accounts:users' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-right me-1"></i>
+            العودة لقائمة المستخدمين
+        </a>
+    </div>
+</div>
+
+<!-- Edit User Form -->
+<form method="post" class="needs-validation" novalidate>
+    {% csrf_token %}
+    
+    <div class="row">
+        <!-- Basic Information -->
+        <div class="col-lg-8">
+            <div class="card shadow-custom">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user me-2"></i>
+                        البيانات الأساسية
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Username -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">اسم المستخدم</label>
+                            <input type="text" class="form-control" value="{{ edit_user.username }}" readonly>
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>
+                                اسم المستخدم لا يمكن تغييره
+                            </div>
+                        </div>
+                        
+                        <!-- Email -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">البريد الإلكتروني <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" name="email" value="{{ edit_user.email }}" required>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- First Name -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">الاسم الأول <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="first_name" value="{{ edit_user.first_name }}" required>
+                        </div>
+                        
+                        <!-- Last Name -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">الاسم الأخير <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="last_name" value="{{ edit_user.last_name }}" required>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- New Password -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">كلمة المرور الجديدة</label>
+                            <input type="password" class="form-control" name="new_password">
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>
+                                اتركها فارغة إذا لم ترد تغيير كلمة المرور
+                            </div>
+                        </div>
+                        
+                        <!-- Role -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">الدور <span class="text-danger">*</span></label>
+                            <select class="form-control" name="role" required>
+                                <option value="">اختر الدور</option>
+                                <option value="admin" {% if edit_user.profile.role == 'admin' %}selected{% endif %}>مشرف أعلى</option>
+                                <option value="manager" {% if edit_user.profile.role == 'manager' %}selected{% endif %}>مدير</option>
+                                <option value="reviewer" {% if edit_user.profile.role == 'reviewer' %}selected{% endif %}>مراجع</option>
+                                <option value="intake" {% if edit_user.profile.role == 'intake' %}selected{% endif %}>جامع بيانات</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Status -->
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="is_active" id="isActive" {% if edit_user.is_active %}checked{% endif %}>
+                                <label class="form-check-label" for="isActive">
+                                    <strong>الحساب نشط</strong>
+                                </label>
+                                <div class="form-text">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    المستخدم يمكنه تسجيل الدخول
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Information -->
+        <div class="col-lg-4">
+            <div class="card shadow-custom">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        معلومات إضافية
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Department -->
+                    <div class="mb-3">
+                        <label class="form-label">القسم</label>
+                        <select class="form-control" name="department">
+                            <option value="غير محدد" {% if edit_user.profile.department == 'غير محدد' %}selected{% endif %}>غير محدد</option>
+                            <option value="قسم الطلبات" {% if edit_user.profile.department == 'قسم الطلبات' %}selected{% endif %}>قسم الطلبات</option>
+                            <option value="قسم العملاء" {% if edit_user.profile.department == 'قسم العملاء' %}selected{% endif %}>قسم العملاء</option>
+                            <option value="قسم المدفوعات" {% if edit_user.profile.department == 'قسم المدفوعات' %}selected{% endif %}>قسم المدفوعات</option>
+                            <option value="قسم التقارير" {% if edit_user.profile.department == 'قسم التقارير' %}selected{% endif %}>قسم التقارير</option>
+                            <option value="قسم الدعم الفني" {% if edit_user.profile.department == 'قسم الدعم الفني' %}selected{% endif %}>قسم الدعم الفني</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Job Title -->
+                    <div class="mb-3">
+                        <label class="form-label">المسمى الوظيفي</label>
+                        <input type="text" class="form-control" name="job_title" value="{{ edit_user.profile.job_title }}">
+                    </div>
+                    
+                    <!-- Phone -->
+                    <div class="mb-3">
+                        <label class="form-label">رقم الجوال</label>
+                        <input type="tel" class="form-control" name="phone" value="{{ edit_user.profile.phone }}">
+                    </div>
+
+                    <!-- Employee ID -->
+                    <div class="mb-3">
+                        <label class="form-label">الرقم الوظيفي</label>
+                        <input type="text" class="form-control" value="{{ edit_user.profile.employee_id }}" readonly>
+                        <div class="form-text">
+                            <i class="fas fa-info-circle me-1"></i>
+                            الرقم الوظيفي لا يمكن تغييره
+                        </div>
+                    </div>
+
+                    <!-- User Stats -->
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-chart-bar me-2"></i>إحصائيات المستخدم:</h6>
+                        <ul class="mb-0 small">
+                            <li><strong>تاريخ الإنشاء:</strong> {{ edit_user.date_joined|date:"Y-m-d" }}</li>
+                            <li><strong>آخر دخول:</strong> {{ edit_user.last_login|date:"Y-m-d H:i"|default:"لم يسجل دخول" }}</li>
+                            <li><strong>الطلبات المعالجة:</strong> {{ edit_user.profile.requests_handled }}</li>
+                            <li><strong>العملاء المتابعين:</strong> {{ edit_user.profile.customers_managed }}</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Submit Buttons -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow-custom">
+                <div class="card-body text-center">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="fas fa-save me-1"></i>
+                        حفظ التغييرات
+                    </button>
+                    <a href="{% url 'accounts:users' %}" class="btn btn-secondary me-2">
+                        <i class="fas fa-times me-1"></i>
+                        إلغاء
+                    </a>
+                    <a href="{% url 'accounts:delete_user' edit_user.id %}" class="btn btn-danger">
+                        <i class="fas fa-trash me-1"></i>
+                        حذف المستخدم
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+{% block extra_css %}
+<style>
+    .form-label {
+        font-weight: 600;
+        color: #495057;
+    }
+    .form-text {
+        font-size: 0.875rem;
+    }
+    .card-header h5 {
+        color: #495057;
+    }
+    .alert-info {
+        border-left: 4px solid #17a2b8;
+    }
+    .alert-info ul {
+        list-style-type: none;
+        padding-left: 0;
+    }
+    .alert-info li {
+        margin-bottom: 0.25rem;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Form validation
+    const form = document.querySelector('.needs-validation');
+    form.addEventListener('submit', function(event) {
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+    });
+
+    // Password strength indicator
+    const passwordInput = document.querySelector('input[name="new_password"]');
+    passwordInput.addEventListener('input', function() {
+        const password = this.value;
+        const strength = getPasswordStrength(password);
+        
+        // Remove existing feedback
+        const existingFeedback = this.parentNode.querySelector('.password-strength');
+        if (existingFeedback) {
+            existingFeedback.remove();
+        }
+        
+        // Add new feedback
+        if (password.length > 0) {
+            const feedback = document.createElement('div');
+            feedback.className = 'password-strength mt-1';
+            feedback.innerHTML = `<small class="text-${strength.color}">
+                <i class="fas fa-${strength.icon}"></i> ${strength.text}
+            </small>`;
+            this.parentNode.appendChild(feedback);
+        }
+    });
+});
+
+function getPasswordStrength(password) {
+    if (password.length < 6) {
+        return { text: 'ضعيف جداً', color: 'danger', icon: 'times' };
+    } else if (password.length < 8) {
+        return { text: 'ضعيف', color: 'warning', icon: 'exclamation-triangle' };
+    } else if (password.length < 10) {
+        return { text: 'متوسط', color: 'info', icon: 'info-circle' };
+    } else {
+        return { text: 'قوي', color: 'success', icon: 'check' };
+    }
+}
+</script>
+{% endblock %}
+{% endblock content %}
