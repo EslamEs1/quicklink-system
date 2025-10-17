@@ -328,246 +328,249 @@
 
             <!-- Pagination -->
             {% include 'pagination.html' %}
-{% endblock content %}
 
-<!-- Confirmation Modals -->
-<div class="modal fade" id="confirmPaymentModal" tabindex="-1" aria-labelledby="confirmPaymentModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="confirmPaymentModalLabel">
-                    <i class="fas fa-check-circle text-success me-2"></i>
-                    تأكيد الدفعة
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="alert alert-warning">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
-                    <strong>تحذير:</strong> هل أنت متأكد من تأكيد هذه الدفعة المعلقة؟
+
+            
+            <!-- Confirmation Modals -->
+            <div class="modal fade" id="confirmPaymentModal" tabindex="-1" aria-labelledby="confirmPaymentModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="confirmPaymentModalLabel">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                تأكيد الدفعة
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <strong>تحذير:</strong> هل أنت متأكد من تأكيد هذه الدفعة المعلقة؟
+                            </div>
+                            <p id="confirmPaymentDetails"></p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                <i class="fas fa-times me-1"></i>
+                                إلغاء
+                            </button>
+                            <form method="post" action="{% url 'payments:confirm' %}" style="display: inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="payment_id" id="confirmPaymentId">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-check me-1"></i>
+                                    تأكيد الدفعة
+                                </button>
+                            </form>
+                        </div>
+                    </div>
                 </div>
-                <p id="confirmPaymentDetails"></p>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    <i class="fas fa-times me-1"></i>
-                    إلغاء
-                </button>
-                <form method="post" action="{% url 'payments:confirm' %}" style="display: inline;">
-                    {% csrf_token %}
-                    <input type="hidden" name="payment_id" id="confirmPaymentId">
-                    <button type="submit" class="btn btn-success">
-                        <i class="fas fa-check me-1"></i>
-                        تأكيد الدفعة
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="cancelPaymentModal" tabindex="-1" aria-labelledby="cancelPaymentModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="cancelPaymentModalLabel">
-                    <i class="fas fa-times-circle text-danger me-2"></i>
-                    إلغاء الدفعة
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="alert alert-danger">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
-                    <strong>تحذير:</strong> هل أنت متأكد من إلغاء هذه الدفعة المعلقة؟
+            
+            <div class="modal fade" id="cancelPaymentModal" tabindex="-1" aria-labelledby="cancelPaymentModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="cancelPaymentModalLabel">
+                                <i class="fas fa-times-circle text-danger me-2"></i>
+                                إلغاء الدفعة
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="alert alert-danger">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <strong>تحذير:</strong> هل أنت متأكد من إلغاء هذه الدفعة المعلقة؟
+                            </div>
+                            <p id="cancelPaymentDetails"></p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                <i class="fas fa-times me-1"></i>
+                                إلغاء
+                            </button>
+                            <form method="post" action="{% url 'payments:cancel' %}" style="display: inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="payment_id" id="cancelPaymentId">
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="fas fa-trash me-1"></i>
+                                    إلغاء الدفعة
+                                </button>
+                            </form>
+                        </div>
+                    </div>
                 </div>
-                <p id="cancelPaymentDetails"></p>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    <i class="fas fa-times me-1"></i>
-                    إلغاء
-                </button>
-                <form method="post" action="{% url 'payments:cancel' %}" style="display: inline;">
-                    {% csrf_token %}
-                    <input type="hidden" name="payment_id" id="cancelPaymentId">
-                    <button type="submit" class="btn btn-danger">
-                        <i class="fas fa-trash me-1"></i>
-                        إلغاء الدفعة
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-// JavaScript inside content block
-function processNewPayment() {
-    // Redirect to requests list to select a request for payment
-    window.location.href = "{% url 'requests:list' %}";
-}
-
-function clearPaymentFilters() {
-    document.getElementById('paymentSearchInput').value = '';
-    document.getElementById('paymentStatusFilter').value = 'all';
-    document.getElementById('gatewayFilter').value = 'all';
-    document.getElementById('startDateFilter').value = '';
-    document.getElementById('endDateFilter').value = '';
-    
-    // Apply filters (reload table)
-    applyPaymentFilters();
-}
-
-function applyPaymentFilters() {
-    const search = document.getElementById('paymentSearchInput').value;
-    const status = document.getElementById('paymentStatusFilter').value;
-    const gateway = document.getElementById('gatewayFilter').value;
-    const startDate = document.getElementById('startDateFilter').value;
-    const endDate = document.getElementById('endDateFilter').value;
-    
-    let url = window.location.pathname + '?';
-    const params = [];
-    
-    if (search) params.push('search=' + encodeURIComponent(search));
-    if (status !== 'all') params.push('status=' + encodeURIComponent(status));
-    if (gateway !== 'all') params.push('gateway=' + encodeURIComponent(gateway));
-    if (startDate) params.push('start_date=' + encodeURIComponent(startDate));
-    if (endDate) params.push('end_date=' + encodeURIComponent(endDate));
-    
-    if (params.length > 0) {
-        url += params.join('&');
-        window.location.href = url;
-    } else {
-        window.location.reload();
-    }
-}
-
-function viewPaymentDetails(paymentId) {
-    // Redirect to payment details page
-    window.location.href = `/payments/${paymentId}/details/`;
-}
-
-function printReceipt(paymentId) {
-    // Print payment receipt
-    window.open(`/payments/${paymentId}/receipt/`, '_blank');
-}
-
-function sendPaymentEmail(paymentId) {
-    // Redirect to send email page
-    window.location.href = `/payments/${paymentId}/send-email/`;
-}
-
-function confirmPayment(paymentId) {
-    // Show confirmation modal
-    document.getElementById('confirmPaymentId').value = paymentId;
-    document.getElementById('confirmPaymentDetails').textContent = `الدفعة رقم: ${paymentId}`;
-    const modal = new bootstrap.Modal(document.getElementById('confirmPaymentModal'));
-    modal.show();
-}
-
-function cancelPayment(paymentId) {
-    // Show cancellation modal
-    document.getElementById('cancelPaymentId').value = paymentId;
-    document.getElementById('cancelPaymentDetails').textContent = `الدفعة رقم: ${paymentId}`;
-    const modal = new bootstrap.Modal(document.getElementById('cancelPaymentModal'));
-    modal.show();
-}
-
-function retryPayment(paymentId) {
-    // Redirect to retry payment page
-    window.location.href = `/payments/${paymentId}/retry/`;
-}
-
-function contactCustomer(customerId) {
-    // Redirect to customer details page
-    window.location.href = `/clients/${customerId}/`;
-}
-
-function exportPaymentsToExcel() {
-    // Export payments to Excel
-    const table = document.getElementById('paymentsTable');
-    const rows = Array.from(table.querySelectorAll('tr'));
-    let csv = '';
-    
-    rows.forEach(row => {
-        const cells = Array.from(row.querySelectorAll('th, td'));
-        const rowData = cells.map(cell => {
-            let text = cell.innerText || cell.textContent;
-            text = text.replace(/"/g, '""');
-            return `"${text}"`;
-        });
-        csv += rowData.join(',') + '\n';
-    });
-    
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `payments_${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    showAlert('تم تصدير البيانات إلى ملف Excel بنجاح!', 'success');
-}
-
-function printPaymentReport() {
-    // Print payment report
-    window.print();
-}
-
-function showAlert(message, type) {
-    const alertDiv = document.createElement('div');
-    alertDiv.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show`;
-    alertDiv.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
-    
-    const container = document.querySelector('.main-content');
-    container.insertBefore(alertDiv, container.firstChild);
-    
-    setTimeout(() => {
-        if (alertDiv.parentNode) {
-            alertDiv.remove();
-        }
-    }, 5000);
-}
-
-// Add event listeners for filters
-document.addEventListener('DOMContentLoaded', function() {
-    const filterInputs = [
-        'paymentSearchInput',
-        'paymentStatusFilter', 
-        'gatewayFilter',
-        'startDateFilter',
-        'endDateFilter'
-    ];
-    
-    filterInputs.forEach(inputId => {
-        const input = document.getElementById(inputId);
-        if (input) {
-            if (input.type === 'text') {
-                input.addEventListener('input', debounce(applyPaymentFilters, 500));
-            } else {
-                input.addEventListener('change', applyPaymentFilters);
+            
+            <script>
+            // JavaScript inside content block
+            function processNewPayment() {
+                // Redirect to requests list to select a request for payment
+                window.location.href = "{% url 'requests:list' %}";
             }
-        }
-    });
-});
-
-// Debounce function for search input
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
-</script>
+            
+            function clearPaymentFilters() {
+                document.getElementById('paymentSearchInput').value = '';
+                document.getElementById('paymentStatusFilter').value = 'all';
+                document.getElementById('gatewayFilter').value = 'all';
+                document.getElementById('startDateFilter').value = '';
+                document.getElementById('endDateFilter').value = '';
+                
+                // Apply filters (reload table)
+                applyPaymentFilters();
+            }
+            
+            function applyPaymentFilters() {
+                const search = document.getElementById('paymentSearchInput').value;
+                const status = document.getElementById('paymentStatusFilter').value;
+                const gateway = document.getElementById('gatewayFilter').value;
+                const startDate = document.getElementById('startDateFilter').value;
+                const endDate = document.getElementById('endDateFilter').value;
+                
+                let url = window.location.pathname + '?';
+                const params = [];
+                
+                if (search) params.push('search=' + encodeURIComponent(search));
+                if (status !== 'all') params.push('status=' + encodeURIComponent(status));
+                if (gateway !== 'all') params.push('gateway=' + encodeURIComponent(gateway));
+                if (startDate) params.push('start_date=' + encodeURIComponent(startDate));
+                if (endDate) params.push('end_date=' + encodeURIComponent(endDate));
+                
+                if (params.length > 0) {
+                    url += params.join('&');
+                    window.location.href = url;
+                } else {
+                    window.location.reload();
+                }
+            }
+            
+            function viewPaymentDetails(paymentId) {
+                // Redirect to payment details page
+                window.location.href = `/payments/${paymentId}/details/`;
+            }
+            
+            function printReceipt(paymentId) {
+                // Print payment receipt
+                window.open(`/payments/${paymentId}/receipt/`, '_blank');
+            }
+            
+            function sendPaymentEmail(paymentId) {
+                // Redirect to send email page
+                window.location.href = `/payments/${paymentId}/send-email/`;
+            }
+            
+            function confirmPayment(paymentId) {
+                // Show confirmation modal
+                document.getElementById('confirmPaymentId').value = paymentId;
+                document.getElementById('confirmPaymentDetails').textContent = `الدفعة رقم: ${paymentId}`;
+                const modal = new bootstrap.Modal(document.getElementById('confirmPaymentModal'));
+                modal.show();
+            }
+            
+            function cancelPayment(paymentId) {
+                // Show cancellation modal
+                document.getElementById('cancelPaymentId').value = paymentId;
+                document.getElementById('cancelPaymentDetails').textContent = `الدفعة رقم: ${paymentId}`;
+                const modal = new bootstrap.Modal(document.getElementById('cancelPaymentModal'));
+                modal.show();
+            }
+            
+            function retryPayment(paymentId) {
+                // Redirect to retry payment page
+                window.location.href = `/payments/${paymentId}/retry/`;
+            }
+            
+            function contactCustomer(customerId) {
+                // Redirect to customer details page
+                window.location.href = `/clients/${customerId}/`;
+            }
+            
+            function exportPaymentsToExcel() {
+                // Export payments to Excel
+                const table = document.getElementById('paymentsTable');
+                const rows = Array.from(table.querySelectorAll('tr'));
+                let csv = '';
+                
+                rows.forEach(row => {
+                    const cells = Array.from(row.querySelectorAll('th, td'));
+                    const rowData = cells.map(cell => {
+                        let text = cell.innerText || cell.textContent;
+                        text = text.replace(/"/g, '""');
+                        return `"${text}"`;
+                    });
+                    csv += rowData.join(',') + '\n';
+                });
+                
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                const url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                link.setAttribute('download', `payments_${new Date().toISOString().split('T')[0]}.csv`);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                showAlert('تم تصدير البيانات إلى ملف Excel بنجاح!', 'success');
+            }
+            
+            function printPaymentReport() {
+                // Print payment report
+                window.print();
+            }
+            
+            function showAlert(message, type) {
+                const alertDiv = document.createElement('div');
+                alertDiv.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show`;
+                alertDiv.innerHTML = `
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                
+                const container = document.querySelector('.main-content');
+                container.insertBefore(alertDiv, container.firstChild);
+                
+                setTimeout(() => {
+                    if (alertDiv.parentNode) {
+                        alertDiv.remove();
+                    }
+                }, 5000);
+            }
+            
+            // Add event listeners for filters
+            document.addEventListener('DOMContentLoaded', function() {
+                const filterInputs = [
+                    'paymentSearchInput',
+                    'paymentStatusFilter', 
+                    'gatewayFilter',
+                    'startDateFilter',
+                    'endDateFilter'
+                ];
+                
+                filterInputs.forEach(inputId => {
+                    const input = document.getElementById(inputId);
+                    if (input) {
+                        if (input.type === 'text') {
+                            input.addEventListener('input', debounce(applyPaymentFilters, 500));
+                        } else {
+                            input.addEventListener('change', applyPaymentFilters);
+                        }
+                    }
+                });
+            });
+            
+            // Debounce function for search input
+            function debounce(func, wait) {
+                let timeout;
+                return function executedFunction(...args) {
+                    const later = () => {
+                        clearTimeout(timeout);
+                        func(...args);
+                    };
+                    clearTimeout(timeout);
+                    timeout = setTimeout(later, wait);
+                };
+            }
+            </script>
+            {% endblock content %}
+            
