@@ -74,10 +74,10 @@
                     <div class="card stats-card">
                         <div class="card-body text-center">
                             <i class="fas fa-chart-line icon-large text-primary"></i>
-                            <div class="stats-number" id="totalRevenue">125,450</div>
+                            <div class="stats-number">{{ payments_stats.total_paid|floatformat:0|default:"0" }}</div>
                             <div class="stats-label">إجمالي الإيرادات (درهم)</div>
                             <small class="text-success">
-                                <i class="fas fa-arrow-up"></i> +12.5% من الشهر الماضي
+                                <i class="fas fa-info-circle"></i> من جميع الطلبات المدفوعة
                             </small>
                         </div>
                     </div>
@@ -85,11 +85,11 @@
                 <div class="col-xl-3 col-md-6 mb-3">
                     <div class="card stats-card">
                         <div class="card-body text-center">
-                            <i class="fas fa-clock icon-large text-warning"></i>
-                            <div class="stats-number" id="avgProcessingTime">2.3</div>
-                            <div class="stats-label">متوسط وقت المعالجة (أيام)</div>
-                            <small class="text-danger">
-                                <i class="fas fa-arrow-down"></i> -0.5 أيام من الشهر الماضي
+                            <i class="fas fa-file-alt icon-large text-warning"></i>
+                            <div class="stats-number">{{ requests_stats.total|default:"0" }}</div>
+                            <div class="stats-label">إجمالي الطلبات</div>
+                            <small class="text-info">
+                                <i class="fas fa-info-circle"></i> {{ requests_stats.period_count|default:"0" }} طلب هذا {{ period|default:"الشهر" }}
                             </small>
                         </div>
                     </div>
@@ -98,10 +98,10 @@
                     <div class="card stats-card">
                         <div class="card-body text-center">
                             <i class="fas fa-users icon-large text-success"></i>
-                            <div class="stats-number" id="customerSatisfaction">94.2</div>
-                            <div class="stats-label">معدل رضا العملاء (%)</div>
+                            <div class="stats-number">{{ customers_stats.total|default:"0" }}</div>
+                            <div class="stats-label">إجمالي العملاء</div>
                             <small class="text-success">
-                                <i class="fas fa-arrow-up"></i> +2.1% من الشهر الماضي
+                                <i class="fas fa-check-circle"></i> {{ customers_stats.verified|default:"0" }} موثق
                             </small>
                         </div>
                     </div>
@@ -110,10 +110,16 @@
                     <div class="card stats-card">
                         <div class="card-body text-center">
                             <i class="fas fa-tasks icon-large text-info"></i>
-                            <div class="stats-number" id="completionRate">87.5</div>
-                            <div class="stats-label">معدل إتمام الطلبات (%)</div>
+                            <div class="stats-number">
+                                {% if requests_stats.total > 0 %}
+                                    {{ requests_stats.completed|mul:100|div:requests_stats.total|floatformat:1|default:"0" }}%
+                                {% else %}
+                                    0%
+                                {% endif %}
+                            </div>
+                            <div class="stats-label">معدل إتمام الطلبات</div>
                             <small class="text-success">
-                                <i class="fas fa-arrow-up"></i> +3.2% من الشهر الماضي
+                                <i class="fas fa-check-circle"></i> {{ requests_stats.completed|default:"0" }} مكتمل
                             </small>
                         </div>
                     </div>
@@ -126,18 +132,12 @@
                     <div class="card shadow-custom">
                         <div class="card-header">
                             <h5 class="mb-0">
-                                <i class="fas fa-chart-area me-2"></i>
+                                <i class="fas fa-chart-line me-2"></i>
                                 إحصائيات الطلبات الشهرية
                             </h5>
                         </div>
                         <div class="card-body">
-                            <div class="chart-placeholder">
-                                <div class="text-center py-5">
-                                    <i class="fas fa-chart-area text-muted" style="font-size: 4rem;"></i>
-                                    <h5 class="text-muted mt-3">رسم بياني للطلبات</h5>
-                                    <p class="text-muted">سيتم عرض الرسم البياني هنا عند التطوير</p>
-                                </div>
-                            </div>
+                            <canvas id="requestsChart" height="100"></canvas>
                         </div>
                     </div>
                 </div>
@@ -146,17 +146,11 @@
                         <div class="card-header">
                             <h5 class="mb-0">
                                 <i class="fas fa-chart-pie me-2"></i>
-                                توزيع أنواع الطلبات
+                                توزيع حالات الطلبات
                             </h5>
                         </div>
                         <div class="card-body">
-                            <div class="chart-placeholder">
-                                <div class="text-center py-5">
-                                    <i class="fas fa-chart-pie text-muted" style="font-size: 4rem;"></i>
-                                    <h5 class="text-muted mt-3">رسم بياني دائري</h5>
-                                    <p class="text-muted">سيتم عرض الرسم البياني هنا</p>
-                                </div>
-                            </div>
+                            <canvas id="statusChart" height="200"></canvas>
                         </div>
                     </div>
                 </div>
@@ -178,26 +172,26 @@
                         </div>
                         <div class="card-body">
                             <div class="list-group list-group-flush">
-                                <a href="#" class="list-group-item list-group-item-action" onclick="viewReport('daily')">
+                                <a href="{% url 'requests:list' %}?status=new" class="list-group-item list-group-item-action">
                                     <div class="d-flex w-100 justify-content-between">
-                                        <h6 class="mb-1">تقرير اليوم</h6>
-                                        <small>منذ ساعتين</small>
+                                        <h6 class="mb-1">طلبات جديدة</h6>
+                                        <small class="badge bg-primary">{{ requests_stats.new|default:"0" }}</small>
                                     </div>
-                                    <p class="mb-1">15 طلب جديد، 8 مكتمل، 125,000 درهم</p>
+                                    <p class="mb-1">طلبات تحتاج مراجعة ومعالجة</p>
                                 </a>
-                                <a href="#" class="list-group-item list-group-item-action" onclick="viewReport('weekly')">
+                                <a href="{% url 'requests:list' %}?status=in_review" class="list-group-item list-group-item-action">
                                     <div class="d-flex w-100 justify-content-between">
-                                        <h6 class="mb-1">تقرير الأسبوع</h6>
-                                        <small>منذ 3 ساعات</small>
+                                        <h6 class="mb-1">طلبات قيد المراجعة</h6>
+                                        <small class="badge bg-warning">{{ requests_stats.in_review|default:"0" }}</small>
                                     </div>
-                                    <p class="mb-1">89 طلب، 76 مكتمل، 680,000 درهم</p>
+                                    <p class="mb-1">طلبات قيد المعالجة والمراجعة</p>
                                 </a>
-                                <a href="#" class="list-group-item list-group-item-action" onclick="viewReport('monthly')">
+                                <a href="{% url 'requests:list' %}?status=completed" class="list-group-item list-group-item-action">
                                     <div class="d-flex w-100 justify-content-between">
-                                        <h6 class="mb-1">تقرير الشهر</h6>
-                                        <small>منذ يوم واحد</small>
+                                        <h6 class="mb-1">طلبات مكتملة</h6>
+                                        <small class="badge bg-success">{{ requests_stats.completed|default:"0" }}</small>
                                     </div>
-                                    <p class="mb-1">345 طلب، 298 مكتمل، 2,450,000 درهم</p>
+                                    <p class="mb-1">طلبات تم إنجازها بنجاح</p>
                                 </a>
                             </div>
                         </div>
@@ -261,34 +255,197 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-6 mb-4">
-                            <h6>أداء الموظفين</h6>
+                            <h6>معدل إتمام الطلبات</h6>
                             <div class="progress mb-2">
-                                <div class="progress-bar bg-success" role="progressbar" style="width: 85%">85%</div>
+                                {% if requests_stats.total > 0 %}
+                                    {% with completion_rate=requests_stats.completed|mul:100|div:requests_stats.total %}
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: {{ completion_rate }}%">{{ completion_rate|floatformat:1 }}%</div>
+                                    {% endwith %}
+                                {% else %}
+                                    <div class="progress-bar bg-secondary" role="progressbar" style="width: 0%">0%</div>
+                                {% endif %}
                             </div>
-                            <small class="text-muted">معدل إتمام الطلبات</small>
+                            <small class="text-muted">{{ requests_stats.completed|default:"0" }} من {{ requests_stats.total|default:"0" }} طلب مكتمل</small>
                         </div>
                         <div class="col-md-6 mb-4">
-                            <h6>رضا العملاء</h6>
+                            <h6>الطلبات الجديدة</h6>
                             <div class="progress mb-2">
-                                <div class="progress-bar bg-primary" role="progressbar" style="width: 94%">94%</div>
+                                {% if requests_stats.total > 0 %}
+                                    {% with new_rate=requests_stats.new|mul:100|div:requests_stats.total %}
+                                    <div class="progress-bar bg-primary" role="progressbar" style="width: {{ new_rate }}%">{{ new_rate|floatformat:1 }}%</div>
+                                    {% endwith %}
+                                {% else %}
+                                    <div class="progress-bar bg-secondary" role="progressbar" style="width: 0%">0%</div>
+                                {% endif %}
                             </div>
-                            <small class="text-muted">تقييم العملاء</small>
+                            <small class="text-muted">{{ requests_stats.new|default:"0" }} طلب جديد يحتاج معالجة</small>
                         </div>
                         <div class="col-md-6 mb-4">
-                            <h6>سرعة المعالجة</h6>
+                            <h6>طلبات قيد المراجعة</h6>
                             <div class="progress mb-2">
-                                <div class="progress-bar bg-warning" role="progressbar" style="width: 78%">78%</div>
+                                {% if requests_stats.total > 0 %}
+                                    {% with review_rate=requests_stats.in_review|mul:100|div:requests_stats.total %}
+                                    <div class="progress-bar bg-warning" role="progressbar" style="width: {{ review_rate }}%">{{ review_rate|floatformat:1 }}%</div>
+                                    {% endwith %}
+                                {% else %}
+                                    <div class="progress-bar bg-secondary" role="progressbar" style="width: 0%">0%</div>
+                                {% endif %}
                             </div>
-                            <small class="text-muted">الطلبات المعالجة في الوقت المحدد</small>
+                            <small class="text-muted">{{ requests_stats.in_review|default:"0" }} طلب قيد المراجعة</small>
                         </div>
                         <div class="col-md-6 mb-4">
-                            <h6>جودة الخدمة</h6>
+                            <h6>العملاء الموثقون</h6>
                             <div class="progress mb-2">
-                                <div class="progress-bar bg-info" role="progressbar" style="width: 91%">91%</div>
+                                {% if customers_stats.total > 0 %}
+                                    {% with verified_rate=customers_stats.verified|mul:100|div:customers_stats.total %}
+                                    <div class="progress-bar bg-info" role="progressbar" style="width: {{ verified_rate }}%">{{ verified_rate|floatformat:1 }}%</div>
+                                    {% endwith %}
+                                {% else %}
+                                    <div class="progress-bar bg-secondary" role="progressbar" style="width: 0%">0%</div>
+                                {% endif %}
                             </div>
-                            <small class="text-muted">معدل الأخطاء المنخفض</small>
+                            <small class="text-muted">{{ customers_stats.verified|default:"0" }} من {{ customers_stats.total|default:"0" }} عميل موثق</small>
                         </div>
                     </div>
                 </div>
             </div>
+
+{% block extra_css %}
+<style>
+    .stats-card {
+        transition: transform 0.2s ease-in-out;
+    }
+    .stats-card:hover {
+        transform: translateY(-2px);
+    }
+    .stats-number {
+        font-size: 2rem;
+        font-weight: bold;
+        margin: 0.5rem 0;
+    }
+    .stats-label {
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+    .icon-large {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Chart data from Django context
+    const requestsData = {
+        new: {{ requests_stats.new|default:"0" }},
+        in_review: {{ requests_stats.in_review|default:"0" }},
+        completed: {{ requests_stats.completed|default:"0" }},
+        total: {{ requests_stats.total|default:"0" }}
+    };
+
+    // Status Chart (Pie Chart)
+    const statusCtx = document.getElementById('statusChart');
+    if (statusCtx) {
+        new Chart(statusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['جديد', 'قيد المراجعة', 'مكتمل'],
+                datasets: [{
+                    data: [requestsData.new, requestsData.in_review, requestsData.completed],
+                    backgroundColor: [
+                        '#007bff',
+                        '#ffc107', 
+                        '#28a745'
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Requests Chart (Line Chart) - Mock data for now
+    const requestsCtx = document.getElementById('requestsChart');
+    if (requestsCtx) {
+        // Generate mock monthly data
+        const months = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو'];
+        const monthlyData = months.map(() => Math.floor(Math.random() * 50) + 10);
+        
+        new Chart(requestsCtx, {
+            type: 'line',
+            data: {
+                labels: months,
+                datasets: [{
+                    label: 'الطلبات',
+                    data: monthlyData,
+                    borderColor: '#007bff',
+                    backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0,0,0,0.1)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    }
+});
+
+// Report functions
+function generateCustomReport() {
+    alert('ميزة التقرير المخصص قيد التطوير');
+}
+
+function refreshReports() {
+    location.reload();
+}
+
+function viewReport(type) {
+    alert(`عرض تقرير ${type} - قيد التطوير`);
+}
+
+function downloadReport(format) {
+    alert(`تحميل تقرير ${format} - قيد التطوير`);
+}
+
+function downloadAllReports() {
+    alert('تحميل جميع التقارير - قيد التطوير');
+}
+</script>
+{% endblock %}
 {% endblock content %}
