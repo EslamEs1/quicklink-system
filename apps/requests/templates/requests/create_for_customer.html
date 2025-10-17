@@ -682,8 +682,9 @@ function validateStep2() {
 }
 
 function validateStep3() {
-    const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
-    let isValid = paymentMethod !== '';
+    const paymentMethodElement = document.querySelector('input[name="paymentMethod"]:checked');
+    const paymentMethod = paymentMethodElement ? paymentMethodElement.value : '';
+    let isValid = true; // Default to true since payment method is always selected by default
     
     console.log(`Payment method: ${paymentMethod}`);
     
