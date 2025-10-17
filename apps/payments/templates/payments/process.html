@@ -109,7 +109,7 @@
             
             <div class="row">
                 <div class="col-md-6">
-                    <button type="submit" class="btn btn-success w-100">
+                    <button type="button" class="btn btn-success w-100" data-bs-toggle="modal" data-bs-target="#confirmPaymentModal">
                         <i class="fas fa-check me-2"></i>
                         تأكيد الدفعة
                     </button>
@@ -124,4 +124,129 @@
         </form>
     </div>
 </div>
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmPaymentModal" tabindex="-1" aria-labelledby="confirmPaymentModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmPaymentModalLabel">
+                    <i class="fas fa-check-circle text-success me-2"></i>
+                    تأكيد الدفعة
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>تحذير:</strong> هل أنت متأكد من معالجة هذه الدفعة؟
+                </div>
+                <div class="row">
+                    <div class="col-6">
+                        <strong>الرقم المرجعي:</strong>
+                    </div>
+                    <div class="col-6">
+                        {{ request.reference_number }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-6">
+                        <strong>اسم العميل:</strong>
+                    </div>
+                    <div class="col-6">
+                        {{ request.customer.full_name }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-6">
+                        <strong>المبلغ:</strong>
+                    </div>
+                    <div class="col-6">
+                        <span id="modalAmount">{{ request.total_amount|default:"0" }}</span> درهم
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-6">
+                        <strong>طريقة الدفع:</strong>
+                    </div>
+                    <div class="col-6">
+                        <span id="modalPaymentMethod">-</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>
+                    إلغاء
+                </button>
+                <button type="button" class="btn btn-success" onclick="submitPaymentForm()">
+                    <i class="fas fa-check me-1"></i>
+                    تأكيد الدفعة
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// JavaScript inside content block
+document.addEventListener('DOMContentLoaded', function() {
+    // Update modal with form data when modal is shown
+    document.getElementById('confirmPaymentModal').addEventListener('show.bs.modal', function (event) {
+        const amount = document.querySelector('input[name="amount"]').value;
+        const paymentMethod = document.querySelector('select[name="payment_method"]').value;
+        const paymentMethodText = document.querySelector('select[name="payment_method"] option:checked').textContent;
+        
+        document.getElementById('modalAmount').textContent = amount;
+        document.getElementById('modalPaymentMethod').textContent = paymentMethodText;
+    });
+});
+
+function submitPaymentForm() {
+    // Close modal
+    const modal = bootstrap.Modal.getInstance(document.getElementById('confirmPaymentModal'));
+    modal.hide();
+    
+    // Submit form
+    document.querySelector('form').submit();
+}
+
+// Form validation
+document.querySelector('form').addEventListener('submit', function(e) {
+    const amount = document.querySelector('input[name="amount"]').value;
+    const paymentMethod = document.querySelector('select[name="payment_method"]').value;
+    
+    if (!amount || amount <= 0) {
+        e.preventDefault();
+        showAlert('يرجى إدخال مبلغ صحيح', 'error');
+        return false;
+    }
+    
+    if (!paymentMethod) {
+        e.preventDefault();
+        showAlert('يرجى اختيار طريقة الدفع', 'error');
+        return false;
+    }
+    
+    return true;
+});
+
+function showAlert(message, type) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    const container = document.querySelector('.main-content');
+    container.insertBefore(alertDiv, container.firstChild);
+    
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}
+</script>
 {% endblock content %}

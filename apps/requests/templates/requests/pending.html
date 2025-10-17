@@ -211,18 +211,12 @@
                                             <a href="{% url 'requests:detail' req.id %}" class="btn btn-action btn-view" title="عرض التفاصيل">
                                                 <i class="fas fa-eye"></i>
                                             </a>
-                                            <form method="post" action="{% url 'requests:approve' req.id %}" style="display: inline;">
-                                                {% csrf_token %}
-                                                <button type="submit" class="btn btn-action btn-success" title="موافقة">
-                                                    <i class="fas fa-check"></i>
-                                                </button>
-                                            </form>
-                                            <form method="post" action="{% url 'requests:reject' req.id %}" style="display: inline;">
-                                                {% csrf_token %}
-                                                <button type="submit" class="btn btn-action btn-danger" title="رفض">
-                                                    <i class="fas fa-times"></i>
-                                                </button>
-                                            </form>
+                                            <button type="button" class="btn btn-action btn-success" onclick="approveRequest({{ req.id }}, '{{ req.reference_number }}')" title="موافقة">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-action btn-danger" onclick="rejectRequest({{ req.id }}, '{{ req.reference_number }}')" title="رفض">
+                                                <i class="fas fa-times"></i>
+                                            </button>
                                             {% if not req.assigned_to %}
                                                 <button class="btn btn-action btn-warning" onclick="assignRequest({{ req.id }})" title="تخصيص لي">
                                                     <i class="fas fa-user-plus"></i>
@@ -252,4 +246,218 @@
 
             <!-- Pagination -->
             {% include 'pagination.html' %}
+
+<!-- Approval Modal -->
+<div class="modal fade" id="approveModal" tabindex="-1" aria-labelledby="approveModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="approveModalLabel">
+                    <i class="fas fa-check-circle text-success me-2"></i>
+                    الموافقة على الطلب
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle me-2"></i>
+                    <strong>تأكيد:</strong> هل أنت متأكد من الموافقة على هذا الطلب؟
+                </div>
+                <p id="approveRequestDetails"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>
+                    إلغاء
+                </button>
+                <form method="post" action="{% url 'requests:approve' 0 %}" id="approveForm" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-check me-1"></i>
+                        الموافقة على الطلب
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Rejection Modal -->
+<div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="rejectModalLabel">
+                    <i class="fas fa-times-circle text-danger me-2"></i>
+                    رفض الطلب
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>تحذير:</strong> هل أنت متأكد من رفض هذا الطلب؟
+                </div>
+                <p id="rejectRequestDetails"></p>
+                <div class="mb-3">
+                    <label for="rejectionReason" class="form-label">سبب الرفض (اختياري):</label>
+                    <textarea class="form-control" id="rejectionReason" name="rejection_reason" rows="3" placeholder="اكتب سبب رفض الطلب..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>
+                    إلغاء
+                </button>
+                <form method="post" action="{% url 'requests:reject' 0 %}" id="rejectForm" style="display: inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="rejection_reason" id="rejectionReasonInput">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-times me-1"></i>
+                        رفض الطلب
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// JavaScript inside content block
+function approveRequest(requestId, referenceNumber) {
+    document.getElementById('approveRequestDetails').textContent = `الطلب رقم: ${referenceNumber}`;
+    document.getElementById('approveForm').action = `/requests/${requestId}/approve/`;
+    const modal = new bootstrap.Modal(document.getElementById('approveModal'));
+    modal.show();
+}
+
+function rejectRequest(requestId, referenceNumber) {
+    document.getElementById('rejectRequestDetails').textContent = `الطلب رقم: ${referenceNumber}`;
+    document.getElementById('rejectForm').action = `/requests/${requestId}/reject/`;
+    const modal = new bootstrap.Modal(document.getElementById('rejectModal'));
+    modal.show();
+}
+
+// Update rejection reason when form is submitted
+document.getElementById('rejectForm').addEventListener('submit', function(e) {
+    const reason = document.getElementById('rejectionReason').value;
+    document.getElementById('rejectionReasonInput').value = reason || 'لم يذكر سبب';
+});
+
+function approveSelected() {
+    const selectedRequests = getSelectedRequests();
+    if (selectedRequests.length === 0) {
+        showAlert('يرجى اختيار طلب واحد على الأقل', 'warning');
+        return;
+    }
+    
+    if (confirm(`هل تريد الموافقة على ${selectedRequests.length} طلب؟`)) {
+        // Submit forms for selected requests
+        selectedRequests.forEach(requestId => {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/requests/${requestId}/approve/`;
+            form.innerHTML = `<input type="hidden" name="csrfmiddlewaretoken" value="${document.querySelector('[name=csrfmiddlewaretoken]').value}">`;
+            document.body.appendChild(form);
+            form.submit();
+        });
+    }
+}
+
+function rejectSelected() {
+    const selectedRequests = getSelectedRequests();
+    if (selectedRequests.length === 0) {
+        showAlert('يرجى اختيار طلب واحد على الأقل', 'warning');
+        return;
+    }
+    
+    const reason = prompt(`سبب رفض ${selectedRequests.length} طلب:`, 'لم يذكر سبب');
+    if (reason !== null) {
+        // Submit forms for selected requests
+        selectedRequests.forEach(requestId => {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/requests/${requestId}/reject/`;
+            form.innerHTML = `
+                <input type="hidden" name="csrfmiddlewaretoken" value="${document.querySelector('[name=csrfmiddlewaretoken]').value}">
+                <input type="hidden" name="rejection_reason" value="${reason}">
+            `;
+            document.body.appendChild(form);
+            form.submit();
+        });
+    }
+}
+
+function getSelectedRequests() {
+    const checkboxes = document.querySelectorAll('input[name="request_ids"]:checked');
+    return Array.from(checkboxes).map(cb => cb.value);
+}
+
+function toggleSelectAll() {
+    const selectAllCheckbox = document.getElementById('selectAll');
+    const checkboxes = document.querySelectorAll('input[name="request_ids"]');
+    
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = selectAllCheckbox.checked;
+    });
+}
+
+function assignRequest(requestId) {
+    if (confirm('هل تريد تخصيص هذا الطلب لك؟')) {
+        // Redirect to assign page or handle via AJAX
+        window.location.href = `/requests/${requestId}/assign/`;
+    }
+}
+
+function showAlert(message, type) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    const container = document.querySelector('.main-content');
+    container.insertBefore(alertDiv, container.firstChild);
+    
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}
+
+// Initialize filters
+document.addEventListener('DOMContentLoaded', function() {
+    // Add event listeners for filter inputs
+    const filterInputs = ['priorityFilter', 'durationFilter', 'reviewerFilter'];
+    
+    filterInputs.forEach(inputId => {
+        const input = document.getElementById(inputId);
+        if (input) {
+            input.addEventListener('change', applyFilters);
+        }
+    });
+});
+
+function applyFilters() {
+    const priority = document.getElementById('priorityFilter').value;
+    const duration = document.getElementById('durationFilter').value;
+    const reviewer = document.getElementById('reviewerFilter').value;
+    
+    let url = window.location.pathname + '?';
+    const params = [];
+    
+    if (priority !== 'all') params.push('priority=' + encodeURIComponent(priority));
+    if (duration !== 'all') params.push('duration=' + encodeURIComponent(duration));
+    if (reviewer !== 'all') params.push('reviewer=' + encodeURIComponent(reviewer));
+    
+    if (params.length > 0) {
+        url += params.join('&');
+        window.location.href = url;
+    } else {
+        window.location.reload();
+    }
+}
+</script>
 {% endblock content %}
