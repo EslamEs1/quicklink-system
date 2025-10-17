@@ -315,3 +315,49 @@ def conflict_detail(request, pk):
         'conflict': conflict,
     }
     return render(request, 'clients/conflict_detail.html', context)
+
+
+# @login_required
+def add(request):
+    """إضافة عميل جديد"""
+    if request.method == 'POST':
+        try:
+            # إنشاء عميل جديد
+            customer = Customer.objects.create(
+                full_name=request.POST.get('full_name'),
+                full_name_english=request.POST.get('full_name_english', ''),
+                emirates_id=request.POST.get('emirates_id'),
+                date_of_birth=request.POST.get('date_of_birth'),
+                nationality=request.POST.get('nationality'),
+                gender=request.POST.get('gender'),
+                phone=request.POST.get('phone'),
+                email=request.POST.get('email', ''),
+                address=request.POST.get('address', ''),
+                occupation=request.POST.get('occupation', ''),
+                company_name=request.POST.get('company_name', ''),
+                notes=request.POST.get('notes', ''),
+                is_verified=request.POST.get('is_verified') == 'on',
+                is_active=request.POST.get('is_active') == 'on',
+                created_by=request.user if request.user.is_authenticated else None
+            )
+            
+            messages.success(request, f'تم إنشاء العميل {customer.full_name} بنجاح!')
+            return redirect('clients:detail', pk=customer.id)
+            
+        except Exception as e:
+            messages.error(request, f'حدث خطأ أثناء إنشاء العميل: {str(e)}')
+    
+    # إحصائيات للعرض في الـ sidebar
+    total_customers = Customer.objects.filter(is_active=True).count()
+    new_customers_count = Customer.objects.filter(
+        is_active=True,
+        created_at__gte=date.today() - timedelta(days=30)
+    ).count()
+    
+    context = {
+        'page_title': 'إضافة عميل جديد',
+        'total_customers': total_customers,
+        'new_customers_count': new_customers_count,
+    }
+    
+    return render(request, 'clients/add.html', context)

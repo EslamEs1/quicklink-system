@@ -5,6 +5,7 @@ app_name = 'clients'
 
 urlpatterns = [
     path('', views.list, name='list'),
+    path('add/', views.add, name='add'),
     path('<int:pk>/', views.detail, name='detail'),
     path('<int:pk>/edit/', views.edit, name='edit'),
     path('<int:pk>/delete/', views.delete, name='delete'),
