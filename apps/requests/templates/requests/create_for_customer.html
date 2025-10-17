@@ -1,0 +1,780 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Include messages component -->
+{% include 'message.html' %}
+
+<!-- Page Title -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-0">
+            <i class="fas fa-plus-circle me-2 text-success"></i>
+            إنشاء طلب جديد للعميل
+        </h2>
+        <p class="text-muted mb-0">إنشاء طلب جديد للعميل: <strong>{{ customer.full_name }}</strong></p>
+    </div>
+    <div>
+        <a href="{% url 'clients:list' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-right me-1"></i>
+            العودة لقائمة العملاء
+        </a>
+    </div>
+</div>
+
+<!-- Customer Info Card -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow-custom">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-user me-2"></i>
+                    بيانات العميل
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <strong>الاسم:</strong><br>
+                        {{ customer.full_name }}
+                    </div>
+                    <div class="col-md-3">
+                        <strong>رقم الهوية:</strong><br>
+                        {{ customer.masked_emirates_id }}
+                    </div>
+                    <div class="col-md-3">
+                        <strong>رقم الجوال:</strong><br>
+                        {{ customer.masked_phone }}
+                    </div>
+                    <div class="col-md-3">
+                        <strong>عدد الطلبات السابقة:</strong><br>
+                        <span class="badge bg-primary">{{ customer.requests.count }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Progress Steps -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow-custom">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 text-center">
+                        <div class="step-item active">
+                            <div class="step-number">1</div>
+                            <div class="step-title">نوع الطلب</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <div class="step-item">
+                            <div class="step-number">2</div>
+                            <div class="step-title">رفع المستندات</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <div class="step-item">
+                            <div class="step-number">3</div>
+                            <div class="step-title">الدفع والإرسال</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Form -->
+<form id="createRequestForCustomerForm" method="post" action="{% url 'requests:create_for_customer' customer.id %}" enctype="multipart/form-data" class="needs-validation" novalidate>
+    {% csrf_token %}
+    <input type="hidden" name="existing_customer_id" value="{{ customer.id }}">
+    
+    <!-- Step 1: Request Type -->
+    <div class="step-content" id="step1">
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card shadow-custom">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-clipboard-list me-2"></i>
+                            تفاصيل الطلب
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <!-- Reference Number -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">الرقم المرجعي للطلب</label>
+                                <input type="text" class="form-control" id="referenceNumber" 
+                                       value="{{ reference_number }}" readonly>
+                            </div>
+                            
+                            <!-- Request Date -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">تاريخ الطلب</label>
+                                <input type="date" class="form-control" id="requestDate" name="request_date"
+                                       value="" required>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- Request Type -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">نوع الطلب <span class="text-danger">*</span></label>
+                                <select class="form-control" id="requestType" name="request_type_id" required>
+                                    <option value="">اختر نوع الطلب</option>
+                                    {% if request_types %}
+                                        {% regroup request_types by category as category_groups %}
+                                        {% for category in category_groups %}
+                                        <optgroup label="{{ category.grouper|title }}">
+                                            {% for type in category.list %}
+                                            <option value="{{ type.id }}" data-price="{{ type.default_price }}">
+                                                {{ type.name_arabic }} - {{ type.default_price }} درهم
+                                            </option>
+                                            {% endfor %}
+                                        </optgroup>
+                                        {% endfor %}
+                                    {% else %}
+                                        <option value="" disabled>لا توجد أنواع متاحة</option>
+                                    {% endif %}
+                                </select>
+                                <div class="form-text">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    اختر نوع الخدمة المطلوبة
+                                </div>
+                            </div>
+                            
+                            <!-- Priority -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">الأولوية</label>
+                                <select class="form-control" id="priority" name="priority">
+                                    <option value="medium">متوسطة</option>
+                                    <option value="low">منخفضة</option>
+                                    <option value="high">عالية</option>
+                                    <option value="urgent">عاجلة</option>
+                                </select>
+                                <div class="form-text">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    الأولوية الافتراضية: متوسطة
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <!-- Due Date -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">تاريخ الاستحقاق</label>
+                                <input type="date" class="form-control" id="dueDate" name="due_date" min="">
+                                <div class="form-text">
+                                    <i class="fas fa-calendar me-1"></i>
+                                    الموعد النهائي لإنجاز الطلب (اختياري) - يجب أن يكون في المستقبل
+                                </div>
+                            </div>
+                            
+                            <!-- Notes -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">ملاحظات</label>
+                                <textarea class="form-control" name="notes" rows="3" placeholder="أي ملاحظات أو تفاصيل إضافية..."></textarea>
+                                <div class="form-text">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    ملاحظات إضافية للطلب (اختياري)
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Summary Section -->
+            <div class="col-lg-4">
+                <div class="card shadow-custom">
+                    <div class="card-header bg-success text-white">
+                        <h6 class="mb-0">
+                            <i class="fas fa-info-circle me-2"></i>
+                            ملخص البيانات
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <i class="fas fa-lightbulb me-2"></i>
+                            <strong>تلميح:</strong> سيتم رفع المستندات في الخطوة التالية
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Validation Checklist -->
+                <div class="card shadow-custom mt-3" id="checklistCard">
+                    <div class="card-header bg-success text-white">
+                        <h6 class="mb-0">
+                            <i class="fas fa-tasks me-2"></i>
+                            قائمة التحقق - الخطوة <span id="currentStepNum">1</span>
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <!-- Step 1 Checks -->
+                        <div id="step1Checks">
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="checkRequestType" disabled>
+                                <label class="form-check-label" for="checkRequestType">
+                                    <small>✓ اختيار نوع الطلب</small>
+                                </label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="checkDueDate" disabled>
+                                <label class="form-check-label" for="checkDueDate">
+                                    <small>✓ تاريخ الاستحقاق (اختياري)</small>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Step 2 Checks -->
+                        <div id="step2Checks" class="d-none">
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="checkIdImage" disabled>
+                                <label class="form-check-label" for="checkIdImage">
+                                    <small>✓ صورة الهوية الإماراتية</small>
+                                </label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="checkAdditionalDocs" disabled>
+                                <label class="form-check-label" for="checkAdditionalDocs">
+                                    <small>✓ المستندات الإضافية (اختياري)</small>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Step 3 Checks -->
+                        <div id="step3Checks" class="d-none">
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="checkPayment" disabled>
+                                <label class="form-check-label" for="checkPayment">
+                                    <small>✓ اختيار طريقة الدفع</small>
+                                </label>
+                            </div>
+                        </div>
+
+                        <hr>
+                        
+                        <!-- Progress Summary -->
+                        <div class="text-center">
+                            <div class="progress mb-2" style="height: 25px;">
+                                <div class="progress-bar bg-success" id="progressBar" role="progressbar" 
+                                     style="width: 0%">0%</div>
+                            </div>
+                            <small class="text-muted">التقدم الكلي</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 2: Document Upload -->
+    <div class="step-content d-none" id="step2">
+        <div class="card shadow-custom">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-paperclip me-2"></i>
+                    رفع المستندات المطلوبة
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>تحذير أمني:</strong> 
+                    <ul class="mb-0 mt-2">
+                        <li>لا يُسمح بإدخال بيانات الهوية عبر WhatsApp أو أي تطبيق خارجي</li>
+                        <li>يجب رفع جميع المستندات من داخل النظام فقط</li>
+                        <li>تأكد من وضوح وجودة جميع المستندات</li>
+                    </ul>
+                </div>
+                
+                <div class="row">
+                    <!-- Emirates ID Image -->
+                    <div class="col-md-6 mb-4">
+                        <label class="form-label">صورة الهوية الإماراتية <span class="text-danger">*</span></label>
+                        <div class="upload-area" id="idImageUpload">
+                            <input type="file" class="form-control" id="idImage" name="idImage" 
+                                   accept="image/*" required>
+                            <div class="upload-preview mt-2" id="idImagePreview"></div>
+                        </div>
+                        <div class="form-text">
+                            <i class="fas fa-camera me-1"></i>
+                            يرجى رفع صورة واضحة للهوية الإماراتية (JPG, PNG)
+                        </div>
+                    </div>
+                    
+                    <!-- Additional Documents -->
+                    <div class="col-md-6 mb-4">
+                        <label class="form-label">مستندات إضافية (اختياري)</label>
+                        <div class="upload-area">
+                            <input type="file" class="form-control" id="additionalDocs" name="additional_docs" 
+                                   accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" multiple>
+                            <div class="upload-preview mt-2" id="additionalDocsPreview"></div>
+                        </div>
+                        <div class="form-text">
+                            <i class="fas fa-file-alt me-1"></i>
+                            يمكن رفع عدة مستندات مثل: شهادات، عقود، صور، ملفات PDF، إلخ
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Uploaded Files Summary -->
+                <div class="uploaded-files-summary" id="uploadedFilesSummary" style="display: none;">
+                    <h6><i class="fas fa-list me-2"></i>الملفات المرفوعة:</h6>
+                    <div id="filesList" class="list-group"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 3: Payment -->
+    <div class="step-content d-none" id="step3">
+        <div class="card shadow-custom">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-credit-card me-2"></i>
+                    الدفع والرسوم
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>تفاصيل الرسوم:</h6>
+                        <table class="table">
+                            <tr>
+                                <td>نوع الخدمة:</td>
+                                <td class="text-end"><strong id="serviceName">-</strong></td>
+                            </tr>
+                            <tr>
+                                <td>رسوم الخدمة:</td>
+                                <td class="text-end"><strong id="servicePrice">0 درهم</strong></td>
+                            </tr>
+                            <tr>
+                                <td>الضريبة (5%):</td>
+                                <td class="text-end"><strong id="taxAmount">0 درهم</strong></td>
+                            </tr>
+                            <tr class="table-active">
+                                <td><strong>المجموع الكلي:</strong></td>
+                                <td class="text-end"><strong class="text-primary fs-5" id="totalAmount">0 درهم</strong></td>
+                            </tr>
+                        </table>
+                        <div class="alert alert-info mt-3">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <small>الأسعار شاملة ضريبة القيمة المضافة (5%)</small>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>طرق الدفع (إجباري):</h6>
+                        <div class="payment-methods">
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="radio" name="paymentMethod" 
+                                       id="paytabs" value="paytabs" checked>
+                                <label class="form-check-label" for="paytabs">
+                                    <i class="fas fa-credit-card me-2"></i>
+                                    دفع إلكتروني (PayTabs) - <strong>متاح بالفعل</strong>
+                                </label>
+                                <div class="form-text text-success">
+                                    <i class="fas fa-check-circle"></i>
+                                    رابط آمن للدفع المركزي
+                                </div>
+                            </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="radio" name="paymentMethod" 
+                                       id="cash" value="cash">
+                                <label class="form-check-label" for="cash">
+                                    <i class="fas fa-money-bill-wave me-2"></i>
+                                    دفع نقدي (مع إيصال)
+                                </label>
+                                <div class="form-text text-info">
+                                    <i class="fas fa-info-circle"></i>
+                                    يُسجل مع رقم الإيصال فقط
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>مهم:</strong> لا يمكن إغلاق الطلب بدون تأكيد الدفع
+                        </div>
+                        
+                        <div class="cash-receipt d-none" id="cashReceipt">
+                            <label class="form-label">رقم الإيصال:</label>
+                            <input type="text" class="form-control" id="receiptNumber" name="receiptNumber"
+                                   placeholder="أدخل رقم الإيصال">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Buttons -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow-custom">
+                <div class="card-body text-center">
+                    <button type="button" class="btn btn-secondary me-2" id="prevBtn" onclick="changeStep(-1)" style="display: none;">
+                        <i class="fas fa-arrow-right me-1"></i>
+                        السابق
+                    </button>
+                    
+                    <button type="button" class="btn btn-primary" id="nextBtn" onclick="changeStep(1)">
+                        التالي
+                        <i class="fas fa-arrow-left me-1"></i>
+                    </button>
+                    
+                    <button type="submit" class="btn btn-success d-none" id="submitBtn">
+                        <i class="fas fa-check me-1"></i>
+                        إنشاء الطلب
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+{% block extra_css %}
+<style>
+    /* Document Upload Styles */
+    .upload-area {
+        border: 2px dashed #dee2e6;
+        border-radius: 0.375rem;
+        padding: 1rem;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+    
+    .upload-area:hover {
+        border-color: #007bff;
+        background-color: #f8f9ff;
+    }
+    
+    .upload-area.dragover {
+        border-color: #007bff;
+        background-color: #e3f2fd;
+    }
+    
+    .upload-preview img {
+        max-width: 100px;
+        max-height: 100px;
+        border-radius: 0.375rem;
+        margin: 0.25rem;
+        border: 1px solid #dee2e6;
+    }
+    
+    .file-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.5rem;
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        margin-bottom: 0.5rem;
+        background-color: #f8f9fa;
+    }
+    
+    .file-item .file-info {
+        display: flex;
+        align-items: center;
+    }
+    
+    .file-item .file-info i {
+        margin-right: 0.5rem;
+        color: #007bff;
+    }
+    
+    .file-item .file-actions {
+        display: flex;
+        gap: 0.25rem;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Simplified JavaScript for customer-specific request creation
+let currentStep = 1;
+const totalSteps = 3;
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Set today's date as default
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('requestDate').value = today;
+    
+    // Set minimum due date to tomorrow
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    document.getElementById('dueDate').min = tomorrow.toISOString().split('T')[0];
+    
+    // Update progress
+    updateProgress();
+    
+    // Request type change handler
+    document.getElementById('requestType').addEventListener('change', function() {
+        updateServiceInfo();
+        validateStep1();
+    });
+    
+    // Due date validation
+    document.getElementById('dueDate').addEventListener('change', function() {
+        validateDueDate();
+        validateStep1();
+    });
+    
+    // Payment method change
+    document.querySelectorAll('input[name="paymentMethod"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.value === 'cash') {
+                document.getElementById('cashReceipt').classList.remove('d-none');
+            } else {
+                document.getElementById('cashReceipt').classList.add('d-none');
+            }
+            validateStep3();
+        });
+    });
+    
+    // File upload handlers
+    setupFileUploads();
+});
+
+function changeStep(direction) {
+    if (direction === 1) {
+        // Next step
+        if (validateCurrentStep()) {
+            currentStep++;
+            showStep(currentStep);
+            updateProgress();
+        }
+    } else {
+        // Previous step
+        currentStep--;
+        showStep(currentStep);
+        updateProgress();
+    }
+}
+
+function showStep(step) {
+    // Hide all steps
+    document.querySelectorAll('.step-content').forEach(el => {
+        el.classList.add('d-none');
+    });
+    
+    // Show current step
+    document.getElementById(`step${step}`).classList.remove('d-none');
+    
+    // Update step indicators
+    document.querySelectorAll('.step-item').forEach((el, index) => {
+        if (index + 1 <= step) {
+            el.classList.add('active');
+        } else {
+            el.classList.remove('active');
+        }
+    });
+    
+    // Update checklist
+    updateChecklist(step);
+    
+    // Update navigation buttons
+    document.getElementById('prevBtn').style.display = step > 1 ? 'inline-block' : 'none';
+    document.getElementById('nextBtn').style.display = step < totalSteps ? 'inline-block' : 'none';
+    document.getElementById('submitBtn').style.display = step === totalSteps ? 'inline-block' : 'none';
+}
+
+function validateCurrentStep() {
+    switch (currentStep) {
+        case 1:
+            return validateStep1();
+        case 2:
+            return validateStep2();
+        case 3:
+            return validateStep3();
+        default:
+            return false;
+    }
+}
+
+function validateStep1() {
+    const requestType = document.getElementById('requestType').value;
+    const isValid = requestType !== '';
+    
+    document.getElementById('checkRequestType').checked = isValid;
+    
+    if (isValid) {
+        updateServiceInfo();
+    }
+    
+    return isValid;
+}
+
+function validateStep2() {
+    const idImage = document.getElementById('idImage').files.length > 0;
+    
+    document.getElementById('checkIdImage').checked = idImage;
+    document.getElementById('checkAdditionalDocs').checked = true; // Optional
+    
+    return idImage;
+}
+
+function validateStep3() {
+    const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+    let isValid = paymentMethod !== '';
+    
+    if (paymentMethod === 'cash') {
+        const receiptNumber = document.getElementById('receiptNumber').value.trim();
+        isValid = receiptNumber !== '';
+    }
+    
+    document.getElementById('checkPayment').checked = isValid;
+    
+    return isValid;
+}
+
+function validateDueDate() {
+    const dueDate = document.getElementById('dueDate').value;
+    if (dueDate) {
+        const selectedDate = new Date(dueDate);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        if (selectedDate <= today) {
+            alert('تاريخ الاستحقاق يجب أن يكون في المستقبل');
+            document.getElementById('dueDate').value = '';
+            return false;
+        }
+    }
+    return true;
+}
+
+function updateServiceInfo() {
+    const requestTypeSelect = document.getElementById('requestType');
+    const selectedOption = requestTypeSelect.options[requestTypeSelect.selectedIndex];
+    
+    if (selectedOption.value) {
+        const serviceName = selectedOption.text.split(' - ')[0];
+        const price = parseFloat(selectedOption.dataset.price) || 0;
+        const tax = price * 0.05;
+        const total = price + tax;
+        
+        document.getElementById('serviceName').textContent = serviceName;
+        document.getElementById('servicePrice').textContent = `${price.toFixed(2)} درهم`;
+        document.getElementById('taxAmount').textContent = `${tax.toFixed(2)} درهم`;
+        document.getElementById('totalAmount').textContent = `${total.toFixed(2)} درهم`;
+    }
+}
+
+function updateChecklist(step) {
+    // Hide all step checks
+    document.querySelectorAll('[id$="Checks"]').forEach(el => {
+        el.classList.add('d-none');
+    });
+    
+    // Show current step checks
+    document.getElementById(`step${step}Checks`).classList.remove('d-none');
+    
+    // Update step number
+    document.getElementById('currentStepNum').textContent = step;
+}
+
+function updateProgress() {
+    const progress = (currentStep / totalSteps) * 100;
+    const progressBar = document.getElementById('progressBar');
+    progressBar.style.width = `${progress}%`;
+    progressBar.textContent = `${Math.round(progress)}%`;
+}
+
+function setupFileUploads() {
+    // ID Image upload
+    document.getElementById('idImage').addEventListener('change', function() {
+        handleFileUpload(this, 'idImagePreview');
+        validateStep2();
+    });
+    
+    // Additional documents upload
+    document.getElementById('additionalDocs').addEventListener('change', function() {
+        handleFileUpload(this, 'additionalDocsPreview', true);
+    });
+}
+
+function handleFileUpload(input, previewId, isMultiple = false) {
+    const preview = document.getElementById(previewId);
+    preview.innerHTML = '';
+    
+    const files = input.files;
+    
+    for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            if (file.type.startsWith('image/')) {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.className = 'img-thumbnail me-2';
+                img.style.maxWidth = '100px';
+                img.style.maxHeight = '100px';
+                preview.appendChild(img);
+            } else {
+                const div = document.createElement('div');
+                div.className = 'alert alert-info d-inline-block me-2';
+                div.innerHTML = `<i class="fas fa-file me-1"></i>${file.name}`;
+                preview.appendChild(div);
+            }
+        };
+        
+        reader.readAsDataURL(file);
+    }
+    
+    // Show files summary
+    if (files.length > 0) {
+        document.getElementById('uploadedFilesSummary').style.display = 'block';
+        updateFilesList();
+    }
+}
+
+function updateFilesList() {
+    const filesList = document.getElementById('filesList');
+    filesList.innerHTML = '';
+    
+    // ID Image
+    const idImage = document.getElementById('idImage').files[0];
+    if (idImage) {
+        const item = createFileItem(idImage, 'صورة الهوية');
+        filesList.appendChild(item);
+    }
+    
+    // Additional documents
+    const additionalDocs = document.getElementById('additionalDocs').files;
+    for (let i = 0; i < additionalDocs.length; i++) {
+        const item = createFileItem(additionalDocs[i], 'مستند إضافي');
+        filesList.appendChild(item);
+    }
+}
+
+function createFileItem(file, category) {
+    const div = document.createElement('div');
+    div.className = 'file-item';
+    div.innerHTML = `
+        <div class="file-info">
+            <i class="fas fa-file me-2"></i>
+            <span>${file.name}</span>
+            <small class="text-muted ms-2">(${category})</small>
+        </div>
+        <div class="file-actions">
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeFile(this)">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+    `;
+    return div;
+}
+
+function removeFile(button) {
+    button.closest('.file-item').remove();
+    // Note: This is just UI removal. Actual file removal would need more complex logic.
+}
+</script>
+{% endblock %}
+{% endblock content %}

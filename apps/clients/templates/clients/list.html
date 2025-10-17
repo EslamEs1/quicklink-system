@@ -196,7 +196,7 @@
                                                 <a href="{% url 'requests:list' %}?customer_id={{ customer.id }}" class="btn btn-action btn-info" title="طلبات العميل">
                                                     <i class="fas fa-list"></i>
                                                 </a>
-                                                <a href="{% url 'requests:create' %}?customer_id={{ customer.id }}" class="btn btn-action btn-success" title="إنشاء طلب جديد">
+                                                <a href="{% url 'requests:create_for_customer' customer.id %}" class="btn btn-action btn-success" title="طلب جديد">
                                                     <i class="fas fa-plus"></i>
                                                 </a>
                                                 <a href="{% url 'clients:delete' customer.id %}" class="btn btn-action btn-danger" title="حذف العميل">

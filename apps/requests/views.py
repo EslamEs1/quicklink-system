@@ -313,15 +313,6 @@ def create(request):
     customers = Customer.objects.filter(is_active=True).order_by('-updated_at')[:50]
     templates = Template.objects.filter(is_active=True, is_published=True).order_by('template_type', 'name')
     
-    # التحقق من وجود customer_id في URL
-    selected_customer_id = request.GET.get('customer_id')
-    selected_customer = None
-    if selected_customer_id:
-        try:
-            selected_customer = Customer.objects.get(id=selected_customer_id, is_active=True)
-        except Customer.DoesNotExist:
-            selected_customer = None
-    
     # إنشاء قوالب تجريبية إذا لم توجد
     if not templates.exists():
         from apps.requests.models import TemplateType
@@ -377,8 +368,6 @@ def create(request):
         'customers': customers,
         'request_types': request_types,
         'reference_number': reference_number,  # Pass to template
-        'selected_customer': selected_customer,  # العميل المحدد من URL
-        'selected_customer_id': selected_customer_id,  # ID للاستخدام في JavaScript
     }
     return render(request, 'requests/create.html', context)
 
@@ -1411,3 +1400,153 @@ def reject(request, pk):
     
     # إذا لم يكن POST، توجيه للصفحة المعلقة
     return redirect('requests:pending')
+
+
+# @login_required
+def create_for_customer(request, customer_id):
+    """إنشاء طلب جديد للعميل الموجود"""
+    customer = get_object_or_404(Customer, pk=customer_id, is_active=True)
+    
+    if request.method == 'POST':
+        try:
+            # الحصول على نوع الطلب
+            request_type_id = request.POST.get('request_type_id')
+            payment_method = request.POST.get('paymentMethod', 'paytabs')
+            
+            # التحقق من وجود نوع الطلب
+            if not request_type_id:
+                messages.error(request, 'يرجى اختيار نوع الطلب')
+                return render(request, 'requests/create_for_customer.html', {
+                    'page_title': f'إنشاء طلب جديد للعميل: {customer.full_name}',
+                    'customer': customer,
+                    'request_types': RequestType.objects.filter(is_active=True).select_related('category').order_by('category__display_order', 'display_order'),
+                    'reference_number': _generate_reference_number(),
+                })
+            
+            request_type_instance = get_object_or_404(RequestType, pk=request_type_id)
+            
+            # الحصول على الأولوية وتاريخ الاستحقاق
+            priority = request.POST.get('priority', 'medium')
+            due_date = request.POST.get('due_date', None)
+            
+            # التحقق من تاريخ الاستحقاق (يجب أن يكون في المستقبل)
+            if due_date:
+                from datetime import date
+                due_date_obj = datetime.strptime(due_date, '%Y-%m-%d').date()
+                today = date.today()
+                if due_date_obj <= today:
+                    messages.error(request, 'تاريخ الاستحقاق يجب أن يكون في المستقبل، وليس اليوم أو أيام ماضية.')
+                    return render(request, 'requests/create_for_customer.html', {
+                        'page_title': f'إنشاء طلب جديد للعميل: {customer.full_name}',
+                        'customer': customer,
+                        'request_types': RequestType.objects.filter(is_active=True).select_related('category').order_by('category__display_order', 'display_order'),
+                        'reference_number': _generate_reference_number(),
+                    })
+            
+            # إنشاء الطلب (السعر سيتم تحديده تلقائياً في save())
+            new_request = Request.objects.create(
+                customer=customer,
+                request_type=request_type_instance,
+                priority=priority,
+                due_date=due_date if due_date else None,
+                payment_method=payment_method,
+                description=request.POST.get('description', ''),
+                notes=request.POST.get('notes', ''),
+                created_by=request.user if request.user.is_authenticated else None,
+            )
+            
+            # التحقق من وجود قالب مناسب بعد الاختيار التلقائي
+            if not new_request.template_selected:
+                messages.error(request, 
+                    '⚠️ لم يتم العثور على قالب قانوني مناسب لهذا النوع من الطلبات. '
+                    'الرجاء مراجعة المشرف لإضافة قالب جديد أو اختيار قالب يدوياً.'
+                )
+                # حذف الطلب إذا لم يتم العثور على قالب
+                new_request.delete()
+                return render(request, 'requests/create_for_customer.html', {
+                    'page_title': f'إنشاء طلب جديد للعميل: {customer.full_name}',
+                    'customer': customer,
+                    'request_types': RequestType.objects.filter(is_active=True).select_related('category').order_by('category__display_order', 'display_order'),
+                    'reference_number': _generate_reference_number(),
+                })
+            
+            # معالجة المرفقات
+            from apps.core_utils.models import Attachment
+            
+            # حفظ صورة الهوية
+            if request.FILES.get('idImage'):
+                id_image = request.FILES['idImage']
+                attachment = Attachment.objects.create(
+                    request=new_request,
+                    file=id_image,
+                    file_name=id_image.name,
+                    file_size=id_image.size,
+                    file_type=id_image.content_type,
+                    category='identity',
+                    description='صورة الهوية الإماراتية',
+                    uploaded_by=request.user if request.user.is_authenticated else None
+                )
+            
+            # حفظ المستندات الإضافية
+            additional_docs = request.FILES.getlist('additional_docs')
+            for doc in additional_docs:
+                attachment = Attachment.objects.create(
+                    request=new_request,
+                    file=doc,
+                    file_name=doc.name,
+                    file_size=doc.size,
+                    file_type=doc.content_type,
+                    category='other',
+                    description=f'مستند إضافي: {doc.name}',
+                    uploaded_by=request.user if request.user.is_authenticated else None
+                )
+            
+            # معالجة الدفع
+            if payment_method == 'cash':
+                receipt_number = request.POST.get('receiptNumber', '')
+                # يمكن إنشاء سجل دفع هنا
+                from apps.payments.models import Payment
+                Payment.objects.create(
+                    request=new_request,
+                    amount=new_request.total_amount,
+                    payment_method='cash',
+                    receipt_number=receipt_number,
+                    status='pending'
+                )
+            
+            # رسالة نجاح مع تفاصيل القالب والسعر
+            template_info = ""
+            if new_request.template:
+                template_info = f" مع القالب المحدد تلقائياً: {new_request.template.name}"
+            
+            # معلومات السعر
+            price_info = f" - السعر: {new_request.total_amount:.2f} درهم"
+            
+            messages.success(request, f'✅ تم إنشاء الطلب بنجاح للعميل "{customer.full_name}"! الرقم المرجعي: {new_request.reference_number}{template_info}{price_info}')
+            
+            # إعادة التوجيه إلى صفحة تفاصيل الطلب
+            return redirect('requests:detail', pk=new_request.pk)
+            
+        except Exception as e:
+            # رسائل خطأ أكثر وضوحاً
+            error_message = str(e)
+            messages.error(request, f'❌ حدث خطأ أثناء إنشاء الطلب: {error_message}')
+            
+            return render(request, 'requests/create_for_customer.html', {
+                'page_title': f'إنشاء طلب جديد للعميل: {customer.full_name}',
+                'customer': customer,
+                'request_types': RequestType.objects.filter(is_active=True).select_related('category').order_by('category__display_order', 'display_order'),
+                'reference_number': _generate_reference_number(),
+            })
+    
+    # GET request - عرض النموذج
+    request_types = RequestType.objects.filter(is_active=True).select_related('category').order_by('category__display_order', 'display_order')
+    reference_number = _generate_reference_number()
+    
+    context = {
+        'page_title': f'إنشاء طلب جديد للعميل: {customer.full_name}',
+        'customer': customer,
+        'request_types': request_types,
+        'reference_number': reference_number,
+    }
+    return render(request, 'requests/create_for_customer.html', context)

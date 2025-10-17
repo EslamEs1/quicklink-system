@@ -6,6 +6,7 @@ app_name = 'requests'
 urlpatterns = [
     path('', views.dashboard, name='dashboard'),
     path('requests/create/', views.create, name='create'),
+    path('requests/create-for-customer/<int:customer_id>/', views.create_for_customer, name='create_for_customer'),
     path('requests/list/', views.list, name='list'),
     path('requests/<int:pk>/', views.detail, name='detail'),
     path('requests/<int:pk>/edit/', views.edit, name='edit'),
