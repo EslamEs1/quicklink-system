@@ -332,312 +332,264 @@
 
 {% block extra_js %}
 <script>
-// Initialize filters when page loads
-document.addEventListener('DOMContentLoaded', function() {
-    initializeFilters();
-    applyFilters();
-});
+// Payment List Functions
+function processNewPayment() {
+    // Redirect to requests list to select a request for payment
+    window.location.href = "{% url 'requests:list' %}";
+}
 
-// Clear all filters function
 function clearPaymentFilters() {
-    // Clear input fields
     document.getElementById('paymentSearchInput').value = '';
     document.getElementById('paymentStatusFilter').value = 'all';
     document.getElementById('gatewayFilter').value = 'all';
     document.getElementById('startDateFilter').value = '';
     document.getElementById('endDateFilter').value = '';
     
-    // Apply cleared filters
-    applyFilters();
+    // Apply filters (reload table)
+    applyPaymentFilters();
+}
+
+function applyPaymentFilters() {
+    // This would typically make an AJAX request to filter the table
+    // For now, we'll just reload the page with filters
+    const search = document.getElementById('paymentSearchInput').value;
+    const status = document.getElementById('paymentStatusFilter').value;
+    const gateway = document.getElementById('gatewayFilter').value;
+    const startDate = document.getElementById('startDateFilter').value;
+    const endDate = document.getElementById('endDateFilter').value;
     
-    // Show success message
-    showAlert('تم مسح جميع الفلاتر', 'success');
+    let url = window.location.pathname + '?';
+    const params = [];
+    
+    if (search) params.push('search=' + encodeURIComponent(search));
+    if (status !== 'all') params.push('status=' + encodeURIComponent(status));
+    if (gateway !== 'all') params.push('gateway=' + encodeURIComponent(gateway));
+    if (startDate) params.push('start_date=' + encodeURIComponent(startDate));
+    if (endDate) params.push('end_date=' + encodeURIComponent(endDate));
+    
+    if (params.length > 0) {
+        url += params.join('&');
+        window.location.href = url;
+    } else {
+        window.location.reload();
+    }
 }
 
-// Process new payment function
-function processNewPayment() {
-    // Redirect to requests list to select a request for payment
-    window.location.href = '{% url "requests:list" %}?status=approved';
-}
-
-// View payment details function
 function viewPaymentDetails(paymentId) {
-    // For now, show an alert - you can implement a modal or redirect to detail page
-    showAlert('عرض تفاصيل الدفعة رقم: ' + paymentId, 'info');
+    // Show payment details modal or redirect to details page
+    window.location.href = `/payments/${paymentId}/details/`;
 }
 
-// Print receipt function
 function printReceipt(paymentId) {
-    // Create print window
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(`
-        <html>
-            <head>
-                <title>طباعة الإيصال</title>
-                <style>
-                    body { font-family: Arial, sans-serif; direction: rtl; }
-                    .receipt { width: 300px; margin: 20px auto; }
-                    .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; }
-                    .item { display: flex; justify-content: space-between; margin: 5px 0; }
-                    .total { border-top: 1px solid #000; padding-top: 10px; font-weight: bold; }
-                </style>
-            </head>
-            <body>
-                <div class="receipt">
-                    <div class="header">
-                        <h2>إيصال دفع</h2>
-                        <p>رقم العملية: PAY-${paymentId}</p>
-                    </div>
-                    <div class="item">
-                        <span>المبلغ:</span>
-                        <span>درهم</span>
-                    </div>
-                    <div class="total">
-                        <span>إجمالي:</span>
-                        <span>درهم</span>
-                    </div>
-                    <p style="text-align: center; margin-top: 20px;">شكراً لك!</p>
-                </div>
-            </body>
-        </html>
-    `);
-    printWindow.document.close();
-    printWindow.print();
-    
-    showAlert('تم إرسال الإيصال للطباعة', 'success');
+    // Print payment receipt
+    window.open(`/payments/${paymentId}/receipt/`, '_blank');
 }
 
-// Send payment email function
 function sendPaymentEmail(paymentId) {
-    if (confirm('هل تريد إرسال إيصال الدفع عبر البريد الإلكتروني؟')) {
-        showAlert('تم إرسال الإيصال بنجاح', 'success');
+    // Send payment email to customer
+    if (confirm('هل تريد إرسال إيصال الدفع بالبريد الإلكتروني للعميل؟')) {
+        fetch(`/payments/${paymentId}/send-email/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert('تم إرسال الإيصال بالبريد الإلكتروني بنجاح!', 'success');
+            } else {
+                showAlert('حدث خطأ أثناء إرسال البريد الإلكتروني', 'error');
+            }
+        })
+        .catch(error => {
+            showAlert('حدث خطأ أثناء إرسال البريد الإلكتروني', 'error');
+        });
     }
 }
 
-// Confirm payment function
 function confirmPayment(paymentId) {
-    if (confirm('هل أنت متأكد من تأكيد هذه الدفعة؟')) {
-        // Here you would make an AJAX request to confirm the payment
-        showAlert('تم تأكيد الدفعة بنجاح', 'success');
-        // Reload page to update status
-        setTimeout(() => {
-            location.reload();
-        }, 1500);
+    // Confirm pending payment
+    if (confirm('هل تريد تأكيد هذه الدفعة المعلقة؟')) {
+        fetch(`/payments/${paymentId}/confirm/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert('تم تأكيد الدفعة بنجاح!', 'success');
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                showAlert('حدث خطأ أثناء تأكيد الدفعة', 'error');
+            }
+        })
+        .catch(error => {
+            showAlert('حدث خطأ أثناء تأكيد الدفعة', 'error');
+        });
     }
 }
 
-// Cancel payment function
 function cancelPayment(paymentId) {
-    if (confirm('هل أنت متأكد من إلغاء هذه الدفعة؟')) {
-        // Here you would make an AJAX request to cancel the payment
-        showAlert('تم إلغاء الدفعة', 'warning');
-        // Reload page to update status
-        setTimeout(() => {
-            location.reload();
-        }, 1500);
+    // Cancel pending payment
+    if (confirm('هل تريد إلغاء هذه الدفعة المعلقة؟')) {
+        fetch(`/payments/${paymentId}/cancel/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert('تم إلغاء الدفعة بنجاح!', 'success');
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                showAlert('حدث خطأ أثناء إلغاء الدفعة', 'error');
+            }
+        })
+        .catch(error => {
+            showAlert('حدث خطأ أثناء إلغاء الدفعة', 'error');
+        });
     }
 }
 
-// Retry payment function
 function retryPayment(paymentId) {
-    if (confirm('هل تريد إعادة محاولة الدفع لهذه العملية؟')) {
-        showAlert('جارٍ إعادة المحاولة...', 'info');
-        // Here you would implement retry logic
+    // Retry failed payment
+    if (confirm('هل تريد إعادة محاولة هذه الدفعة الفاشلة؟')) {
+        fetch(`/payments/${paymentId}/retry/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert('تم إعادة محاولة الدفعة بنجاح!', 'success');
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                showAlert('حدث خطأ أثناء إعادة محاولة الدفعة', 'error');
+            }
+        })
+        .catch(error => {
+            showAlert('حدث خطأ أثناء إعادة محاولة الدفعة', 'error');
+        });
     }
 }
 
-// Contact customer function
 function contactCustomer(customerId) {
-    // For now, show alert - you can implement chat or contact functionality later
-    showAlert('فتح صفحة التواصل مع العميل رقم: ' + customerId, 'info');
-    // Future implementation: window.location.href = '/chat/?customer=' + customerId;
+    // Contact customer (redirect to customer details or WhatsApp)
+    window.location.href = `/clients/${customerId}/`;
 }
 
-// Export payments to Excel function
 function exportPaymentsToExcel() {
+    // Export payments to Excel
     const table = document.getElementById('paymentsTable');
     const rows = Array.from(table.querySelectorAll('tr'));
+    let csv = '';
     
-    let csvContent = '';
     rows.forEach(row => {
-        const cells = Array.from(row.querySelectorAll('td, th'));
+        const cells = Array.from(row.querySelectorAll('th, td'));
         const rowData = cells.map(cell => {
-            // Remove action buttons from export
-            if (cell.querySelector('.btn-group')) {
-                return '';
-            }
-            return cell.textContent.trim().replace(/"/g, '""');
-        }).filter(cell => cell !== '');
-        
-        csvContent += rowData.map(cell => `"${cell}"`).join(',') + '\n';
+            let text = cell.innerText || cell.textContent;
+            text = text.replace(/"/g, '""');
+            return `"${text}"`;
+        });
+        csv += rowData.join(',') + '\n';
     });
     
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
-    link.setAttribute('download', 'payments_export.csv');
+    link.setAttribute('download', `payments_${new Date().toISOString().split('T')[0]}.csv`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     
-    showAlert('تم تصدير البيانات إلى Excel', 'success');
+    showAlert('تم تصدير البيانات إلى ملف Excel بنجاح!', 'success');
 }
 
-// Print payment report function
 function printPaymentReport() {
-    const table = document.getElementById('paymentsTable');
-    const printWindow = window.open('', '_blank');
-    
-    printWindow.document.write(`
-        <html>
-            <head>
-                <title>تقرير المدفوعات</title>
-                <style>
-                    body { font-family: Arial, sans-serif; direction: rtl; }
-                    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-                    th, td { border: 1px solid #ddd; padding: 8px; text-align: right; }
-                    th { background-color: #f2f2f2; font-weight: bold; }
-                    .btn-group { display: none; }
-                </style>
-            </head>
-            <body>
-                <h2>تقرير المدفوعات</h2>
-                <p>تاريخ الطباعة: ${new Date().toLocaleDateString('ar-AE')}</p>
-                ${table.outerHTML}
-            </body>
-        </html>
-    `);
-    
-    printWindow.document.close();
-    printWindow.print();
-    
-    showAlert('تم إرسال التقرير للطباعة', 'info');
+    // Print payment report
+    window.print();
 }
 
-// Show alert function
 function showAlert(message, type) {
+    // Create and show alert
     const alertDiv = document.createElement('div');
-    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show`;
     alertDiv.innerHTML = `
         ${message}
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     `;
     
-    const container = document.querySelector('.main-content');
+    // Insert at top of page
+    const container = document.querySelector('.container-fluid');
     container.insertBefore(alertDiv, container.firstChild);
     
-    // Auto-dismiss after 3 seconds
+    // Auto remove after 5 seconds
     setTimeout(() => {
         if (alertDiv.parentNode) {
             alertDiv.remove();
         }
-    }, 3000);
+    }, 5000);
 }
 
-// Filter functions (similar to list-functions.js)
-let currentFilters = {
-    search: '',
-    status: 'all',
-    gateway: 'all',
-    startDate: '',
-    endDate: ''
-};
-
-function initializeFilters() {
-    // Search filter
-    const searchInput = document.getElementById('paymentSearchInput');
-    if (searchInput) {
-        searchInput.addEventListener('input', function() {
-            currentFilters.search = this.value.toLowerCase();
-            applyFilters();
-        });
+// Add event listeners for filters
+document.addEventListener('DOMContentLoaded', function() {
+    // Add CSRF token to page if not exists
+    if (!document.querySelector('[name=csrfmiddlewaretoken]')) {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        if (csrfToken) {
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrfmiddlewaretoken';
+            csrfInput.value = csrfToken;
+            document.body.appendChild(csrfInput);
+        }
     }
-
-    // Status filter
-    const statusFilter = document.getElementById('paymentStatusFilter');
-    if (statusFilter) {
-        statusFilter.addEventListener('change', function() {
-            currentFilters.status = this.value;
-            applyFilters();
-        });
-    }
-
-    // Gateway filter
-    const gatewayFilter = document.getElementById('gatewayFilter');
-    if (gatewayFilter) {
-        gatewayFilter.addEventListener('change', function() {
-            currentFilters.gateway = this.value;
-            applyFilters();
-        });
-    }
-
-    // Date filters
-    const startDateFilter = document.getElementById('startDateFilter');
-    if (startDateFilter) {
-        startDateFilter.addEventListener('change', function() {
-            currentFilters.startDate = this.value;
-            applyFilters();
-        });
-    }
-
-    const endDateFilter = document.getElementById('endDateFilter');
-    if (endDateFilter) {
-        endDateFilter.addEventListener('change', function() {
-            currentFilters.endDate = this.value;
-            applyFilters();
-        });
-    }
-}
-
-function applyFilters() {
-    const table = document.getElementById('paymentsTable');
-    const rows = table.querySelectorAll('tbody tr');
     
-    rows.forEach(row => {
-        const cells = Array.from(row.querySelectorAll('td'));
-        let showRow = true;
-        
-        // Search filter
-        if (currentFilters.search) {
-            const rowText = row.textContent.toLowerCase();
-            if (!rowText.includes(currentFilters.search)) {
-                showRow = false;
+    // Add event listeners for filter inputs
+    const filterInputs = [
+        'paymentSearchInput',
+        'paymentStatusFilter', 
+        'gatewayFilter',
+        'startDateFilter',
+        'endDateFilter'
+    ];
+    
+    filterInputs.forEach(inputId => {
+        const input = document.getElementById(inputId);
+        if (input) {
+            if (input.type === 'text') {
+                input.addEventListener('input', debounce(applyPaymentFilters, 500));
+            } else {
+                input.addEventListener('change', applyPaymentFilters);
             }
         }
-        
-        // Status filter
-        if (currentFilters.status && currentFilters.status !== 'all') {
-            const statusCell = Array.from(cells).find(cell => {
-                return cell.querySelector('.badge');
-            });
-            
-            if (statusCell) {
-                const statusText = statusCell.textContent.toLowerCase();
-                if (!statusText.includes(currentFilters.status.toLowerCase())) {
-                    showRow = false;
-                }
-            }
-        }
-        
-        // Gateway filter
-        if (currentFilters.gateway && currentFilters.gateway !== 'all') {
-            const gatewayCell = Array.from(cells).find(cell => {
-                return cell.querySelector('.badge');
-            });
-            
-            if (gatewayCell) {
-                const gatewayText = gatewayCell.textContent.toLowerCase();
-                if (!gatewayText.includes(currentFilters.gateway.toLowerCase())) {
-                    showRow = false;
-                }
-            }
-        }
-        
-        // Show/hide row
-        row.style.display = showRow ? '' : 'none';
     });
+});
+
+// Debounce function for search input
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
 }
 </script>
-{% endblock %}
+{% endblock extra_js %}
